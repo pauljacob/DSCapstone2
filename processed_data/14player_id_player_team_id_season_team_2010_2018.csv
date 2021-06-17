@@ -2894,24 +2894,14 @@ PLAYER_ID,player,team_id,Team,season
 2306.0,Carlos Arroyo,1610612748,Heat,2010-11
 2592.0,James Jones,1610612748,Heat,2010-11
 1710.0,Mike Bibby,1610612748,Heat,2010-11
-202337.0,Luke Babbitt,1610612757,Blazers,2010-11
-201988.0,Patty Mills,1610612757,Blazers,2010-11
-202343.0,Elliot Williams,1610612757,Blazers,2010-11
-201164.0,Rudy Fernandez,1610612757,Blazers,2010-11
-2038.0,Joel Przybilla,1610612757,Blazers,2010-11
-200750.0,Brandon Roy,1610612757,Blazers,2010-11
-1752.0,Sean Marks,1610612757,Blazers,2010-11
-202356.0,Armon Johnson,1610612757,Blazers,2010-11
-1889.0,Andre Miller,1610612757,Blazers,2010-11
-201587.0,Nicolas Batum,1610612757,Blazers,2010-11
-948.0,Marcus Camby,1610612757,Blazers,2010-11
-202419.0,Chris Johnson,1610612757,Blazers,2010-11
-201141.0,Greg Oden,1610612757,Blazers,2010-11
-201967.0,Dante Cunningham,1610612757,Blazers,2010-11
-2260.0,Jarron Collins,1610612757,Blazers,2010-11
-200746.0,LaMarcus Aldridge,1610612757,Blazers,2010-11
-2222.0,Gerald Wallace,1610612757,Blazers,2010-11
-2853.0,Earl Barron,1610612757,Blazers,2010-11
+201164.0,Rudy Fernandez,1610612757,Trail Blazers,2010-11
+1752.0,Sean Marks,1610612757,Trail Blazers,2010-11
+1889.0,Andre Miller,1610612757,Trail Blazers,2010-11
+202419.0,Chris Johnson,1610612757,Trail Blazers,2010-11
+201967.0,Dante Cunningham,1610612757,Trail Blazers,2010-11
+2260.0,Jarron Collins,1610612757,Trail Blazers,2010-11
+200746.0,LaMarcus Aldridge,1610612757,Trail Blazers,2010-11
+2853.0,Earl Barron,1610612757,Trail Blazers,2010-11
 201947.0,Earl Clark,1610612756,Suns,2010-11
 959.0,Steve Nash,1610612756,Suns,2010-11
 2853.0,Earl Barron,1610612756,Suns,2010-11
@@ -3123,23 +3113,13 @@ PLAYER_ID,player,team_id,Team,season
 2566.0,Travis Outlaw,1610612758,Kings,2011-12
 202738.0,Isaiah Thomas,1610612758,Kings,2011-12
 202690.0,Jimmer Fredette,1610612758,Kings,2011-12
-202337.0,Luke Babbitt,1610612757,Blazers,2011-12
-200783.0,Craig Smith,1610612757,Blazers,2011-12
-202343.0,Elliot Williams,1610612757,Blazers,2011-12
-202419.0,Chris Johnson,1610612757,Blazers,2011-12
-202701.0,Nolan Smith,1610612757,Blazers,2011-12
-948.0,Marcus Camby,1610612757,Blazers,2011-12
-202356.0,Armon Johnson,1610612757,Blazers,2011-12
-2222.0,Gerald Wallace,1610612757,Blazers,2011-12
-2037.0,Jamal Crawford,1610612757,Blazers,2011-12
-201938.0,Jonny Flynn,1610612757,Blazers,2011-12
-201934.0,Hasheem Thabeet,1610612757,Blazers,2011-12
-201581.0,JJ Hickson,1610612757,Blazers,2011-12
-101109.0,Raymond Felton,1610612757,Blazers,2011-12
-703.0,Kurt Thomas,1610612757,Blazers,2011-12
-200746.0,LaMarcus Aldridge,1610612757,Blazers,2011-12
-2038.0,Joel Przybilla,1610612757,Blazers,2011-12
-201587.0,Nicolas Batum,1610612757,Blazers,2011-12
+200783.0,Craig Smith,1610612757,Trail Blazers,2011-12
+202701.0,Nolan Smith,1610612757,Trail Blazers,2011-12
+2222.0,Gerald Wallace,1610612757,Trail Blazers,2011-12
+2037.0,Jamal Crawford,1610612757,Trail Blazers,2011-12
+201938.0,Jonny Flynn,1610612757,Trail Blazers,2011-12
+201934.0,Hasheem Thabeet,1610612757,Trail Blazers,2011-12
+201581.0,JJ Hickson,1610612757,Trail Blazers,2011-12
 1499.0,Tony Battie,1610612755,76ers,2011-12
 2804.0,Andres Nocioni,1610612755,76ers,2011-12
 201578.0,Marreese Speights,1610612755,76ers,2011-12
@@ -3320,19 +3300,7 @@ PLAYER_ID,player,team_id,Team,season
 2037.0,Jamal Crawford,1610612746,Clippers,2012-13
 101108.0,Chris Paul,1610612746,Clippers,2012-13
 201933.0,Blake Griffin,1610612746,Clippers,2012-13
-202337.0,Luke Babbitt,1610612757,Blazers,2012-13
-203115.0,Will Barton,1610612757,Blazers,2012-13
-201964.0,Victor Claver,1610612757,Blazers,2012-13
-200777.0,Joel Freeland,1610612757,Blazers,2012-13
-202701.0,Nolan Smith,1610612757,Blazers,2012-13
-2407.0,Jared Jeffries,1610612757,Blazers,2012-13
-200746.0,LaMarcus Aldridge,1610612757,Blazers,2012-13
-2562.0,Sasha Pavlovic,1610612757,Blazers,2012-13
-101179.0,Ronnie Price,1610612757,Blazers,2012-13
-202083.0,Wesley Matthews,1610612757,Blazers,2012-13
-203086.0,Meyers Leonard,1610612757,Blazers,2012-13
-202343.0,Elliot Williams,1610612757,Blazers,2012-13
-201581.0,JJ Hickson,1610612757,Blazers,2012-13
+202337.0,Luke Babbitt,1610612757,Trail Blazers,2012-13
 201228.0,C.J. Watson,1610612751,Nets,2012-13
 467.0,Jason Kidd,1610612752,Knicks,2012-13
 200778.0,James White,1610612752,Knicks,2012-13
@@ -3573,17 +3541,8 @@ PLAYER_ID,player,team_id,Team,season
 201203.0,Mustafa Shakur,1610612760,Thunder,2013-14
 203087.0,Jeremy Lamb,1610612760,Thunder,2013-14
 203500.0,Steven Adams,1610612760,Thunder,2013-14
-203115.0,Will Barton,1610612757,Blazers,2013-14
-201964.0,Victor Claver,1610612757,Blazers,2013-14
-203459.0,Allen Crabbe,1610612757,Blazers,2013-14
-203086.0,Meyers Leonard,1610612757,Blazers,2013-14
-2248.0,Earl Watson,1610612757,Blazers,2013-14
-2590.0,Mo Williams,1610612757,Blazers,2013-14
-203080.0,Thomas Robinson,1610612757,Blazers,2013-14
-203468.0,CJ McCollum,1610612757,Blazers,2013-14
-2748.0,Dorell Wright,1610612757,Blazers,2013-14
-200746.0,LaMarcus Aldridge,1610612757,Blazers,2013-14
-200777.0,Joel Freeland,1610612757,Blazers,2013-14
+203115.0,Will Barton,1610612757,Trail Blazers,2013-14
+2748.0,Dorell Wright,1610612757,Trail Blazers,2013-14
 202091.0,Dionte Christmas,1610612756,Suns,2013-14
 203139.0,Viacheslav Kravtsov,1610612756,Suns,2013-14
 202693.0,Markieff Morris,1610612756,Suns,2013-14
@@ -3795,21 +3754,8 @@ PLAYER_ID,player,team_id,Team,season
 204065.0,David Stockton,1610612758,Kings,2014-15
 204033.0,David Wear,1610612758,Kings,2014-15
 204021.0,Sim Bhullar,1610612758,Kings,2014-15
-203115.0,Will Barton,1610612757,Blazers,2014-15
-203459.0,Allen Crabbe,1610612757,Blazers,2014-15
-203080.0,Thomas Robinson,1610612757,Blazers,2014-15
-203086.0,Meyers Leonard,1610612757,Blazers,2014-15
-2748.0,Dorell Wright,1610612757,Blazers,2014-15
-200777.0,Joel Freeland,1610612757,Blazers,2014-15
-201964.0,Victor Claver,1610612757,Blazers,2014-15
-2549.0,Chris Kaman,1610612757,Blazers,2014-15
-200746.0,LaMarcus Aldridge,1610612757,Blazers,2014-15
-201587.0,Nicolas Batum,1610612757,Blazers,2014-15
-203468.0,CJ McCollum,1610612757,Blazers,2014-15
-202087.0,Alonzo Gee,1610612757,Blazers,2014-15
-204025.0,Tim Frazier,1610612757,Blazers,2014-15
-2581.0,Steve Blake,1610612757,Blazers,2014-15
-201167.0,Arron Afflalo,1610612757,Blazers,2014-15
+203080.0,Thomas Robinson,1610612757,Trail Blazers,2014-15
+2581.0,Steve Blake,1610612757,Trail Blazers,2014-15
 201202.0,Joel Anthony,1610612765,Pistons,2015-16
 2581.0,Steve Blake,1610612765,Pistons,2015-16
 203382.0,Aron Baynes,1610612765,Pistons,2015-16
@@ -3955,16 +3901,10 @@ PLAYER_ID,player,team_id,Team,season
 201980.0,Danny Green,1610612759,Spurs,2015-16
 201988.0,Patty Mills,1610612759,Spurs,2015-16
 2755.0,Kevin Martin,1610612759,Spurs,2015-16
-1626192.0,Pat Connaughton,1610612757,Blazers,2015-16
-204025.0,Tim Frazier,1610612757,Blazers,2015-16
-2549.0,Chris Kaman,1610612757,Blazers,2015-16
-1626242.0,Luis Montero,1610612757,Blazers,2015-16
-1626146.0,Cliff Alexander,1610612757,Blazers,2015-16
-201945.0,Gerald Henderson,1610612757,Blazers,2015-16
-203090.0,Maurice Harkless,1610612757,Blazers,2015-16
-203943.0,Noah Vonleh,1610612757,Blazers,2015-16
-203148.0,Brian Roberts,1610612757,Blazers,2015-16
-203086.0,Meyers Leonard,1610612757,Blazers,2015-16
+1626192.0,Pat Connaughton,1610612757,Trail Blazers,2015-16
+204025.0,Tim Frazier,1610612757,Trail Blazers,2015-16
+203090.0,Maurice Harkless,1610612757,Trail Blazers,2015-16
+203148.0,Brian Roberts,1610612757,Trail Blazers,2015-16
 201601.0,Luc Mbah a Moute,1610612746,Clippers,2015-16
 203143.0,Pablo Prigioni,1610612746,Clippers,2015-16
 202332.0,Cole Aldrich,1610612746,Clippers,2015-16
@@ -3997,20 +3937,12 @@ PLAYER_ID,player,team_id,Team,season
 1626210.0,Alan Williams,1610612756,Suns,2015-16
 201978.0,Chase Budinger,1610612756,Suns,2015-16
 203098.0,John Jenkins,1610612756,Suns,2015-16
-1626192.0,Pat Connaughton,1610612757,Blazers,2016-17
-1627774.0,Jake Layman,1610612757,Blazers,2016-17
-203894.0,Shabazz Napier,1610612757,Blazers,2016-17
-203086.0,Meyers Leonard,1610612757,Blazers,2016-17
-203943.0,Noah Vonleh,1610612757,Blazers,2016-17
-1627817.0,Tim Quarterman,1610612757,Blazers,2016-17
-202329.0,Al-Farouq Aminu,1610612757,Blazers,2016-17
-202323.0,Evan Turner,1610612757,Blazers,2016-17
-202334.0,Ed Davis,1610612757,Blazers,2016-17
-203090.0,Maurice Harkless,1610612757,Blazers,2016-17
-203994.0,Jusuf Nurkic,1610612757,Blazers,2016-17
-203459.0,Allen Crabbe,1610612757,Blazers,2016-17
-203081.0,Damian Lillard,1610612757,Blazers,2016-17
-203468.0,CJ McCollum,1610612757,Blazers,2016-17
+1626192.0,Pat Connaughton,1610612757,Trail Blazers,2016-17
+203894.0,Shabazz Napier,1610612757,Trail Blazers,2016-17
+203086.0,Meyers Leonard,1610612757,Trail Blazers,2016-17
+203943.0,Noah Vonleh,1610612757,Trail Blazers,2016-17
+203459.0,Allen Crabbe,1610612757,Trail Blazers,2016-17
+203468.0,CJ McCollum,1610612757,Trail Blazers,2016-17
 203481.0,Jeff Withey,1610612762,Jazz,2016-17
 1626168.0,Trey Lyles,1610612762,Jazz,2016-17
 203497.0,Rudy Gobert,1610612762,Jazz,2016-17
@@ -4224,17 +4156,8 @@ PLAYER_ID,player,team_id,Team,season
 203498.0,Shabazz Muhammad,1610612750,Timberwolves,2017-18
 2037.0,Jamal Crawford,1610612750,Timberwolves,2017-18
 1626145.0,Tyus Jones,1610612750,Timberwolves,2017-18
-1628380.0,Zach Collins,1610612757,Blazers,2017-18
-203468.0,CJ McCollum,1610612757,Blazers,2017-18
-203086.0,Meyers Leonard,1610612757,Blazers,2017-18
-1627774.0,Jake Layman,1610612757,Blazers,2017-18
-1628403.0,Caleb Swanigan,1610612757,Blazers,2017-18
-203894.0,Shabazz Napier,1610612757,Blazers,2017-18
-203090.0,Maurice Harkless,1610612757,Blazers,2017-18
-203943.0,Noah Vonleh,1610612757,Blazers,2017-18
-203081.0,Damian Lillard,1610612757,Blazers,2017-18
-1627735.0,Wade Baldwin IV,1610612757,Blazers,2017-18
-1627834.0,Georgios Papagiannis,1610612757,Blazers,2017-18
+203468.0,CJ McCollum,1610612757,Trail Blazers,2017-18
+1627774.0,Jake Layman,1610612757,Trail Blazers,2017-18
 1628502.0,Nigel Hayes,1610612758,Kings,2017-18
 202347.0,Quincy Pondexter,1610612741,Bulls,2017-18
 1626170.0,Jerian Grant,1610612741,Bulls,2017-18
