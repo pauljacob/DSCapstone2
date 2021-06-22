@@ -1,0 +1,108 @@
+column name,column name,column name source
+game_id,unique indentifier for each nba game for the 2010-11 thru 2017-18 Regular Season and Playoffs,NaN
+game_date,"year, month, and day of the nba game",NaN
+TEAM_NAME_away,name of the nba away team,NaN
+TEAM_ABBREVIATION_away,three letter abbreviation of the nba away team,NaN
+TEAM_CITY_away,city / region fo the nba away team,NaN
+MIN_away,minutes played cumulative ly bt the nba away team players,NaN
+duration_away,(See MIN_away),NaN
+TEAM_NAME_home,name of the nba home team,NaN
+TEAM_ABBREVIATION_home,three letter abbreviation of the nba home team,NaN
+TEAM_CITY_home,city / region fo the nba home team,NaN
+MIN_home,minutes played cumulatively by the nba home team players,NaN
+duration_home,(See MIN_home),NaN
+E_OFF_RATING_away,?estimated? offensive rating of the nba away team,NaN
+OFF_RATING_away,offensive rating of the nba away team,https://www.basketball-reference.com/about/glossary.html
+E_DEF_RATING_away,points scored per 100 possessions of the nba away team,https://www.basketball-reference.com/about/glossary.html
+DEF_RATING_away,points allowed per 100 posessions,NaN
+E_NET_RATING_away,?estimated? net rating,https://www.pivotanalysis.com/post/net-rating; https://paceandspacehoops.com/statistical-test-how-well-does-net-rating-correlate-with-wins/
+NET_RATING_away,"net rating = offensive rating - defensive rating; faster the pace, the more likely a higher net rating team is to beat a lower net rating team",NaN
+AST_PCT_away,away team assits per field goal made,https://www.teamrankings.com/nba/stat/assists-per-fgm
+AST_TOV_away,assists to turnovers ratio of away team,NaN
+AST_RATIO_away,assist ratio; assists divided by uses; AST*100 / (FGA + [.44 * FTA] + AST + TOV),https://hoopshabit.com/2013/08/18/stat-central-understanding-strengths-shortcomings-of-assist-rate-metrics/
+OREB_PCT_away,OREB / (OREB + OppDREB); percentage of team offensive rebounds grabbed by the away team,https://www.nba.com/stats/help/faq/
+DREB_PCT_away,DRB% = DRB  / (DRB + Opp. ORB); percentage of available defensive rebounds the away team obtains while on the floor,https://www.nba.com/resources/static/team/v2/thunder/statlab-activity-y3a5-1920-DRB.pdf; https://www.nba.com/stats/help/glossary/
+REB_PCT_away,percentage of available rebounds the away team grabbed while on the floor,https://www.nba.com/stats/help/glossary/
+E_TM_TOV_PCT_away,estimated turnover percentage,https://www.pivotanalysis.com/post/what-is-turnover-percentage
+TM_TOV_PCT_away,away team turn over percentage; TeamTOV / (TeamFGA + (0.44 * TeamFTA) + TeamTOV,https://www.nbastuffer.com/analytics101/effective-field-goal-percentage-efg/; https://www.nba.com/bucks/features/boeder-120917; https://www.breakthroughbasketball.com/stats/effective-field-goal-percentage.html
+EFG_PCT_away,effective field goal percentage; team evaluation metric that measures the effectiveness of 2-point shots and 3-point shots; (FGM + 0.5 * 3PM) / FGA; (2pt FGM + 1.5 * 3pt FGM) / FGA,https://www.basketball-reference.com/about/glossary.html
+TS_PCT_away,PTS / (2 * TSA) where True Shooting Attempts is TSA = FGA + 0.44 * FTA,https://www.nba.com/stats/help/glossary/
+USG_PCT_away,usage percentage; (FGA + Possession Ending FTA + TO) / POSS,https://www.nba.com/stats/help/glossary/
+E_USG_PCT_away,?estimated? usage percenteage of away team,NaN
+E_PACE_away,?estimated? pace of away team,NaN
+PACE_away,number of possessions per 48 minutes of the away team,https://www.nba.com/stats/help/glossary/
+PACE_PER40_away,number of possessions per 40 minutes of the away team,https://justplaysolutions.com/analytics-academy/basketball-stats-glossary/
+POSS_away,"possessions; number of possessions played by a team. Please note: an Offensive Rebound does not create another possession, it simply makes the existing possession longer",https://www.nba.com/stats/help/glossary/
+PIE_away,player impact estimate; (PTS + FGM + FTM - FGA - FTA + DREB + (.5 * OREB) + AST + STL + (.5 * BLK) - PF - TO) / (GmPTS + GmFGM + GmFTM - GmFGA - GmFTA + GmDREB + (.5 * GmOREB) + GmAST + GmSTL + (.5 * GmBLK) - GmPF - GmTO),https://www.nba.com/stats/help/glossary/
+duration_minutes_away,number of minutes played by the away team,https://www.nba.com/stats/help/glossary/
+E_OFF_RATING_home,?estimated? offensive rating of the nba home team,NaN
+OFF_RATING_home,offensive rating of the nba home team,https://www.basketball-reference.com/about/glossary.html
+E_DEF_RATING_home,points scored per 100 possessions of the nba home team,https://www.basketball-reference.com/about/glossary.html
+DEF_RATING_home,points allowed per 100 posessions,NaN
+E_NET_RATING_home,?estimated? net rating,https://www.pivotanalysis.com/post/net-rating; https://paceandspacehoops.com/statistical-test-how-well-does-net-rating-correlate-with-wins/
+NET_RATING_home,"net rating = offensive rating - defensive rating; faster the pace, the more likely a higher net rating team is to beat a lower net rating team",NaN
+AST_PCT_home,home team assits per field goal made,https://www.teamrankings.com/nba/stat/assists-per-fgm
+AST_TOV_home,assists to turnovers ratio of home team,NaN
+AST_RATIO_home,assist ratio; assists divided by uses; AST*100 / (FGA + [.44 * FTA] + AST + TOV),https://hoopshabit.com/2013/08/18/stat-central-understanding-strengths-shortcomings-of-assist-rate-metrics/
+OREB_PCT_home,OREB / (OREB + OppDREB); percentage of team offensive rebounds grabbed by the home team,https://www.nba.com/stats/help/faq/
+DREB_PCT_home,DRB% = DRB  / (DRB + Opp. ORB); percentage of available defensive rebounds the home team obtains while on the floor,https://www.nba.com/resources/static/team/v2/thunder/statlab-activity-y3a5-1920-DRB.pdf; https://www.nba.com/stats/help/glossary/
+REB_PCT_home,percentage of available rebounds the away team grabbed while on the floor,https://www.nba.com/stats/help/glossary/
+E_TM_TOV_PCT_home,estimated turnover percentage,https://www.pivotanalysis.com/post/what-is-turnover-percentage
+TM_TOV_PCT_home,home team turn over percentage; TeamTOV / (TeamFGA + (0.44 * TeamFTA) + TeamTOV,https://www.nbastuffer.com/analytics101/effective-field-goal-percentage-efg/; https://www.nba.com/bucks/features/boeder-120917; https://www.breakthroughbasketball.com/stats/effective-field-goal-percentage.html
+EFG_PCT_home,effective field goal percentage; team evaluation metric that measures the effectiveness of 2-point shots and 3-point shots; (FGM + 0.5 * 3PM) / FGA; (2pt FGM + 1.5 * 3pt FGM) / FGA,https://www.basketball-reference.com/about/glossary.html
+TS_PCT_home,PTS / (2 * TSA) where True Shooting Attempts is TSA = FGA + 0.44 * FTA,https://www.nba.com/stats/help/glossary/
+USG_PCT_home,usage percentage; (FGA + Possession Ending FTA + TO) / POSS,https://www.nba.com/stats/help/glossary/
+E_USG_PCT_home,?estimated? usage percenteage of home team,NaN
+E_PACE_home,?estimated? pace of home team,NaN
+PACE_home,number of possessions per 48 minutes of the home team,https://www.nba.com/stats/help/glossary/
+PACE_PER40_home,number of possessions per 40 minutes of the home team,https://justplaysolutions.com/analytics-academy/basketball-stats-glossary/
+POSS_home,"possessions; number of possessions played by a team. Please note: an Offensive Rebound does not create another possession, it simply makes the existing possession longer",https://www.nba.com/stats/help/glossary/
+PIE_home,player impact estimate; (PTS + FGM + FTM - FGA - FTA + DREB + (.5 * OREB) + AST + STL + (.5 * BLK) - PF - TO) / (GmPTS + GmFGM + GmFTM - GmFGA - GmFTA + GmDREB + (.5 * GmOREB) + GmAST + GmSTL + (.5 * GmBLK) - GmPF - GmTO),https://www.nba.com/stats/help/glossary/
+duration_minutes_home,number of minutes played by the home team,https://www.nba.com/stats/help/glossary/
+team_id_away,nba away team identity,NaN
+wl_away,nba game won W or lost L by the away team,NaN
+w_pct_away,win percentage of the away team,NaN
+min_away,nba game cumulative minutes played by nba away team players,NaN
+fgm_away,field goals made;number of field goals that a team has made. This includes both 2 pointers and 3 pointers,https://www.nba.com/stats/help/glossary/
+fga_away,field goals attempted; number of field goals that a team has attempted. This includes both 2 pointers and 3 pointers,https://www.nba.com/stats/help/glossary/
+fg_pct_away,field goal percentage; percentage of field goal attempts that a team makes;  (FGM)/(FGA),https://www.nba.com/stats/help/glossary/
+fg3m_away,3 point field goals made; number of 3 point field goals that a team has made,https://www.nba.com/stats/help/glossary/
+fg3a_away,3 point field goals attempted; number of 3 point field goals that a team has attempted,https://www.nba.com/stats/help/glossary/
+fg3_pct_away,3 point field goal percentage; percentage of 3 point field goal attempts that a team makes; (3PM)/(3PA),https://www.nba.com/stats/help/glossary/
+ftm_away,free throws made; number of free throws that a team has made,https://www.nba.com/stats/help/glossary/
+fta_away,free throws attempted; number of free throws that a team has attempted,https://www.nba.com/stats/help/glossary/
+ft_pct_away,free throw percentage; percentage of free throw attempts that a team has made; (FTM)/(FTA),https://www.nba.com/stats/help/glossary/
+oreb_away,offensive rebounds; number of rebounds a team has collected while they were on offense,https://www.nba.com/stats/help/glossary/
+dreb_away,defensive rebounds; number of rebounds a team has collected while they were on defense,https://www.nba.com/stats/help/glossary/
+reb_away,rebounds; a rebound occurs when a player recovers the ball after a missed shot. This statistic is the number of total rebounds a team has collected on either offense or defense,https://www.nba.com/stats/help/glossary/
+ast_away,assists; number of assists -- passes that lead directly to a made basket -- by a player (for a team),https://www.nba.com/stats/help/glossary/
+stl_away,"steals; number of times a defensive player or team takes the ball from a player on offense, causing a turnover (for a team)",https://www.nba.com/stats/help/glossary/
+blk_away,"blocks; number of times a offensive player attempts a shot, and the defense player tips the ball, blocking their chance to score (for a team)",https://www.nba.com/stats/help/glossary/
+tov_away,turnovers; a turnover occurs when the player or team on offense loses the ball to the defense (for a team),https://www.nba.com/stats/help/glossary/
+pf_away,personal fouls; number of personal fouls a team committed,https://www.nba.com/stats/help/glossary/
+pts_away,points; number of points scored (for a team),https://www.nba.com/stats/help/glossary/
+wl_home,nba game won W or lost L by the home team,NaN
+team_id_home,nba home team identity,NaN
+w_pct_home,win percentage of the home team,NaN
+min_home,nba game cumulative minutes played by nba home team players,NaN
+fgm_home,field goals made;number of field goals that a team has made. This includes both 2 pointers and 3 pointers,https://www.nba.com/stats/help/glossary/
+fga_home,field goals attempted; number of field goals that a team has attempted. This includes both 2 pointers and 3 pointers,https://www.nba.com/stats/help/glossary/
+fg_pct_home,field goal percentage; percentage of field goal attempts that a team makes;  (FGM)/(FGA),https://www.nba.com/stats/help/glossary/
+fg3m_home,3 point field goals made; number of 3 point field goals that a team has made,https://www.nba.com/stats/help/glossary/
+fg3a_home,3 point field goals attempted; number of 3 point field goals that a team has attempted,https://www.nba.com/stats/help/glossary/
+fg3_pct_home,3 point field goal percentage; percentage of 3 point field goal attempts that a team makes; (3PM)/(3PA),https://www.nba.com/stats/help/glossary/
+ftm_home,free throws made; number of free throws that a team has made,https://www.nba.com/stats/help/glossary/
+fta_home,free throws attempted; number of free throws that a team has attempted,https://www.nba.com/stats/help/glossary/
+ft_pct_home,free throw percentage; percentage of free throw attempts that a team has made; (FTM)/(FTA),https://www.nba.com/stats/help/glossary/
+oreb_home,offensive rebounds; number of rebounds a team has collected while they were on offense,https://www.nba.com/stats/help/glossary/
+dreb_home,defensive rebounds; number of rebounds a team has collected while they were on defense,https://www.nba.com/stats/help/glossary/
+reb_home,rebounds; a rebound occurs when a player recovers the ball after a missed shot. This statistic is the number of total rebounds a team has collected on either offense or defense,https://www.nba.com/stats/help/glossary/
+ast_home,assists; number of assists -- passes that lead directly to a made basket -- by a player (for a team),https://www.nba.com/stats/help/glossary/
+stl_home,"steals; number of times a defensive player or team takes the ball from a player on offense, causing a turnover (for a team)",https://www.nba.com/stats/help/glossary/
+blk_home,"blocks; number of times a offensive player attempts a shot, and the defense player tips the ball, blocking their chance to score (for a team)",https://www.nba.com/stats/help/glossary/
+tov_home,turnovers; a turnover occurs when the player or team on offense loses the ball to the defense (for a team),https://www.nba.com/stats/help/glossary/
+pf_home,personal fouls; number of personal fouls a team committed,https://www.nba.com/stats/help/glossary/
+pts_home,points; number of points scored (for a team),https://www.nba.com/stats/help/glossary/
+season_type,Playoff or Regular Season game,NaN
+season,"season years, e.g. 2010-11 season",NaN
+season_year,season start year,
