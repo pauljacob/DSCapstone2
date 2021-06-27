@@ -59,50 +59,53 @@ PACE_PER40_home,number of possessions per 40 minutes of the home team,https://ju
 POSS_home,"possessions; number of possessions played by a team. Please note: an Offensive Rebound does not create another possession, it simply makes the existing possession longer",https://www.nba.com/stats/help/glossary/
 PIE_home,player impact estimate; (PTS + FGM + FTM - FGA - FTA + DREB + (.5 * OREB) + AST + STL + (.5 * BLK) - PF - TO) / (GmPTS + GmFGM + GmFTM - GmFGA - GmFTA + GmDREB + (.5 * GmOREB) + GmAST + GmSTL + (.5 * GmBLK) - GmPF - GmTO),https://www.nba.com/stats/help/glossary/
 duration_minutes_home,number of minutes played by the home team,https://www.nba.com/stats/help/glossary/
+matchup,nba team matchup,NaN
 team_id_away,nba away team identity,NaN
-wl_away,nba game won W or lost L by the away team,NaN
-w_pct_away,win percentage of the away team,NaN
-min_away,nba game cumulative minutes played by nba away team players,NaN
-fgm_away,field goals made;number of field goals that a team has made. This includes both 2 pointers and 3 pointers,https://www.nba.com/stats/help/glossary/
-fga_away,field goals attempted; number of field goals that a team has attempted. This includes both 2 pointers and 3 pointers,https://www.nba.com/stats/help/glossary/
-fg_pct_away,field goal percentage; percentage of field goal attempts that a team makes;  (FGM)/(FGA),https://www.nba.com/stats/help/glossary/
-fg3m_away,3 point field goals made; number of 3 point field goals that a team has made,https://www.nba.com/stats/help/glossary/
-fg3a_away,3 point field goals attempted; number of 3 point field goals that a team has attempted,https://www.nba.com/stats/help/glossary/
-fg3_pct_away,3 point field goal percentage; percentage of 3 point field goal attempts that a team makes; (3PM)/(3PA),https://www.nba.com/stats/help/glossary/
-ftm_away,free throws made; number of free throws that a team has made,https://www.nba.com/stats/help/glossary/
-fta_away,free throws attempted; number of free throws that a team has attempted,https://www.nba.com/stats/help/glossary/
-ft_pct_away,free throw percentage; percentage of free throw attempts that a team has made; (FTM)/(FTA),https://www.nba.com/stats/help/glossary/
-oreb_away,offensive rebounds; number of rebounds a team has collected while they were on offense,https://www.nba.com/stats/help/glossary/
-dreb_away,defensive rebounds; number of rebounds a team has collected while they were on defense,https://www.nba.com/stats/help/glossary/
-reb_away,rebounds; a rebound occurs when a player recovers the ball after a missed shot. This statistic is the number of total rebounds a team has collected on either offense or defense,https://www.nba.com/stats/help/glossary/
-ast_away,assists; number of assists -- passes that lead directly to a made basket -- by a player (for a team),https://www.nba.com/stats/help/glossary/
-stl_away,"steals; number of times a defensive player or team takes the ball from a player on offense, causing a turnover (for a team)",https://www.nba.com/stats/help/glossary/
-blk_away,"blocks; number of times a offensive player attempts a shot, and the defense player tips the ball, blocking their chance to score (for a team)",https://www.nba.com/stats/help/glossary/
-tov_away,turnovers; a turnover occurs when the player or team on offense loses the ball to the defense (for a team),https://www.nba.com/stats/help/glossary/
-pf_away,personal fouls; number of personal fouls a team committed,https://www.nba.com/stats/help/glossary/
-pts_away,points; number of points scored (for a team),https://www.nba.com/stats/help/glossary/
-wl_home,nba game won W or lost L by the home team,NaN
-team_id_home,nba home team identity,NaN
-w_pct_home,win percentage of the home team,NaN
-min_home,nba game cumulative minutes played by nba home team players,NaN
-fgm_home,field goals made;number of field goals that a team has made. This includes both 2 pointers and 3 pointers,https://www.nba.com/stats/help/glossary/
-fga_home,field goals attempted; number of field goals that a team has attempted. This includes both 2 pointers and 3 pointers,https://www.nba.com/stats/help/glossary/
-fg_pct_home,field goal percentage; percentage of field goal attempts that a team makes;  (FGM)/(FGA),https://www.nba.com/stats/help/glossary/
-fg3m_home,3 point field goals made; number of 3 point field goals that a team has made,https://www.nba.com/stats/help/glossary/
-fg3a_home,3 point field goals attempted; number of 3 point field goals that a team has attempted,https://www.nba.com/stats/help/glossary/
-fg3_pct_home,3 point field goal percentage; percentage of 3 point field goal attempts that a team makes; (3PM)/(3PA),https://www.nba.com/stats/help/glossary/
-ftm_home,free throws made; number of free throws that a team has made,https://www.nba.com/stats/help/glossary/
-fta_home,free throws attempted; number of free throws that a team has attempted,https://www.nba.com/stats/help/glossary/
-ft_pct_home,free throw percentage; percentage of free throw attempts that a team has made; (FTM)/(FTA),https://www.nba.com/stats/help/glossary/
-oreb_home,offensive rebounds; number of rebounds a team has collected while they were on offense,https://www.nba.com/stats/help/glossary/
-dreb_home,defensive rebounds; number of rebounds a team has collected while they were on defense,https://www.nba.com/stats/help/glossary/
-reb_home,rebounds; a rebound occurs when a player recovers the ball after a missed shot. This statistic is the number of total rebounds a team has collected on either offense or defense,https://www.nba.com/stats/help/glossary/
-ast_home,assists; number of assists -- passes that lead directly to a made basket -- by a player (for a team),https://www.nba.com/stats/help/glossary/
-stl_home,"steals; number of times a defensive player or team takes the ball from a player on offense, causing a turnover (for a team)",https://www.nba.com/stats/help/glossary/
-blk_home,"blocks; number of times a offensive player attempts a shot, and the defense player tips the ball, blocking their chance to score (for a team)",https://www.nba.com/stats/help/glossary/
-tov_home,turnovers; a turnover occurs when the player or team on offense loses the ball to the defense (for a team),https://www.nba.com/stats/help/glossary/
-pf_home,personal fouls; number of personal fouls a team committed,https://www.nba.com/stats/help/glossary/
-pts_home,points; number of points scored (for a team),https://www.nba.com/stats/help/glossary/
-season_type,Playoff or Regular Season game,NaN
-season,"season years, e.g. 2010-11 season",NaN
-season_year,season start year,
+w_pct_away,nba game won W or lost L by the away team,NaN
+min_away,win percentage of the away team,NaN
+fgm_away,nba game cumulative minutes played by nba away team players,NaN
+fga_away,field goals made;number of field goals that a team has made. This includes both 2 pointers and 3 pointers,https://www.nba.com/stats/help/glossary/
+fg_pct_away,field goals attempted; number of field goals that a team has attempted. This includes both 2 pointers and 3 pointers,https://www.nba.com/stats/help/glossary/
+fg3m_away,field goal percentage; percentage of field goal attempts that a team makes;  (FGM)/(FGA),https://www.nba.com/stats/help/glossary/
+fg3a_away,3 point field goals made; number of 3 point field goals that a team has made,https://www.nba.com/stats/help/glossary/
+fg3_pct_away,3 point field goals attempted; number of 3 point field goals that a team has attempted,https://www.nba.com/stats/help/glossary/
+ftm_away,3 point field goal percentage; percentage of 3 point field goal attempts that a team makes; (3PM)/(3PA),https://www.nba.com/stats/help/glossary/
+fta_away,free throws made; number of free throws that a team has made,https://www.nba.com/stats/help/glossary/
+ft_pct_away,free throws attempted; number of free throws that a team has attempted,https://www.nba.com/stats/help/glossary/
+oreb_away,free throw percentage; percentage of free throw attempts that a team has made; (FTM)/(FTA),https://www.nba.com/stats/help/glossary/
+dreb_away,offensive rebounds; number of rebounds a team has collected while they were on offense,https://www.nba.com/stats/help/glossary/
+reb_away,defensive rebounds; number of rebounds a team has collected while they were on defense,https://www.nba.com/stats/help/glossary/
+ast_away,rebounds; a rebound occurs when a player recovers the ball after a missed shot. This statistic is the number of total rebounds a team has collected on either offense or defense,https://www.nba.com/stats/help/glossary/
+stl_away,assists; number of assists -- passes that lead directly to a made basket -- by a player (for a team),https://www.nba.com/stats/help/glossary/
+blk_away,"steals; number of times a defensive player or team takes the ball from a player on offense, causing a turnover (for a team)",https://www.nba.com/stats/help/glossary/
+tov_away,"blocks; number of times a offensive player attempts a shot, and the defense player tips the ball, blocking their chance to score (for a team)",https://www.nba.com/stats/help/glossary/
+pf_away,turnovers; a turnover occurs when the player or team on offense loses the ball to the defense (for a team),https://www.nba.com/stats/help/glossary/
+pts_away,personal fouls; number of personal fouls a team committed,https://www.nba.com/stats/help/glossary/
+team_id_home,points; number of points scored (for a team),https://www.nba.com/stats/help/glossary/
+w_pct_home,nba game won W or lost L by the home team,NaN
+min_home,nba home team identity,NaN
+fgm_home,win percentage of the home team,NaN
+fga_home,nba game cumulative minutes played by nba home team players,NaN
+fg_pct_home,field goals made;number of field goals that a team has made. This includes both 2 pointers and 3 pointers,https://www.nba.com/stats/help/glossary/
+fg3m_home,field goals attempted; number of field goals that a team has attempted. This includes both 2 pointers and 3 pointers,https://www.nba.com/stats/help/glossary/
+fg3a_home,field goal percentage; percentage of field goal attempts that a team makes;  (FGM)/(FGA),https://www.nba.com/stats/help/glossary/
+fg3_pct_home,3 point field goals made; number of 3 point field goals that a team has made,https://www.nba.com/stats/help/glossary/
+ftm_home,3 point field goals attempted; number of 3 point field goals that a team has attempted,https://www.nba.com/stats/help/glossary/
+fta_home,3 point field goal percentage; percentage of 3 point field goal attempts that a team makes; (3PM)/(3PA),https://www.nba.com/stats/help/glossary/
+ft_pct_home,free throws made; number of free throws that a team has made,https://www.nba.com/stats/help/glossary/
+oreb_home,free throws attempted; number of free throws that a team has attempted,https://www.nba.com/stats/help/glossary/
+dreb_home,free throw percentage; percentage of free throw attempts that a team has made; (FTM)/(FTA),https://www.nba.com/stats/help/glossary/
+reb_home,offensive rebounds; number of rebounds a team has collected while they were on offense,https://www.nba.com/stats/help/glossary/
+ast_home,defensive rebounds; number of rebounds a team has collected while they were on defense,https://www.nba.com/stats/help/glossary/
+stl_home,rebounds; a rebound occurs when a player recovers the ball after a missed shot. This statistic is the number of total rebounds a team has collected on either offense or defense,https://www.nba.com/stats/help/glossary/
+blk_home,assists; number of assists -- passes that lead directly to a made basket -- by a player (for a team),https://www.nba.com/stats/help/glossary/
+tov_home,"steals; number of times a defensive player or team takes the ball from a player on offense, causing a turnover (for a team)",https://www.nba.com/stats/help/glossary/
+pf_home,"blocks; number of times a offensive player attempts a shot, and the defense player tips the ball, blocking their chance to score (for a team)",https://www.nba.com/stats/help/glossary/
+pts_home,turnovers; a turnover occurs when the player or team on offense loses the ball to the defense (for a team),https://www.nba.com/stats/help/glossary/
+season_type,personal fouls; number of personal fouls a team committed,https://www.nba.com/stats/help/glossary/
+season,points; number of points scored (for a team),https://www.nba.com/stats/help/glossary/
+season_year,Playoff or Regular Season game,NaN
+wl_away,"season years, e.g. 2010-11 season",NaN
+wl_home,season start year,NaN
+spread_home,,
+spread_away,,
