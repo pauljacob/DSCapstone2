@@ -221,9 +221,9 @@ def tall2wide2(df_, not_first_second_list_, indicator_column_, keep_indicator_=F
     
     column_names_first_second_list_ = [k for k in column_names_list_ if not k in not_first_second_list_]
     
-    df_first_ = df_.loc[(df_.loc[:, indicator_column_] == 1), :]
+    df_first_ = df_.loc[(df_.loc[:, indicator_column_] == 0), :]
     
-    df_second_ = df_.loc[(df_.loc[:, indicator_column_] == 0), :]
+    df_second_ = df_.loc[(df_.loc[:, indicator_column_] == 1), :]
     
     if keep_indicator_ == False:
         df_first_.drop(columns=indicator_column_, inplace=True)
@@ -252,4 +252,144 @@ def tall2wide2(df_, not_first_second_list_, indicator_column_, keep_indicator_=F
     
     
     
+    
+    
+    
+    
+    
+    
+#take difference of numeric columns with the same prefix, store to stat_cma#_diff
+
+#drop stat_cma# columns
+
+def get_numeric_diff(df_, groupby_list_, not_difference_list_, suffix_list_):
+    
+    column_names_numeric_list_ = list(df_.select_dtypes('number').columns)
+    
+    column_names_numeric_list_cleaned_ = [k for k in column_names_numeric_list_
+                                          if (not k in not_difference_list_)]
+    
+    column_names_first_second_list_ = [k.split(suffix_list_[0])[0]
+                                       for k in column_names_numeric_list_cleaned_
+                                       if k.endswith(suffix_list_[0])]
+    
+    column_names_first_second_list_rgl_ = [k for k in column_names_first_second_list_
+                                           if not k in groupby_list_]
+
+    column_names_first_second_list_rgl_first_ = [k + suffix_list_[0] for k in column_names_first_second_list_rgl_]
+    
+    column_names_first_second_list_rgl_second_ = [k + suffix_list_[1] for k in column_names_first_second_list_rgl_]
+    
+    column_names_first_second_list_rgl_diff_ = [k + '_diff' for k in column_names_first_second_list_rgl_]
+    
+    #return len(column_names_first_second_list_rgl_first_), len(column_names_first_second_list_rgl_second_), len(column_names_first_second_list_rgl_diff_)
+    
+    
+    df_[column_names_first_second_list_rgl_diff_] = df_[column_names_first_second_list_rgl_first_].fillna(0).values - df_[column_names_first_second_list_rgl_second_].fillna(0)
+    
+    column_names_drop_ = column_names_first_second_list_rgl_first_ + column_names_first_second_list_rgl_second_
+    
+    df_.drop(columns = column_names_drop_, inplace=True)    
+    
+    #return df_[column_names_first_second_list_rgl_first_]
+    
+    #return df_[column_names_first_second_list_rgl_second_]
+    
+    return df_
+
+
+    
+    
+def wide_get_cma_num_diff3(df_, groupby_list_, not_difference_list_, suffix_list_, window_size_max_min_):
+    
+    
+    #get suffix category column name: suffix_cat
+    alphanumeric = ''
+    suffix_cat = ''
+    for i in range(len(suffix_list_)):
+        
+        for character in suffix_list_[i]:
+            if character.isalnum():
+                alphanumeric += character
+        
+        suffix_cat = suffix_cat + alphanumeric + '_'
+        alphanumeric = ''
+
+    
+    column_names_list_ = list(df_.columns)
+    
+    column_names_first_second_list_ = [k for k in column_names_list_
+                                       if not k in not_difference_list_]
+    
+    column_names_first_second_list_first_ = [k for k in column_names_first_second_list_
+                                            if k.endswith(suffix_list_[0])]
+    
+    column_names_first_second_list_first_stripped_ = [k.split(suffix_list_[0])[0]
+                                                     for k in column_names_first_second_list_first_]
+    
+    
+    df_ = wide2tall(df_, not_difference_list_, suffix_list_)
+    
+
+    
+    column_names_number_list_ = list(df_.select_dtypes('number'))
+
+    column_names_number_list_ = [k for k in column_names_number_list_ if not k in not_difference_list_]
+    
+    column_names_number_list_ = [k for k in column_names_number_list_ if not k in suffix_cat]
+    
+    gbl_column_names_number_list_ = groupby_list_ + [k for k in column_names_number_list_
+                                                          if not k in groupby_list_] 
+    
+    df_numeric_gbl_ = df_[gbl_column_names_number_list_]
+    
+    
+    df_gbl_cma_ = df_numeric_gbl_.groupby(
+                                            groupby_list_).apply(lambda x:
+                                            x.rolling(window_size_max_min_[0],
+                                            window_size_max_min_[1]).mean().shift()
+                                         )[column_names_number_list_]
+    
+    pre_rename_cma_drop_list_ = [k for k in column_names_number_list_ if k in groupby_list_]
+    
+    df_gbl_cma_.drop(columns=pre_rename_cma_drop_list_, inplace=True)
+    
+     
+    column_names_number_list_cma_num_ = [k + '_cma' + str(window_size_max_min_[0]) for k in column_names_number_list_]
+    
+    column_names_number_dict_cma_num_ = dict(zip(column_names_number_list_, column_names_number_list_cma_num_))
+        
+    df_gbl_cma_.rename(columns=column_names_number_dict_cma_num_, inplace=True)
+    
+    df_gbl_cma_ = df_gbl_cma_.reset_index()
+    
+    df_gbl_cma_.rename(columns={'level_2': 'index'}, inplace=True)
+
+    df_ = df_.reset_index()
+    
+    column_names_merged_list = ['index'] + groupby_list_
+    
+   
+    column_names_number_list_rgbl_ = [k for k in column_names_number_list_ if not k in groupby_list_]
+    
+    df_dropped_ = df_.drop(columns=column_names_number_list_rgbl_)
+        
+    df_gbl_cma_merged_ = pd.merge(df_dropped_, df_gbl_cma_, on=column_names_merged_list)
+    
+    
+    
+    df_gbl_cma_merged_.drop(columns='index', inplace=True)
+    
+    
+    df_wide_ = tall2wide2(df_gbl_cma_merged_, not_difference_list_, suffix_cat)
+
+    df_wide_ = sr(df_wide_, 'game_date')
+    
+    
+    
+    #take difference of numeric columns with the same prefix, store to stat_cma#_diff
+    
+    return get_numeric_diff(df_wide_, groupby_list_, not_difference_list_, suffix_list_)
+    
+    #merge back to columns not taken a difference on
     
