@@ -1,5 +1,10 @@
+import os
 import pandas as pd
-from sklearn.model_selection import TimeSeriesSplit
+
+
+#ML
+import pickle
+
 
 
 def initialize_custom_notebook_settings():
@@ -7,7 +12,7 @@ def initialize_custom_notebook_settings():
     initialize the jupyter notebook display width'''
         
     from IPython.core.display import display, HTML
-    display(HTML("<style>.container { width:95% !important; }</style>"))
+    display(HTML("<style>.container { width:99% !important; }</style>"))
 
     
     pd.options.display.max_columns = 999
@@ -220,3 +225,62 @@ def column_name_value_sets_equal(df, column_name1, column_name2):
     
     
     
+    
+    
+##################################################################################################################################
+#Modeling
+
+##################################################################################################################################
+
+
+
+def return_saved_model_if_it_exists(filename):
+    
+    relative_directory_path = os.path.join('..', 'models')
+
+    if not os.path.exists(relative_directory_path):
+        os.mkdir(relative_directory_path)
+
+    relative_file_path = os.path.join(relative_directory_path, filename)
+
+    if os.path.exists(relative_file_path):
+        print('This file already exists')
+        
+        with (open(relative_file_path, "rb")) as openfile:
+            model_readback = pickle.load(openfile)
+        
+        return model_readback
+    
+    else:
+        return None
+
+
+def save_and_return_model(model,
+                          filename):
+    
+    relative_directory_path = os.path.join('..', 'models')
+
+    #make relative file direactory path if it doesn't exist
+    if not os.path.exists(relative_directory_path):
+        os.mkdir(relative_directory_path)
+        
+    #get relative file path name
+    relative_file_path = os.path.join(relative_directory_path, filename)
+
+    #if model file already exists, say it
+    if os.path.exists(relative_file_path):
+            print('This file already exists.')
+
+    #if model file doesn't exist, then save it
+    elif not os.path.exists(relative_file_path):
+        file_object_wb =  open(relative_file_path, "wb")
+        pickle.dump(model, file_object_wb)
+        file_object_wb.close()
+    
+    #readback model file
+    with (open(relative_file_path, "rb")) as open_file:
+        model_readback = pickle.load(open_file)
+
+    return model_readback
+
+
