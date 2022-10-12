@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import shutil
 
 
 #ML
@@ -276,6 +277,50 @@ def save_and_return_model(model,
         file_object_wb =  open(relative_file_path, "wb")
         pickle.dump(model, file_object_wb)
         file_object_wb.close()
+    
+    #readback model file
+    with (open(relative_file_path, "rb")) as open_file:
+        model_readback = pickle.load(open_file)
+
+    return model_readback
+
+
+def save_and_return_model2(model,
+                           filename,
+                           add_compressed_file=False):
+    import zipfile
+    import shutil
+    
+    relative_directory_path = os.path.join('..', 'models')
+
+    #make relative file direactory path if it doesn't exist
+    if not os.path.exists(relative_directory_path):
+        os.mkdir(relative_directory_path)
+        
+    #get relative file path name
+    relative_file_path = os.path.join(relative_directory_path, filename)
+    relative_file_path_zipped = os.path.join(relative_directory_path, filename) + '.zip'
+
+    
+    #if zipped model file already exists, say it
+    if os.path.exists(relative_file_path_zipped):
+            print('This zipped file already exists.')
+
+    #if zipped model file doesn't exist, then save it (zipped)
+    elif not os.path.exists(relative_file_path_zipped) and add_compressed_file == True:
+        shutil.make_archive(relative_file_path, 'zip', relative_directory_path)
+        
+
+        
+    if os.path.exists(relative_file_path):
+            print('This file already exists.')
+            
+    #if model file doesn't exist, then save it
+    elif not os.path.exists(relative_file_path):
+        file_object_wb =  open(relative_file_path, "wb")
+        pickle.dump(model, file_object_wb)
+        file_object_wb.close()
+        
     
     #readback model file
     with (open(relative_file_path, "rb")) as open_file:
