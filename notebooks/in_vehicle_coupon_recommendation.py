@@ -299,16 +299,16 @@ def save_and_return_model2(model,
         
     #get relative file path name
     relative_file_path = os.path.join(relative_directory_path, filename)
-    relative_file_path_zipped = os.path.join(relative_directory_path, filename) + '.zip'
+#     relative_file_path_zipped = os.path.join(relative_directory_path, filename) + '.zip'
 
     
-    #if zipped model file already exists, say it
-    if os.path.exists(relative_file_path_zipped):
-            print('This zipped file already exists.')
+#     #if zipped model file already exists, say it
+#     if os.path.exists(relative_file_path_zipped):
+#             print('This zipped file already exists.')
 
-    #if zipped model file doesn't exist, then save it (zipped)
-    elif not os.path.exists(relative_file_path_zipped) and add_compressed_file == True:
-        shutil.make_archive(relative_file_path, 'zip', relative_directory_path)
+#     #if zipped model file doesn't exist, then save it (zipped)
+#     elif not os.path.exists(relative_file_path_zipped) and add_compressed_file == True:
+#         shutil.make_archive(relative_file_path, 'zip', relative_directory_path)
         
 
         
