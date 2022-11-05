@@ -1,3 +1,39 @@
+#get libraries
+import pandas as pd
+import os
+import numpy as np
+#from functools import reduce
+
+
+#get visualization libraries
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+import seaborn as sns
+from io import StringIO
+
+class color:
+   BOLD = '\033[1m'
+   END = '\033[0m'
+
+#ML preprocessing
+from sklearn.preprocessing import StandardScaler
+
+#get ML functions
+from sklearn.model_selection import train_test_split, cross_validate, cross_val_score, GridSearchCV, StratifiedKFold, learning_curve
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.linear_model import LogisticRegression
+
+from sklearn import __version__ as sklearn_version
+import datetime
+#from sklearn.pipeline import make_pipeline
+
+#get ML metric functions
+from sklearn.metrics import make_scorer, accuracy_score, precision_score, recall_score, f1_score
+
+
+
+
+####################
 import os
 import pandas as pd
 
@@ -5,8 +41,13 @@ import pandas as pd
 #data wrangling
 from functools import reduce
 
+#data preprocessing
+
+
 #ML
 import pickle
+
+
 
 #save object
 import zipfile
@@ -148,35 +189,7 @@ def save_and_return_collection(data_frame_collection, filename):
     return data_frame_collection_readback
 
 
-def save_and_return_model(model, filename):
-    
-    relative_directory_path = os.path.join('..', 'models')
-
-    #make relative file direactory path if it doesn't exist
-    if not os.path.exists(relative_directory_path):
-        os.mkdir(relative_directory_path)
-        
-    #get relative file path name
-    relative_file_path = os.path.join(relative_directory_path, filename)
-
-    #if model file already exists, say it
-    if os.path.exists(relative_file_path):
-            print('This file already exists.')
-
-    #if model file doesn't exist, then save it
-    elif not os.path.exists(relative_file_path):
-        file_object_wb =  open(relative_file_path, "wb")
-        pickle.dump(model, file_object_wb)
-        file_object_wb.close()
-    
-    #readback model file
-    with (open(relative_file_path, "rb")) as open_file:
-        model_readback = pickle.load(open_file)
-
-    return model_readback
-
-
-def save_and_return_model2(model, filename, add_compressed_file=False):
+def save_and_return_model(model, filename, add_compressed_file=False):
 
     
     relative_directory_path = os.path.join('..', 'models')
@@ -187,18 +200,6 @@ def save_and_return_model2(model, filename, add_compressed_file=False):
         
     #get relative file path name
     relative_file_path = os.path.join(relative_directory_path, filename)
-#     relative_file_path_zipped = os.path.join(relative_directory_path, filename) + '.zip'
-
-    
-#     #if zipped model file already exists, say it
-#     if os.path.exists(relative_file_path_zipped):
-#             print('This zipped file already exists.')
-
-#     #if zipped model file doesn't exist, then save it (zipped)
-#     elif not os.path.exists(relative_file_path_zipped) and add_compressed_file == True:
-#         shutil.make_archive(relative_file_path, 'zip', relative_directory_path)
-        
-
         
     if os.path.exists(relative_file_path):
             print('This file already exists.')
@@ -294,6 +295,7 @@ def return_figure_if_it_exists(filename):
 
 
 
+
 ##################################################################################################################################
 #data wrangling
 ##################################################################################################################################
@@ -307,10 +309,39 @@ def merge_data_frame_list(data_frame_list):
 
 
 
+
+
+
 ##################################################################################################################################
+#data preprocessing
+##################################################################################################################################
+
+#permissible data split test using Y_test
+
+#how does the Y_test coupon acceptance count of the 1000 runs compare to the stratified Y_test coupon acceptance count???
+def get_Y_test_distribution_from_train_test_split_iterations(df, number_of_iterations=1000):
+    data_frame_collection = {}
+    #get Y_train_number and Y_test_number for 1000 train_test_split iterations 
+    for index in range(number_of_iterations):
+        _, _, data_frame_collection['Y_train' + str(index)], data_frame_collection['Y_test'+ str(index)] = \
+        train_test_split(df.drop(columns=['Y']), df.loc[:, 'Y'], test_size=.2)
+
+        
+    Y_test_coupon_acceptance_count_1000_iterations = [data_frame_collection['Y_test' + str(index)].value_counts()[1] for index in range(number_of_iterations)]
+    plt.hist(Y_test_coupon_acceptance_count_1000_iterations)
+    
+    #get Y_test coupon acceptance count
+    _, _, data_frame_collection['Y_train'], data_frame_collection['Y_test'] = \
+    train_test_split(df.drop(columns=['Y']), df.loc[:, 'Y'], test_size=.2, random_state=200, stratify=df.loc[:, 'Y'])
+    
+    print('stratified Y_test coupon acceptance count from train_test_split: ' + str(data_frame_collection['Y_test'].value_counts()[1]))
     
 
-    
+
+
+
+##################################################################################################################################
+
     
     
 def column_name_value_sets_equal(df, column_name1, column_name2):
