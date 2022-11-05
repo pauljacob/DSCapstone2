@@ -236,6 +236,22 @@ def return_processed_data_file_if_it_exists(filename, parse_dates=False):
     else:
         return pd.DataFrame({})
 
+def True_False_data_filename_exists(filename):
+    
+    relative_directory_path = os.path.join('..', 'data', 'processed')
+    
+    if not os.path.exists(relative_directory_path):
+        os.mkdir(relative_directory_path)
+        
+    relative_file_path = os.path.join(relative_directory_path, filename)
+    
+    if os.path.exists(relative_file_path):
+        return True
+    else:
+        return False
+    
+    
+    
     
 def return_processed_collection_if_it_exists(filename, parse_dates=False):
     
