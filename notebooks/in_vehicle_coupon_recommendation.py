@@ -1,57 +1,30 @@
-#get libraries
-import pandas as pd
-import os
-import numpy as np
-#from functools import reduce
-
-
-#get visualization libraries
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-import seaborn as sns
-from io import StringIO
-
-class color:
-   BOLD = '\033[1m'
-   END = '\033[0m'
-
-#ML preprocessing
-from sklearn.preprocessing import StandardScaler
-
-#get ML functions
-from sklearn.model_selection import train_test_split, cross_validate, cross_val_score, GridSearchCV, StratifiedKFold, learning_curve
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
-from sklearn.linear_model import LogisticRegression
-
-from sklearn import __version__ as sklearn_version
-import datetime
-#from sklearn.pipeline import make_pipeline
-
-#get ML metric functions
-from sklearn.metrics import make_scorer, accuracy_score, precision_score, recall_score, f1_score
-
-
-
-
 ####################
 import os
 import pandas as pd
+import numpy as np
 
 
 #data wrangling
 from functools import reduce
 
+
+#get visualization libraries
+import matplotlib.pyplot as plt
+
 #data preprocessing
+
+#get ML functions
+from sklearn.model_selection import train_test_split
 
 
 #ML
 import pickle
-
+from sklearn.model_selection import learning_curve
 
 
 #save object
-import zipfile
-import shutil
+# import zipfile
+# import shutil
 
 
 def initialize_custom_notebook_settings():
@@ -397,6 +370,86 @@ def column_name_value_sets_equal(df, column_name1, column_name2):
 
 
 
+def plot_learning_curve(estimator, title, X, y, filename, axes=None, ylim=None, cv=None, n_jobs=None, scoring=None, train_sizes=np.linspace(0.1, 1.0, 5)):
+    if axes is None:
+        _, axes = plt.subplots(1, 3, figsize=(20, 5))
 
+    axes[0].set_title(title)
+    if ylim is not None:
+        axes[0].set_ylim(*ylim)
+    axes[0].set_xlabel("Training examples")
+    axes[0].set_ylabel("Score")
+    
+    filename_exists = icr.True_False_data_filename_exists(filename)
+    print('filename_exists: ' + str(filename_exists))
+    if filename_exists == True:
+        #read in file
+        learning_curve_model_name = icr.return_processed_collection_if_it_exists(filename=filename)
+        
+        train_scores_mean = learning_curve_model_name['learning_curve_mean_std']['test_scores_mean']
+        train_scores_std = learning_curve_model_name['learning_curve_mean_std']['train_scores_std']
+        test_scores_mean = learning_curve_model_name['learning_curve_mean_std']['test_scores_mean']
+        test_scores_std = learning_curve_model_name['learning_curve_mean_std']['test_scores_std']
+        fit_times_mean = learning_curve_model_name['learning_curve_mean_std']['fit_times_mean']
+        fit_times_std = learning_curve_model_name['learning_curve_mean_std']['fit_times_std']
+        
+        train_sizes = learning_curve_model_name['learning_curve_raw']['train_sizes']
+        train_scores = learning_curve_model_name['learning_curve_raw']['train_scores']
+        test_scores = learning_curve_model_name['learning_curve_raw']['test_scores']
+        fit_times = learning_curve_model_name['learning_curve_raw']['fit_times']
+
+    else:
+        #get learning curve stats
+        train_sizes, train_scores, test_scores, fit_times, _ = learning_curve(estimator, X, y, scoring=scoring, cv=cv, n_jobs=n_jobs, train_sizes=train_sizes, return_times=True,)
+        train_scores_mean = np.mean(train_scores, axis=1)
+        train_scores_std = np.std(train_scores, axis=1)
+        test_scores_mean = np.mean(test_scores, axis=1)
+        test_scores_std = np.std(test_scores, axis=1)
+        fit_times_mean = np.mean(fit_times, axis=1)
+        fit_times_std = np.std(fit_times, axis=1)
+        
+        #save it
+        learning_curve_raw = {'train_sizes':train_sizes, 'train_scores':train_scores, 'test_scores':test_scores, 'fit_times':fit_times,}
+        learning_curve_mean_std = {'train_sizes':train_sizes, 'train_scores_mean':train_scores_mean, 'train_scores_std':train_scores_std, 'test_scores_mean':test_scores_mean, 'test_scores_std':test_scores_std, 'fit_times_mean':fit_times_mean, 'fit_times_std':fit_times_std,}
+        learning_curve_dictionary_raw_mean_std = {'learning_curve_raw':learning_curve_raw, 'learning_curve_mean_std':learning_curve_mean_std}
+        learning_curve_model_name = icr.save_and_return_collection(learning_curve_dictionary_raw_mean_std, filename=filename)
+
+    
+    # Plot learning curve
+    axes[0].grid()
+    axes[0].fill_between(train_sizes, train_scores_mean - train_scores_std, train_scores_mean + train_scores_std,  alpha=0.1, color="r",)
+    
+    axes[0].fill_between(train_sizes, test_scores_mean - test_scores_std, test_scores_mean + test_scores_std, alpha=0.1, color="g",)
+    
+    axes[0].plot(train_sizes, train_scores_mean, "o-", color="r", label="Training score")
+    
+    axes[0].plot(train_sizes, test_scores_mean, "o-", color="g", label="Cross-validation score")
+    
+    axes[0].legend(loc="best")
+    
+    # Plot n_samples vs fit_times
+    axes[1].grid()
+    axes[1].plot(train_sizes, fit_times_mean, "o-")
+    axes[1].fill_between(train_sizes, fit_times_mean - fit_times_std,  fit_times_mean + fit_times_std, alpha=0.1,)
+    
+    axes[1].set_xlabel("Training examples")
+    axes[1].set_ylabel("fit_times")
+    axes[1].set_title("Scalability of the model")
+
+    # Plot fit_time vs score
+    fit_time_argsort = fit_times_mean.argsort()
+    fit_time_sorted = fit_times_mean[fit_time_argsort]
+    test_scores_mean_sorted = test_scores_mean[fit_time_argsort]
+    test_scores_std_sorted = test_scores_std[fit_time_argsort]
+    
+    axes[2].grid()
+    axes[2].plot(fit_time_sorted, test_scores_mean_sorted, "o-")
+    axes[2].fill_between(fit_time_sorted, test_scores_mean_sorted - test_scores_std_sorted, test_scores_mean_sorted + test_scores_std_sorted, alpha=0.1,)
+    
+    axes[2].set_xlabel("fit_times")
+    axes[2].set_ylabel("Score")
+    axes[2].set_title("Performance of the model")
+
+    return plt, learning_curve_model_name
 
 
