@@ -380,11 +380,11 @@ def plot_learning_curve(estimator, title, X, y, filename, axes=None, ylim=None, 
     axes[0].set_xlabel("Training examples")
     axes[0].set_ylabel("Score")
     
-    filename_exists = icr.True_False_data_filename_exists(filename)
+    filename_exists = True_False_data_filename_exists(filename)
     print('filename_exists: ' + str(filename_exists))
     if filename_exists == True:
         #read in file
-        learning_curve_model_name = icr.return_processed_collection_if_it_exists(filename=filename)
+        learning_curve_model_name = return_processed_collection_if_it_exists(filename=filename)
         
         train_scores_mean = learning_curve_model_name['learning_curve_mean_std']['test_scores_mean']
         train_scores_std = learning_curve_model_name['learning_curve_mean_std']['train_scores_std']
@@ -412,7 +412,7 @@ def plot_learning_curve(estimator, title, X, y, filename, axes=None, ylim=None, 
         learning_curve_raw = {'train_sizes':train_sizes, 'train_scores':train_scores, 'test_scores':test_scores, 'fit_times':fit_times,}
         learning_curve_mean_std = {'train_sizes':train_sizes, 'train_scores_mean':train_scores_mean, 'train_scores_std':train_scores_std, 'test_scores_mean':test_scores_mean, 'test_scores_std':test_scores_std, 'fit_times_mean':fit_times_mean, 'fit_times_std':fit_times_std,}
         learning_curve_dictionary_raw_mean_std = {'learning_curve_raw':learning_curve_raw, 'learning_curve_mean_std':learning_curve_mean_std}
-        learning_curve_model_name = icr.save_and_return_collection(learning_curve_dictionary_raw_mean_std, filename=filename)
+        learning_curve_model_name = save_and_return_collection(learning_curve_dictionary_raw_mean_std, filename=filename)
 
     
     # Plot learning curve
