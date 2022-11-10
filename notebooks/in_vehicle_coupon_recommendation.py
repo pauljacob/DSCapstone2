@@ -370,6 +370,18 @@ def column_name_value_sets_equal(df, column_name1, column_name2):
 
 
 
+def get_data_frame_from_collection(collection_name, column_name='Y_predicted'):
+    
+    data_frame_list = [pd.DataFrame(collection_name['fold ' + str(fold_number)]) for fold_number in range(5)]
+
+    data_frame = pd.concat(data_frame_list)
+
+    return data_frame.rename(columns={0:column_name})
+
+
+
+
+#Modeling Metrics
 def plot_learning_curve(estimator, title, X, y, filename, axes=None, ylim=None, cv=None, n_jobs=None, scoring=None, train_sizes=np.linspace(0.1, 1.0, 5)):
     if axes is None:
         _, axes = plt.subplots(1, 3, figsize=(20, 5))
