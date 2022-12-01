@@ -1,3 +1,43 @@
+#get libraries
+import pandas as pd
+import os
+import numpy as np
+#from functools import reduce
+
+
+#get visualization libraries
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+import seaborn as sns
+
+
+
+#ML preprocessing
+from sklearn.preprocessing import StandardScaler
+
+#get ML functions
+from sklearn.model_selection import train_test_split, cross_validate, cross_val_score, GridSearchCV, StratifiedKFold, learning_curve
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.linear_model import LogisticRegression
+
+
+from sklearn import __version__ as sklearn_version
+import datetime
+
+
+#get ML metric functions
+from sklearn.metrics import make_scorer, accuracy_score, precision_score, recall_score, f1_score, log_loss, auc, brier_score_loss
+from sklearn.metrics import roc_auc_score, roc_curve, precision_recall_curve, confusion_matrix, ConfusionMatrixDisplay, classification_report, brier_score_loss
+from sklearn.metrics.pairwise import euclidean_distances
+from sklearn.metrics import log_loss
+
+
+
+
+
+
+
+
 ####################
 import os
 import pandas as pd
@@ -464,4 +504,108 @@ def plot_learning_curve(estimator, title, X, y, filename, axes=None, ylim=None, 
 
     return plt, learning_curve_model_name
 
+#Train Modeling Results
+
+def precision_recall_auc_plot(y_true=None, probas_pred=None, model_name_coupon_type=None, precision_lower_upper=None, recall_lower_upper=None):
+    markersize=1
+    linewidth=1
+    
+    #calculate precision, recall, and decision threshold
+    precision_array, recall_array, decision_threshold_array = precision_recall_curve(y_true=y_true, probas_pred=probas_pred)
+    
+    #get precision, recall, decsion threshold data frame
+
+    #decision thresholds by precision .9
+    decision_threshold_array = np.append(0, decision_threshold_array)
+    df_decision_threshold_precision_recall = pd.DataFrame({'decision_threshold':decision_threshold_array, 'precision':precision_array, 'recall':recall_array})
+    df_decision_threshold_precision_recall_filtered_precision_dot9 = df_decision_threshold_precision_recall.loc[(df_decision_threshold_precision_recall.loc[:,'precision'] > precision_lower_upper[0]) & (df_decision_threshold_precision_recall.loc[:,'precision'] < precision_lower_upper[1]), :]
+    
+    print(str(model_name_coupon_type) + ' .9 precision \n' + 'decision thresholds ' + str(df_decision_threshold_precision_recall_filtered_precision_dot9.loc[:, 'decision_threshold'].to_list()) + '\n')
+    
+    
+    #decision thresholds by recall .8
+    df_decision_threshold_precision_recall_filtered_recall_dot8 = df_decision_threshold_precision_recall.loc[(df_decision_threshold_precision_recall.loc[:,'recall'] > recall_lower_upper[0]) & (df_decision_threshold_precision_recall.loc[:,'recall'] < recall_lower_upper[1]), :]
+    
+    print(str(model_name_coupon_type) + ' .8 recall \n' + 'decision thresholds ' + str(df_decision_threshold_precision_recall_filtered_recall_dot8.loc[:, 'decision_threshold'].to_list()) + '\n')
+    
+    
+    #calculate precision-recall auc
+    auc_score = auc(recall_array, precision_array)
+
+    #plot the precision-recall curve
+    plt.plot(recall_array, precision_array, marker='.', markersize=markersize, linewidth=linewidth, label=str(model_name_coupon_type) +' AUC=' + str(round(auc_score, 3)))
+
+    plt.xticks([.0, .1 ,.2, .3 ,.4, .5, .6 ,.7, .8, .9, 1 ])
+    plt.xlabel('Recall')
+    plt.ylabel('Precision')
+    plt.title('Precision vs. Recall')
+    plt.legend()
+    
+    
+    
+    
+def precision_recall_auc_plots(df_collection, coupon_venue_type=None, precision_lower_upper=None, recall_lower_upper=None):
+    print('row count: ' + str(df_collection[coupon_venue_type].shape[0]))
+    
+    precision_recall_auc_plot(y_true=df_collection[coupon_venue_type].loc[:, 'Y'], 
+                              probas_pred=df_collection[coupon_venue_type].loc[:, 'Y_random_forest_prediction_probability'], 
+                              model_name_coupon_type='Random Forest ' + str(coupon_venue_type) + ' Coupon',
+                              precision_lower_upper=precision_lower_upper,
+                              recall_lower_upper=recall_lower_upper)
+
+    precision_recall_auc_plot(y_true=df_collection[coupon_venue_type].loc[:, 'Y'], 
+                              probas_pred=df_collection[coupon_venue_type].loc[:, 'Y_gradient_boosting_prediction_probability'], 
+                              model_name_coupon_type='Gradient Boosting ' + str(coupon_venue_type) + ' Coupon',
+                              precision_lower_upper=precision_lower_upper,
+                              recall_lower_upper=recall_lower_upper)
+
+    
+    
+    
+#########################################################################################################
+#Model Metrics
+#########################################################################################################
+
+def get_metrics_by_venue_type(df, coupon_venue_type, prediction_column_name):
+    print('coupon_venue_type: ' + str(coupon_venue_type))
+    df_filtered_by_venue = df.loc[df.loc[:, 'coupon_venue_type'] == coupon_venue_type, :]
+    
+    precision = precision_score(y_true=df_filtered_by_venue.loc[:, 'Y_test'], y_pred=df_filtered_by_venue.loc[:, prediction_column_name])
+    print('precision: ' + str(precision))
+
+    recall = recall_score(y_true=df_filtered_by_venue.loc[:, 'Y_test'], y_pred=df_filtered_by_venue.loc[:, prediction_column_name])
+    print('recall: ' + str(recall))
+
+    confusion_matrix_ndarray = confusion_matrix(y_true=df_filtered_by_venue.loc[:, 'Y_test'], y_pred=df_filtered_by_venue.loc[:, prediction_column_name])
+    tn, fp, fn, number_of_conversions_correctly_predicted = confusion_matrix_ndarray.ravel()
+    print('number_of_conversions_correctly_predicted: ' + str(number_of_conversions_correctly_predicted))
+
+    number_of_conversions_predicted = \
+    number_of_conversions_correctly_predicted + fp
+    print('number_of_conversions_predicted: ' + str(number_of_conversions_predicted))
+
+    number_of_conversions = \
+    number_of_conversions_correctly_predicted + fn
+    print('number_of_conversions: ' + str(number_of_conversions))
+
+    
+##############################################################################################################################
+#Model Test Results
+##############################################################################################################################
+
+def get_model_predictions_decision_threshold_metric_aim_coupon_venue_type(model_name, metric_name, metric_quantity, coupon_name, coupon_name_short, Y_test_model_prediction_data_frame_collection, df_y_test_model_name_prediction_probability_y_actual_coupon_venue_type, decision_threshold_collection):
+    Y_test_model_prediction_list_collection = {}
+    
+    key = model_name + '_' + metric_name + '_' + metric_quantity + '_' + coupon_name_short + '_coupon'
+    column_name = model_name + '_prediction_' + metric_name + '_' + metric_quantity + '_' + coupon_name_short + '_coupon'
+    model_name_metric_name = model_name + '_' + metric_name
+
+    Y_test_model_prediction_list_collection[key] = \
+    [1 if prediction_probability > decision_threshold_collection[coupon_name][model_name_metric_name] else 0 \
+     for prediction_probability in df_y_test_model_name_prediction_probability_y_actual_coupon_venue_type.loc[:, 'Y_test_' + model_name + '_prediction_probability'].to_list()]
+
+    Y_test_model_prediction_data_frame_collection[key] = \
+    pd.DataFrame(Y_test_model_prediction_list_collection[key], columns=[column_name])
+    
+    return Y_test_model_prediction_data_frame_collection, key
 
