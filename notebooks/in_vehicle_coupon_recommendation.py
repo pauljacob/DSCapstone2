@@ -148,8 +148,7 @@ def show_data_frames_in_memory(dir_):
 
 
     
-def get_column_name_list_left_not_in_right(df_left,
-                                           df_right):
+def get_column_name_list_left_not_in_right(df_left, df_right):
 
     column_name_list_in_both = list(set(df_left.columns).intersection(set(df_right.columns)))
 
@@ -608,4 +607,56 @@ def get_model_predictions_decision_threshold_metric_aim_coupon_venue_type(model_
     pd.DataFrame(Y_test_model_prediction_list_collection[key], columns=[column_name])
     
     return Y_test_model_prediction_data_frame_collection, key
+
+
+
+
+
+
+####################################################
+#Survey Analysis
+################################################################
+
+def plot_bar_graph(df, 
+                   x='coupon_venue_type', 
+                   bar_category_list=['Refused Coupon', 'Accepted Coupon'],
+                   title='Coupon Venue Count and Percentage per Acceptance or Refusal', 
+                   color=['#8c6bb1', '#41ab5d'], 
+                   figsize=(12, 10),
+                   figure_filename=None,
+                   dpi=100):
+    print('hey')
+
+    #plt.figure(figsize=(10, 10))
+
+    #sns.set(style="darkgrid")
+
+    figure_filename_exists = os.path.isfile(figure_filename)
+    if figure_filename_exists == True:
+        img = mpimg.imread(figure_filename)
+        plt.figure(figsize=(20, 16))
+        plt.grid(False)
+        plt.axis('off')
+        plt.imshow(img)
+    else:
+        df.plot(x=x, kind ='bar', stacked=True, title=title, mark_right=True, color=color, figsize=(12, 10))
+
+        df_row_sum = df.loc[:, bar_category_list[0]] + df.loc[:, bar_category_list[1]]
+        print(df_row_sum)
+        df_stacked_bar_percentage = df.loc[:, df.columns[1:]].div(df_row_sum, 0) * 100
+        print(df_stacked_bar_percentage)
+        for column_name in df_stacked_bar_percentage:
+            print(column_name)
+            for i, (cs, ab, pc) in enumerate(zip(df.iloc[:, 1:].cumsum(1).loc[:, column_name], df.loc[:, column_name], df_stacked_bar_percentage.loc[:, column_name])):
+                plt.text(i, cs-ab/2, str(np.round(pc, 1)) + '%', verticalalignment='center', horizontalalignment='center', rotation=0, fontsize=14)
+        plt.ylabel('count')
+
+        #save it
+        plt.savefig(figure_filename, bbox_inches='tight', dpi=dpi)
+
+        plt.show()
+
+
+
+
 
