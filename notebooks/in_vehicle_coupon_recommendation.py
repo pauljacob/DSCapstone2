@@ -72,7 +72,7 @@ def initialize_custom_notebook_settings():
     initialize the jupyter notebook display width'''
         
     from IPython.core.display import display, HTML
-    display(HTML("<style>.container { width:99% !important; }</style>"))
+    display(HTML("<style>.container { width:99.9% !important; }</style>"))
 
     
     pd.options.display.max_columns = 999
@@ -625,7 +625,6 @@ def plot_bar_graph(df,
                    figsize=(12, 10),
                    figure_filename=None,
                    dpi=100):
-    print('hey')
 
     #plt.figure(figsize=(10, 10))
 
@@ -642,11 +641,11 @@ def plot_bar_graph(df,
         df.plot(x=x, kind ='bar', stacked=True, title=title, mark_right=True, color=color, figsize=(12, 10))
 
         df_row_sum = df.loc[:, bar_category_list[0]] + df.loc[:, bar_category_list[1]]
-        print(df_row_sum)
+
         df_stacked_bar_percentage = df.loc[:, df.columns[1:]].div(df_row_sum, 0) * 100
-        print(df_stacked_bar_percentage)
+
         for column_name in df_stacked_bar_percentage:
-            print(column_name)
+
             for i, (cs, ab, pc) in enumerate(zip(df.iloc[:, 1:].cumsum(1).loc[:, column_name], df.loc[:, column_name], df_stacked_bar_percentage.loc[:, column_name])):
                 plt.text(i, cs-ab/2, str(np.round(pc, 1)) + '%', verticalalignment='center', horizontalalignment='center', rotation=0, fontsize=14)
         plt.ylabel('count')
@@ -659,4 +658,23 @@ def plot_bar_graph(df,
 
 
 
+def donut_plot(name_list, size_list, title, title_fontsize, figure_filename, dpi, color_list, circle_color='white'):
+    figure_filename_exists = os.path.isfile(figure_filename)
+    if figure_filename_exists == True:
+        img = mpimg.imread(figure_filename)
+        plt.figure(figsize=(10, 8))
+        plt.grid(False)
+        plt.axis('off')
+        plt.imshow(img)
+    else:
+        white_circle = plt.Circle((0,0), 0.7, color=circle_color)
+        plt.title(title, fontsize=title_fontsize)
+        plt.pie(size_list, labels=name_list, colors=color_list)
+        p = plt.gcf()
+        p.gca().add_artist(white_circle)
+        
+        #save it
+        plt.savefig(figure_filename, bbox_inches='tight', dpi=dpi)
 
+        plt.show()
+        
