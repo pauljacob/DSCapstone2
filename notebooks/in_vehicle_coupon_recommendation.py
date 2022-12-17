@@ -381,7 +381,7 @@ def plot_vertical_bar_graph(df, feature_column_name, title, xlabel, color_list, 
     index_array = np.arange(feature_column_name_unique_value_count)
     bar_width = 0.35
     
-    feature_column_name_unique_value_count = df.loc[:, feature_column_name].drop_duplicates().shape[0]
+    #feature_column_name_unique_value_count = df.loc[:, feature_column_name].drop_duplicates().shape[0]
     
     y_upper_limit = df.loc[:, multibar_column_name_list].to_numpy().max() * 1.1
 
@@ -475,7 +475,14 @@ def plot_vertical_stacked_bar_graph(df, feature_column_name, figure_filename, co
     bottom = np.zeros(feature_column_name_unique_value_count)
 
     
-    index_array = np.arange(feature_column_name_unique_value_count,)
+    if min(df.index) == 0:
+        index_array = np.arange(feature_column_name_unique_value_count,)
+    elif min(df.index) == 1: 
+        index_array = [index+1 for index in np.arange(feature_column_name_unique_value_count,)]
+    else:
+        index_array = np.arange(feature_column_name_unique_value_count,)
+        
+
 
     if figsize == None: figsize = (8,6)
     figure, axes = plt.subplots(nrows=1, ncols=1, figsize=figsize)
