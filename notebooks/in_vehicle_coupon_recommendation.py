@@ -336,8 +336,225 @@ def merge_data_frame_list(data_frame_list):
                   data_frame_list)
 
 
+##################################################################################################################################
+#feature engineering
+##################################################################################################################################
 
 
+
+##################################################################################################################################
+#exploratory data analysis
+##################################################################################################################################
+
+def reverse_key_value_of_dictionary(name_dictionary):
+    return {name_dictionary[key]:key for key in name_dictionary.keys()}
+
+
+
+
+def get_feature_target_frequency_data_frame(df, feature_column_name='income', target_column_name='Y', append_percentage_true_false=False):
+    df = df.value_counts([target_column_name, feature_column_name]).reset_index().pivot(index=feature_column_name, columns=target_column_name).reset_index().droplevel(level=[None,], axis=1).rename(columns={'':feature_column_name, 0:'coupon refused', 1:'coupon accepted'}).loc[:, [feature_column_name, 'coupon accepted', 'coupon refused']]
+    if append_percentage_true_false == False:
+        return df
+    elif append_percentage_true_false == True:
+        df.loc[:, 'total'] = df.loc[:, ['coupon accepted', 'coupon refused']].sum(axis=1)
+        df.loc[:, 'percentage accepted'] = df.loc[:, 'coupon accepted'] / df.loc[:, 'total'] * 100
+        df.loc[:, 'percentage refused'] = df.loc[:, 'coupon refused'] / df.loc[:, 'total'] * 100
+        return df
+
+
+
+def sort_data_frame(df, feature_column_name, feature_value_order_list, ascending_true_false=True):
+    
+    feature_column_name_rank = feature_column_name + '_rank'
+    value_order_dictionary = dict(zip(feature_value_order_list, range(len(feature_value_order_list))))
+    df.loc[:, feature_column_name_rank] = df.loc[:, feature_column_name].map(value_order_dictionary)
+    return df.sort_values([feature_column_name_rank], ascending=ascending_true_false)
+
+
+
+
+def plot_vertical_bar_graph(df, feature_column_name, title, xlabel, color_list, figsize, ylabel='Frequency', multibar_column_name_list=['coupon accepted', 'coupon refused'], color_index_list=[3,0], figure_filename=None, dpi=100, xtick_rotation=90, feature_value_dictionary=None):
+    
+    feature_column_name_unique_value_count = df.loc[:, feature_column_name].drop_duplicates().shape[0]
+    
+    index_array = np.arange(feature_column_name_unique_value_count)
+    bar_width = 0.35
+    
+    feature_column_name_unique_value_count = df.loc[:, feature_column_name].drop_duplicates().shape[0]
+    
+    y_upper_limit = df.loc[:, multibar_column_name_list].to_numpy().max() * 1.1
+
+    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=figsize)
+    rects1 = ax.bar(index_array - bar_width/2, df.loc[:, 'coupon accepted'].to_list(), bar_width, label='Coupon accepted', color=color_list[color_index_list[0]])
+    rects2 = ax.bar(index_array + bar_width/2, df.loc[:, 'coupon refused'].to_list(), bar_width, label='Coupon refused', color=color_list[color_index_list[1]])
+
+    
+    ax.set(xlabel=xlabel, xticks=index_array + bar_width, xlim=[2*bar_width - 1.25, feature_column_name_unique_value_count-0.5], ylim=[0, y_upper_limit],)
+
+
+    ax.set_xticks(index_array, df.loc[:, feature_column_name].replace(feature_value_dictionary), rotation=xtick_rotation)
+    ax.legend()
+    
+    ax.set_title(label=title, fontsize=18)
+    ax.set_ylabel(ylabel=ylabel, fontsize=17)
+    ax.set_xlabel(xlabel=xlabel, fontsize=17)
+    
+    plt.xticks(fontsize=15)
+    plt.yticks(fontsize=15)
+
+    ax.bar_label(rects1, padding=3, fontsize=13)
+    ax.bar_label(rects2, padding=3, fontsize=13)
+    
+    
+
+    fig.tight_layout()
+    
+    plt.savefig(figure_filename, bbox_inches='tight', dpi=dpi)
+
+    plt.show()
+    
+
+
+def plot_horizontal_bar_graph(df, feature_column_name, color_list, title, ylabel, multibar_column_name_list=['coupon accepted', 'coupon refused'], xlabel='Frequency', color_index_list=[3, 0], figure_filename=None, dpi=100, figsize=(8,6), x_upper_limit=None, feature_value_dictionary=None):
+
+    #initialize variables
+    feature_column_name_unique_value_count = df.loc[:, feature_column_name].drop_duplicates().shape[0]
+    
+    if x_upper_limit == None:
+        x_upper_limit = df.loc[:, multibar_column_name_list].to_numpy().max() * 1.1
+    
+    index_array = np.arange(feature_column_name_unique_value_count)
+
+    bar_width = 0.4
+
+    #setup subplot
+    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=figsize)
+    
+    #setup horizontal bar plots
+    rects1 = ax.barh(index_array + bar_width, df.loc[:, multibar_column_name_list[0]], bar_width, color=color_list[color_index_list[0]], label='Coupon accepted', )
+    rects2 = ax.barh(index_array, df.loc[:, multibar_column_name_list[1]], bar_width, color=color_list[color_index_list[1]], label='Coupon refused', )
+
+    if feature_value_dictionary != None:
+    #setup x and y axis
+        ax.set(yticks=index_array + bar_width, yticklabels=df.loc[:, feature_column_name].replace(feature_value_dictionary), ylim=[2*bar_width - 1, feature_column_name_unique_value_count], xlim=[0, x_upper_limit],)
+    elif feature_value_dictionary == None:
+        ax.set(yticks=index_array + bar_width, yticklabels=df.loc[:, feature_column_name], ylim=[2*bar_width - 1, feature_column_name_unique_value_count], xlim=[0, x_upper_limit],)
+    
+    ax.legend()
+
+    ax.set_title(label=title, fontsize=18)
+    ax.set_ylabel(ylabel=ylabel, fontsize=17)
+    ax.set_xlabel(xlabel=xlabel, fontsize=17)
+    
+    plt.xticks(fontsize=15)
+    plt.yticks(fontsize=15)
+
+    ax.bar_label(rects1, padding=3, fontsize=14)
+    ax.bar_label(rects2, padding=3, fontsize=14)
+
+
+    fig.tight_layout()
+    
+    plt.savefig(figure_filename, bbox_inches='tight', dpi=dpi)
+
+    plt.show()
+
+
+
+def plot_vertical_stacked_bar_graph(df, feature_column_name, figure_filename, colors, feature_column_name_label, ylabel, xlabel, xtick_dictionary=None, annotation_text_size=11, dpi=100, xtick_rotation=0, annotation_type='frequency', frequency_annotation_round_by_number=-2, y_upper_limit=None, rectangle_annotation_y_offset=None, figsize=None):
+    '''
+    df : data frame with column frequency and column name as index'''
+    if y_upper_limit == None:
+        y_upper_limit = df.loc[:, 'total'].max() * 1.1
+    if xtick_rotation==None:
+        xtick_rotation = 0
+    
+    feature_column_name_unique_value_count = df.index.drop_duplicates().shape[0]
+
+    bottom = np.zeros(feature_column_name_unique_value_count)
+
+    
+    index_array = np.arange(feature_column_name_unique_value_count,)
+
+    if figsize == None: figsize = (8,6)
+    figure, axes = plt.subplots(nrows=1, ncols=1, figsize=figsize)
+    
+    if y_upper_limit != None:
+        axes.set_ylim([0, y_upper_limit])
+    for i, target_label_column_name in enumerate(df.loc[:, ['coupon accepted', 'coupon refused']].columns):
+        axes.bar(df.index, df.loc[:, target_label_column_name], bottom=bottom, label=target_label_column_name.capitalize(), color=colors[i])
+        if xtick_dictionary == None:
+            axes.set_xticks(index_array, df.index, rotation=xtick_rotation)
+        elif xtick_dictionary != None:
+            axes.set_xticks(index_array, df.index.map(xtick_dictionary), rotation=xtick_rotation)
+        bottom += np.array(df.loc[:, target_label_column_name])
+
+        
+    totals = df.loc[:, ['coupon accepted', 'coupon refused']].sum(axis=1)
+    y_offset = 4
+    for i, total in enumerate(totals):
+        axes.text(totals.index[i], total + y_offset, round(total, frequency_annotation_round_by_number), ha='center', weight='bold', size=annotation_text_size)
+
+    if rectangle_annotation_y_offset == None:
+        rectangle_annotation_y_offset = -35
+
+    if annotation_type == 'frequency':
+        for rectangle in axes.patches:
+            axes.text(rectangle.get_x() + rectangle.get_width() / 2, rectangle.get_height()/2 + rectangle.get_y() + rectangle_annotation_y_offset, round(int(rectangle.get_height()), frequency_annotation_round_by_number), ha='center', color='w', weight='bold', size=annotation_text_size)
+    elif annotation_type == 'percentage':
+        percentage_list = []
+        for column_name in df.loc[:, ['percentage accepted', 'percentage refused']].columns:
+            percentage_list += df.loc[:, column_name].to_list()
+        for rectangle, percentage in zip(axes.patches, percentage_list):
+            axes.text(rectangle.get_x() + rectangle.get_width() / 2, rectangle.get_height()/2 + rectangle.get_y() + rectangle_annotation_y_offset, '{:.0f}%'.format(round(percentage, 0)), ha='center', color='w', weight='bold', size=annotation_text_size)
+
+    axes.set_title(str(feature_column_name_label) + ' Frequency Distribution', fontsize=18)
+    axes.set_ylabel(ylabel=ylabel, fontsize=17)
+    axes.set_xlabel(xlabel=xlabel, fontsize=17)
+    plt.xticks(fontsize=15)
+    plt.yticks(fontsize=15)
+
+    axes.legend()
+    plt.savefig(figure_filename, bbox_inches='tight', dpi=dpi)
+
+    plt.show()
+
+def plot_horizontal_stacked_bar_graph(df, title, figsize=None, rectangle_annotation_y_offset=None, annotation_text_size=None, x_upper_limit=None, color_list=None,):
+    
+    #initialize variables
+    if figsize == None: 
+        figsize=(11, 9)
+    if rectangle_annotation_y_offset == None:
+        rectangle_annotation_y_offset=-0.24
+    if annotation_text_size == None:
+        annotation_text_size=13
+    
+    #create figure and axes
+    figure, axes = plt.subplots(nrows=1, ncols=1, figsize=figsize)
+
+    #plot bars on figure axes
+    b1=axes.barh(df.index, df.loc[:, 'coupon accepted'].to_list(), color=color_list[3])
+    b2=axes.barh(df.index, df.loc[:, 'coupon refused'].to_list(), left=df.loc[:, 'coupon accepted'].to_list(), color=color_list[0])
+    
+    #plot annotations
+    percentage_list = []
+    for column_name in df.loc[:, ['percentage accepted', 'percentage refused']].columns:
+        percentage_list += df.loc[:, column_name].to_list()
+    for rectangle, percentage in zip(axes.patches, percentage_list):
+        axes.text(rectangle.get_x() + rectangle.get_width() / 2, rectangle.get_height()/2 + rectangle.get_y() + rectangle_annotation_y_offset, '{:.0f}%'.format(round(percentage, 0)), ha='center', color='w', weight='bold', size=annotation_text_size)
+    
+
+    #plt.legend([b1, b2], ["Completed", "Pending"], title="Issues", loc="upper right")
+    axes.legend([b1, b2], ['Coupon accepted', 'Coupon refused'])
+    axes.set_title(title)
+    
+    if x_upper_limit != None:
+        axes.set_xlim([0, x_upper_limit])
+
+    plt.show()
+
+    
 
 
 ##################################################################################################################################
