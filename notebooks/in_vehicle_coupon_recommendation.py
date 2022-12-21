@@ -381,8 +381,6 @@ def plot_vertical_bar_graph(df, feature_column_name, title, xlabel, color_list, 
     index_array = np.arange(feature_column_name_unique_value_count)
     bar_width = 0.35
     
-    #feature_column_name_unique_value_count = df.loc[:, feature_column_name].drop_duplicates().shape[0]
-    
     y_upper_limit = df.loc[:, multibar_column_name_list].to_numpy().max() * 1.1
 
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=figsize)
@@ -561,8 +559,51 @@ def plot_horizontal_stacked_bar_graph(df, title, figsize=None, rectangle_annotat
 
     plt.show()
 
+
+def plot_vertical_multibar_bar_graph(df, xlabel_column_name, title, color_list, figsize, xlabel=None, ylabel='Frequency', multibar_column_name_list=None, color_index_list=[3,0], figure_filename=None, dpi=100, xtick_rotation=90, xtick_dictionary=None, bar_label_list=None):
+    
+    feature_column_name_unique_value_count = df.loc[:, xlabel_column_name].drop_duplicates().shape[0]
+    
+    index_array = np.arange(feature_column_name_unique_value_count)
+    bar_width = 0.15
+    
+    
+    y_upper_limit = df.loc[:, multibar_column_name_list].to_numpy().max() * 1.1
+
+    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=figsize)
+    rectangle_dictionary={}
+    if bar_label_list == None:
+        for index, column_name in zip(range(len(multibar_column_name_list)), multibar_column_name_list):
+            rectangle_dictionary[index] = ax.bar(index_array + (index)*bar_width - .3, df.loc[:, column_name].to_list(), bar_width, label=column_name, color=color_list[color_index_list[index]])
+    elif bar_label_list != None:
+        for index, column_name in zip(range(len(multibar_column_name_list)), multibar_column_name_list):
+            rectangle_dictionary[index] = ax.bar(index_array + (index)*bar_width - .3, df.loc[:, column_name].to_list(), bar_width, label=bar_label_list[index], color=color_list[color_index_list[index]])
+
+
+    ax.set(xlabel=xlabel, xticks=index_array + bar_width, xlim=[2*bar_width - 1.25, feature_column_name_unique_value_count-0.5], ylim=[0, y_upper_limit],)
+
+
+    ax.set_xticks(index_array, df.loc[:, xlabel_column_name].replace(xtick_dictionary), rotation=xtick_rotation)
+    ax.legend()
+    
+    ax.set_title(label=title, fontsize=18)
+    ax.set_ylabel(ylabel=ylabel, fontsize=17)
+    ax.set_xlabel(xlabel=xlabel, fontsize=17)
+    
+    plt.xticks(fontsize=15)
+    plt.yticks(fontsize=15)
+
+    
+    for index in range(len(multibar_column_name_list)):
+        ax.bar_label(rectangle_dictionary[index], padding=3, fontsize=13, rotation=90)
+    
     
 
+    fig.tight_layout()
+    
+    plt.savefig(figure_filename, bbox_inches='tight', dpi=dpi)
+
+    plt.show()
 
 ##################################################################################################################################
 #data preprocessing
