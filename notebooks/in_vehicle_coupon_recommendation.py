@@ -874,6 +874,15 @@ def get_model_predictions_decision_threshold_metric_aim_coupon_venue_type(model_
     return Y_test_model_prediction_data_frame_collection, key
 
 
+def get_survey_metrics(df, feature_column_name, feature_column_name_value_list, target_column_name):
+    print('SURVEY')
+    print(str(feature_column_name) + ': ' + str(feature_column_name_value_list))
+
+    number_of_coupons_offered = df.loc[df.loc[:, feature_column_name].isin(feature_column_name_value_list), 'Y'].shape[0]
+    print('number_of_coupons_offered: ' + str(number_of_coupons_offered))
+    
+    conversion_rate = (df.loc[df.loc[:, feature_column_name].isin(feature_column_name_value_list), 'Y'].value_counts() / number_of_coupons_offered)[1]
+    print('conversion_rate: ' + str(conversion_rate))
 
 
 
