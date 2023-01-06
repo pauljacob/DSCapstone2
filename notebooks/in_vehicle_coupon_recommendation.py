@@ -768,6 +768,10 @@ def plot_learning_curve(estimator, title, X, y, filename, axes=None, ylim=None, 
 
     return plt, learning_curve_model_name
 
+
+
+
+
 #Train Modeling Results
 
 def precision_recall_auc_plot(y_true=None, probas_pred=None, model_name_coupon_type=None, precision_lower_upper=None, recall_lower_upper=None):
@@ -853,9 +857,157 @@ def get_metrics_by_venue_type(df, coupon_venue_type, prediction_column_name):
     print('number_of_conversions: ' + str(number_of_conversions))
 
     
+    
+    
+    
+    
+    
+    
+    
+    
+    
 ##############################################################################################################################
 #Model Test Results
 ##############################################################################################################################
+
+def get_model_predictions_from_prediction_probabilities_and_decision_threshold_proportion_metric_estimated(df, model_precision_column_name, model_recall_column_name, model_decision_threshold_column_name, df_Y_test_model_prediction_probability, model_proportion_precision=None, model_proportion_recall=None,):
+    '''
+    df: contains the model decision threshold per model precision and recall
+    model_proportion_precision: level of precision you want predictions to have
+    model_precision_column_name: name of the precision column in df
+    model_decision_threshold_column_name: name of the decision threshold column in df
+    df_Y_test_model_prediction_probability: prediction probabilities for some target data (e.g. Y_test) by the same model type (e.g. random forest classifier) that produced df'''
+    
+    if model_proportion_precision != None:
+        #sort df by model recall descending
+        df=df.sort_values(model_recall_column_name, ascending=False)
+    
+        #get first decision threshold with at least 90% precision from random forest classifier on precision-recall curve
+        model_decision_threshold_precision_number = df.loc[df.loc[:, model_precision_column_name] >= model_proportion_precision, model_decision_threshold_column_name].iloc[0]
+
+        #get y_test predictions from prediction probabilties and decision threshold 90% precision estimated
+        df_Y_test_model_prediction_probability = df_Y_test_model_prediction_probability.to_list()
+        Y_test_predicted_list = [1 if prediction_probability > model_decision_threshold_precision_number else 0 for prediction_probability in df_Y_test_model_prediction_probability]
+        df_Y_test_predicted = pd.DataFrame(Y_test_predicted_list, columns=['Y_test_predicted'])
+        
+        return df_Y_test_predicted
+    
+    elif model_proportion_recall != None:
+        #sort df by model precision descending
+        df=df.sort_values(model_precision_column_name, ascending=False)
+        
+        #get first decision threshold with at least 80% recall from gradient boosting classifier on precision-recall curve
+        model_decision_threshold_recall_number = df.loc[df.loc[:, model_recall_column_name] >= model_proportion_recall, model_decision_threshold_column_name].iloc[0]
+        
+        #get y_test predictions from prediction probabilties and decision threshold 80% recall estimated
+        df_Y_test_model_prediction_probability = df_Y_test_model_prediction_probability.to_list()
+        Y_test_predicted_list = [1 if prediction_probability > model_decision_threshold_recall_number else 0 for prediction_probability in df_Y_test_model_prediction_probability]
+        df_Y_test_predicted = pd.DataFrame(Y_test_predicted_list, columns=['Y_test_predicted'])
+        
+        return df_Y_test_predicted
+
+
+
+
+
+
+
+
+def get_model_survey_and_model_survey_metrics(df, model_y_predicted_column_name, survey_recall_estimated_y_predicted_column_name, y_actual_column_name, feature_column_name_filter, feature_column_name_filter_value_list, metrics_column_name_list=None,):
+    '''
+    df: data frame that contains model y predicted, y actual, and feature for filtering
+    model_y_predicted_column_name: name of the column column containing model y predicted
+    '''
+    
+    if metrics_column_name_list == None:
+        metrics_column_name_list = ['model conversion rate', 'model recall', 'model number converted proportion', 'model number converted', 'model number of coupons recommended proportion','model number of coupons recommended', 'survey conversion rate', 'survey recall', 'survey number converted proportion', 'survey number converted', 'survey number of coupons recommended proportion', 'survey number of coupons recommended', 'model-survey ease of conversion', ]
+
+    metric_list=[]
+    
+    #get filtered data frame
+    df_filtered = df.loc[df.loc[:, feature_column_name_filter].isin(feature_column_name_filter_value_list), :]
+
+    
+    def get_model_or_survey_metric_list_by_y_predicted_column_name(df, df_filtered, y_predicted_column_name, y_actual_column_name):
+        metric_list=[]
+        
+        #get y_true and y_predicted
+        y_true=df_filtered.loc[:, y_actual_column_name]
+        y_predicted=df_filtered.loc[:, y_predicted_column_name]
+        
+        #get precision
+        metric_list += [precision_score(y_true=y_true, y_pred=y_predicted)]
+
+        #get recall
+        metric_list += [recall_score(y_true=y_true, y_pred=y_predicted)]
+        
+        confusion_matrix_ndarray = confusion_matrix(y_true=y_true, y_pred=y_predicted)
+        tn, fp, fn, tp = confusion_matrix_ndarray.ravel()
+        
+        confusion_matrix_ndarray_unfiltered = confusion_matrix(y_true=df.loc[:, y_actual_column_name], y_pred=df.loc[:, y_predicted_column_name])
+        tn_unfiltered, fp_unfiltered, fn_unfiltered, tp_unfiltered = confusion_matrix_ndarray_unfiltered.ravel()
+        
+        #get number converted proportion
+        metric_list += [tp/tp_unfiltered]
+        
+        #get number converted
+        metric_list += [tp]
+        
+        #get number of coupons recommended proportion
+        metric_list += [(tp+fp)/(tp_unfiltered+fp_unfiltered)]
+        
+        #get number of coupons recommended
+        metric_list += [tp+fp]
+
+        return metric_list
+    
+    
+    #get model metric list
+    model_metric_list=get_model_or_survey_metric_list_by_y_predicted_column_name(df=df, df_filtered=df_filtered, y_predicted_column_name=model_y_predicted_column_name, y_actual_column_name=y_actual_column_name,)
+    #get survey metric list
+    survey_metric_list=get_model_or_survey_metric_list_by_y_predicted_column_name(df=df, df_filtered=df_filtered, y_predicted_column_name=survey_recall_estimated_y_predicted_column_name, y_actual_column_name=y_actual_column_name)
+    
+    def get_model_survey_metrics(df_filtered, model_y_predicted_column_name, y_actual_column_name):
+        model_survey_metric_list=[]
+        
+        #get model y_true and y_predicted
+        y_true=df_filtered.loc[:, y_actual_column_name]
+        y_predicted=df_filtered.loc[:, model_y_predicted_column_name]
+        
+        #get model tp
+        confusion_matrix_ndarray = confusion_matrix(y_true=y_true, y_pred=y_predicted)
+        tn, fp, fn, tp = confusion_matrix_ndarray.ravel()
+        
+        #get survey tp+fp for 100% recall
+        survey_number_of_coupons_recommended_recall_100 = df_filtered.shape[0]
+        
+        #Difficulty of Conversion = Model Number Converted / Survey Number of Coupons Recommended
+        model_survey_metric_list+=[tp/survey_number_of_coupons_recommended_recall_100]
+
+        return model_survey_metric_list
+    
+    #get get model-survey metric list
+    model_survey_metric_list= get_model_survey_metrics(df_filtered=df_filtered, model_y_predicted_column_name=model_y_predicted_column_name, y_actual_column_name=y_actual_column_name)
+    
+    metric_list=model_metric_list+survey_metric_list+model_survey_metric_list
+
+    return metric_list
+
+
+    
+    
+    
+    
+    
+
+
+
+
+
+
+
+
+
 
 def get_model_predictions_decision_threshold_metric_aim_coupon_venue_type(model_name, metric_name, metric_quantity, coupon_name, coupon_name_short, Y_test_model_prediction_data_frame_collection, df_y_test_model_name_prediction_probability_y_actual_coupon_venue_type, decision_threshold_collection):
     Y_test_model_prediction_list_collection = {}
@@ -878,10 +1030,10 @@ def get_survey_metrics(df, feature_column_name, feature_column_name_value_list, 
     print('SURVEY')
     print(str(feature_column_name) + ': ' + str(feature_column_name_value_list))
 
-    number_of_coupons_offered = df.loc[df.loc[:, feature_column_name].isin(feature_column_name_value_list), 'Y'].shape[0]
-    print('number_of_coupons_offered: ' + str(number_of_coupons_offered))
+    number_of_coupons_recommendeded = df.loc[df.loc[:, feature_column_name].isin(feature_column_name_value_list), 'Y'].shape[0]
+    print('number_of_coupons_recommendeded: ' + str(number_of_coupons_recommendeded))
     
-    conversion_rate = (df.loc[df.loc[:, feature_column_name].isin(feature_column_name_value_list), 'Y'].value_counts() / number_of_coupons_offered)[1]
+    conversion_rate = (df.loc[df.loc[:, feature_column_name].isin(feature_column_name_value_list), 'Y'].value_counts() / number_of_coupons_recommendeded)[1]
     print('conversion_rate: ' + str(conversion_rate))
 
 
