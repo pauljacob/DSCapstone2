@@ -105,6 +105,14 @@ def rcp(filename, parse_dates=None, index_col=None):
     else:
         return pd.read_csv(os.path.join('..', 'data', 'processed', filename), parse_dates=parse_dates,  index_col=index_col)
 
+    
+
+def rcp_v2(filename, column_name_row_integer_location_list='infer', index_column_integer_location_list=None, parse_dates=None):
+        #read it back
+        return pd.read_csv(filepath_or_buffer=os.path.join('..', 'data', 'processed', filename), sep=',', delimiter=None, header=column_name_row_integer_location_list, index_col=index_column_integer_location_list, usecols=None, squeeze=None, mangle_dupe_cols=True, dtype=None, engine=None, converters=None, true_values=None, false_values=None, skipinitialspace=False, skiprows=None, skipfooter=0, nrows=None, na_values=None, keep_default_na=True, na_filter=True, verbose=False, skip_blank_lines=True, parse_dates=parse_dates, infer_datetime_format=False, keep_date_col=False, date_parser=None, dayfirst=False, cache_dates=True, iterator=False, chunksize=None, compression='infer', thousands=None, decimal='.', lineterminator=None, quotechar='"', quoting=0, doublequote=True, escapechar=None, comment=None, encoding=None, encoding_errors='strict', dialect=None, error_bad_lines=None, warn_bad_lines=None, on_bad_lines=None, delim_whitespace=False, low_memory=True, memory_map=False, float_precision=None, storage_options=None)
+
+    
+
 def rpp(filename, parse_dates=None):
     '''
     Save collection and return it.'''
@@ -172,8 +180,44 @@ def save_and_return_data_frame(df, filename, index=False, parse_dates=False, ind
         df.to_csv(relative_file_path, index=index, index_label=index_label)
     elif os.path.exists(relative_file_path):
         print('This file already exists.')
-        
+
     return rcp(filename, parse_dates, index_col=index_label)
+
+def save_and_return_data_frame_v2(df, filename, index=True):
+    '''
+    Save data frame and return it.
+    
+    df:data frame to save and return
+    filename: name of file to save to data processed folder
+    index: boolean value of whether to include data frame index in save
+    '''
+    
+    
+    #initialize for write out
+    relative_directory_path = os.path.join('..', 'data', 'processed')
+    if not os.path.exists(relative_directory_path):
+        os.mkdir(relative_directory_path)
+        
+    relative_file_path = os.path.join(relative_directory_path, filename)
+    if not os.path.exists(relative_file_path):
+        #write out file
+        df.to_csv(path_or_buf=relative_file_path, sep=',', na_rep='', float_format=None, columns=None, header=True, index=index, index_label=None, mode='w', encoding=None, compression='infer', quoting=None, quotechar='"', chunksize=None, date_format=None, doublequote=True, escapechar=None, decimal='.', errors='strict', storage_options=None)
+        
+    elif os.path.exists(relative_file_path):
+        print('This file already exists.')
+
+    #initialize for readback
+    if index==True:
+        #get the index and column integer locations
+        column_name_row_integer_location_list=[index for index in range(pd.DataFrame(df.columns.to_list()).shape[1])]
+        index_column_integer_location_list=[index for index in range(pd.DataFrame(df.index.to_list()).shape[1])]
+    elif index==False:
+        column_name_row_integer_location_list=[index for index in range(pd.DataFrame(df.columns.to_list()).shape[1])]
+        index_column_integer_location_list=None
+    
+    return rcp_v2(filename=filename, column_name_row_integer_location_list=column_name_row_integer_location_list, index_column_integer_location_list=index_column_integer_location_list)
+
+
 
 
 def save_and_return_collection(data_frame_collection, filename):
@@ -245,6 +289,21 @@ def return_processed_data_file_if_it_exists(filename, parse_dates=False):
     if os.path.exists(relative_file_path):
         print('This file already exists')
         return rcp(filename, parse_dates)
+    else:
+        return pd.DataFrame({})
+    
+def return_processed_data_file_if_it_exists_v2(filename, column_name_row_integer_location_list='infer', index_column_integer_location_list=None, parse_dates=None):
+    
+    relative_directory_path = os.path.join('..', 'data', 'processed')
+
+    if not os.path.exists(relative_directory_path):
+        os.mkdir(relative_directory_path)
+
+    relative_file_path = os.path.join(relative_directory_path, filename)
+
+    if os.path.exists(relative_file_path):
+        print('This file already exists')
+        return rcp_v2(filename=filename, column_name_row_integer_location_list=column_name_row_integer_location_list, index_column_integer_location_list=index_column_integer_location_list, parse_dates=parse_dates)
     else:
         return pd.DataFrame({})
 
@@ -883,11 +942,11 @@ def get_model_predictions_from_prediction_probabilities_and_decision_threshold_p
         df=df.sort_values(model_recall_column_name, ascending=False)
     
         #get first decision threshold with at least 90% precision from random forest classifier on precision-recall curve
-        model_decision_threshold_precision_number = df.loc[df.loc[:, model_precision_column_name] >= model_proportion_precision, model_decision_threshold_column_name].iloc[0]
+        model_decision_threshold_number_precision = df.loc[df.loc[:, model_precision_column_name] >= model_proportion_precision, model_decision_threshold_column_name].iloc[0]
 
         #get y_test predictions from prediction probabilties and decision threshold 90% precision estimated
         df_Y_test_model_prediction_probability = df_Y_test_model_prediction_probability.to_list()
-        Y_test_predicted_list = [1 if prediction_probability > model_decision_threshold_precision_number else 0 for prediction_probability in df_Y_test_model_prediction_probability]
+        Y_test_predicted_list = [1 if prediction_probability > model_decision_threshold_number_precision else 0 for prediction_probability in df_Y_test_model_prediction_probability]
         df_Y_test_predicted = pd.DataFrame(Y_test_predicted_list, columns=['Y_test_predicted'])
         
         return df_Y_test_predicted
@@ -897,15 +956,26 @@ def get_model_predictions_from_prediction_probabilities_and_decision_threshold_p
         df=df.sort_values(model_precision_column_name, ascending=False)
         
         #get first decision threshold with at least 80% recall from gradient boosting classifier on precision-recall curve
-        model_decision_threshold_recall_number = df.loc[df.loc[:, model_recall_column_name] >= model_proportion_recall, model_decision_threshold_column_name].iloc[0]
+        model_decision_threshold_number_recall = df.loc[df.loc[:, model_recall_column_name] >= model_proportion_recall, model_decision_threshold_column_name].iloc[0]
         
         #get y_test predictions from prediction probabilties and decision threshold 80% recall estimated
         df_Y_test_model_prediction_probability = df_Y_test_model_prediction_probability.to_list()
-        Y_test_predicted_list = [1 if prediction_probability > model_decision_threshold_recall_number else 0 for prediction_probability in df_Y_test_model_prediction_probability]
+        Y_test_predicted_list = [1 if prediction_probability > model_decision_threshold_number_recall else 0 for prediction_probability in df_Y_test_model_prediction_probability]
         df_Y_test_predicted = pd.DataFrame(Y_test_predicted_list, columns=['Y_test_predicted'])
         
         return df_Y_test_predicted
 
+def get_survey_coupon_recommendations_by_recall_estimate(number_of_predictions, recall_estimated, random_state=200):
+
+    np.random.seed(random_state)
+    class_1_probability=recall_estimated
+    class_0_probability=1-class_1_probability
+
+    Y_test_survey_recall_estimate_predicted=np.random.choice([0, 1], size=number_of_predictions, p=[class_0_probability, class_1_probability])
+
+    df_Y_test_survey_number_recall_estimate_predicted=pd.DataFrame(Y_test_survey_recall_estimate_predicted, columns=['Y_test_survey_'+str(round(recall_estimated*100))+'_recall_estimate_predicted'])
+
+    return df_Y_test_survey_number_recall_estimate_predicted
 
 
 
@@ -913,7 +983,7 @@ def get_model_predictions_from_prediction_probabilities_and_decision_threshold_p
 
 
 
-def get_model_survey_and_model_survey_metrics(df, model_y_predicted_column_name, survey_recall_estimated_y_predicted_column_name, y_actual_column_name, feature_column_name_filter, feature_column_name_filter_value_list, metrics_column_name_list=None,):
+def get_model_and_survey_metrics(df, model_y_predicted_column_name, survey_number_recall_estimated_y_predicted_column_name, y_actual_column_name, feature_column_name_filter, feature_column_name_filter_value_list, metrics_column_name_list=None,):
     '''
     df: data frame that contains model y predicted, y actual, and feature for filtering
     model_y_predicted_column_name: name of the column column containing model y predicted
@@ -958,56 +1028,213 @@ def get_model_survey_and_model_survey_metrics(df, model_y_predicted_column_name,
         
         #get number of coupons recommended
         metric_list += [tp+fp]
+        
+        metric_list += [tp/(tn+fp+fn+tp)]
 
         return metric_list
     
     
     #get model metric list
     model_metric_list=get_model_or_survey_metric_list_by_y_predicted_column_name(df=df, df_filtered=df_filtered, y_predicted_column_name=model_y_predicted_column_name, y_actual_column_name=y_actual_column_name,)
+    
     #get survey metric list
-    survey_metric_list=get_model_or_survey_metric_list_by_y_predicted_column_name(df=df, df_filtered=df_filtered, y_predicted_column_name=survey_recall_estimated_y_predicted_column_name, y_actual_column_name=y_actual_column_name)
+    survey_metric_list=get_model_or_survey_metric_list_by_y_predicted_column_name(df=df, df_filtered=df_filtered, y_predicted_column_name=survey_number_recall_estimated_y_predicted_column_name, y_actual_column_name=y_actual_column_name)
     
-    def get_model_survey_metrics(df_filtered, model_y_predicted_column_name, y_actual_column_name):
-        model_survey_metric_list=[]
-        
-        #get model y_true and y_predicted
-        y_true=df_filtered.loc[:, y_actual_column_name]
-        y_predicted=df_filtered.loc[:, model_y_predicted_column_name]
-        
-        #get model tp
-        confusion_matrix_ndarray = confusion_matrix(y_true=y_true, y_pred=y_predicted)
-        tn, fp, fn, tp = confusion_matrix_ndarray.ravel()
-        
-        #get survey tp+fp for 100% recall
-        survey_number_of_coupons_recommended_recall_100 = df_filtered.shape[0]
-        
-        #Difficulty of Conversion = Model Number Converted / Survey Number of Coupons Recommended
-        model_survey_metric_list+=[tp/survey_number_of_coupons_recommended_recall_100]
 
-        return model_survey_metric_list
-    
-    #get get model-survey metric list
-    model_survey_metric_list= get_model_survey_metrics(df_filtered=df_filtered, model_y_predicted_column_name=model_y_predicted_column_name, y_actual_column_name=y_actual_column_name)
-    
-    metric_list=model_metric_list+survey_metric_list+model_survey_metric_list
+    metric_list=model_metric_list+survey_metric_list
 
     return metric_list
 
 
     
     
+def get_metric_multiple_index(proportion_or_percentage):
+
+        
+    metric_index_value_list = ['Conversion Rate', 'Recall', proportion_or_percentage.capitalize()+' of Conversions', 'Conversions', proportion_or_percentage.capitalize()+' of Coupons Recommended', 'Coupons Recommended', 'Conversions to Base Survey Coupons Recommended Ratio',]
+
+    model_survey_index_value_list=['Model' for index in range(len(metric_index_value_list))]+['Survey' for index in range(len(metric_index_value_list))]
+
+    metric_index_value_list_doubled = metric_index_value_list+metric_index_value_list
+
+    tuple_list = list(zip(model_survey_index_value_list, metric_index_value_list_doubled))
+    multiple_index=pd.MultiIndex.from_tuples(tuple_list)
+    return multiple_index
+
+    
+def get_metric_confidence_interval_table_by_feature_column_name_filter_value_list_dictionary_key(df_y_test_model_name_predicted_y_test_survey_recall_estimate_predicted_y_actual_feature_column_name_filter, feature_column_name_filter, feature_column_name_filter_value_list_dictionary_key, feature_column_name_filter_value_list_dictionary, multiple_index, number_of_replicates, quantile_lower_upper_list, model_type,survey_number_recall_estimated_y_predicted_column_name, filename_version, save_metric_replicates_feature_column_name_filter_value_list_dictionary_key_list=[],):
+
+
+    def get_number_model_and_survey_metric_replicates_from_number_parametric_subsamples(df, number_of_replicates, model_type, survey_number_recall_estimated_y_predicted_column_name, feature_column_name_filter, feature_column_name_filter_value_list,):
+        metric_list_collection = {}
+
+        np.random.seed(seed=200)
+        for index in range(number_of_replicates):
+
+            df_parametric_bootstrap_sample=df_y_test_model_name_predicted_y_test_survey_recall_estimate_predicted_y_actual_feature_column_name_filter.sample(n=None, frac=1, replace=True, weights=None, random_state=None, axis=0, ignore_index=False)
+
+
+            metric_list_collection[index]=get_model_and_survey_metrics(df=df_parametric_bootstrap_sample, model_y_predicted_column_name='Y_test_'+model_type+'_predicted', survey_number_recall_estimated_y_predicted_column_name=survey_number_recall_estimated_y_predicted_column_name, y_actual_column_name='Y', feature_column_name_filter=feature_column_name_filter, feature_column_name_filter_value_list=feature_column_name_filter_value_list, metrics_column_name_list=None,)
+
+        df_model_number_metric_estimate_metrics_feature_filter_number_bootstrap_replicates_metric=pd.DataFrame(metric_list_collection, index=multiple_index)
+
+        return df_model_number_metric_estimate_metrics_feature_filter_number_bootstrap_replicates_metric
+
     
     
     
+    
+    #get model and survey metric replicates from the 10,000 parametric subsamples
+    df_filename='df_'+model_type+'_number_metric_estimated_'+str(number_of_replicates)+'_metric_replicates_from_'+str(number_of_replicates)+'_parametric_subsamples_'+ feature_column_name_filter_value_list_dictionary_key.lower() +'_'+ filename_version + '.csv'
+
+    df_readback = return_processed_data_file_if_it_exists_v2(filename=df_filename, column_name_row_integer_location_list=[0,], index_column_integer_location_list=[0,1])
+    if df_readback.empty != True:
+        df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics = df_readback
+    else:
+        df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics=get_number_model_and_survey_metric_replicates_from_number_parametric_subsamples(df=df_y_test_model_name_predicted_y_test_survey_recall_estimate_predicted_y_actual_feature_column_name_filter, number_of_replicates=number_of_replicates, model_type=model_type, survey_number_recall_estimated_y_predicted_column_name=survey_number_recall_estimated_y_predicted_column_name, feature_column_name_filter=feature_column_name_filter, feature_column_name_filter_value_list=feature_column_name_filter_value_list_dictionary[feature_column_name_filter_value_list_dictionary_key])
+
+        if feature_column_name_filter_value_list_dictionary_key in save_metric_replicates_feature_column_name_filter_value_list_dictionary_key_list:
+
+            #save it
+            df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics=save_and_return_data_frame_v2(df=df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics, filename=df_filename, index=True)
+            #print(df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics.columns)
+            #print(df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics.index)
+
+    def get_metric_quatiles_from_number_parametric_subsample_replicates_metrics(df, quantile_lower_upper_list):
+
+        return df.quantile(q=quantile_lower_upper_list, axis=1, numeric_only=True, interpolation='linear').T
+
+    #get 95% confidence interval upper and lower quantiles
+    model_survey_quantiles_of_parametric_subsample_replicates_metrics=get_metric_quatiles_from_number_parametric_subsample_replicates_metrics(df=df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics, quantile_lower_upper_list=quantile_lower_upper_list)
+
+
+    #rename columns to multi index
+    column_name_number_confidence_interval=str((round((quantile_lower_upper_list[1] - quantile_lower_upper_list[0])*100)))+'%'+' Confidence Interval'
+    multiple_index=pd.MultiIndex.from_tuples([(column_name_number_confidence_interval, quantile_lower_upper_list[0]), 
+                                              (column_name_number_confidence_interval, quantile_lower_upper_list[1])],)
+    model_survey_quantiles_of_parametric_subsample_replicates_metrics.columns=multiple_index
 
 
 
 
 
+    def convert_quantile_columns_to_confidence_interval_column(model_survey_quantiles_of_parametric_subsample_replicates_metrics, feature_column_name_filter_value_list_dictionary_key):
+        #transpose to wide
+        model_survey_quantiles_of_parametric_subsample_replicates_metrics=model_survey_quantiles_of_parametric_subsample_replicates_metrics.T
+
+        #convert counts to int64
+        model_survey_quantiles_of_parametric_subsample_replicates_metrics\
+        .loc[:, model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>1]=\
+        model_survey_quantiles_of_parametric_subsample_replicates_metrics\
+        .loc[:, model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>1].astype('int64')
+        model_survey_quantiles_of_parametric_subsample_replicates_metrics
+
+
+        if convert_proportions_to_percentages=='yes':
+            #convert to percentages from proportions in [0,1) and round to number of signficant digits
+
+            model_survey_quantiles_of_parametric_subsample_replicates_metrics\
+            .loc[:,(model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>=0) &
+                 (model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<1)]=\
+            round(model_survey_quantiles_of_parametric_subsample_replicates_metrics\
+            .loc[:,(model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>=0) &
+                 (model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<1)]*100, rate_number_of_significant_digits-2)
+
+
+            #convert to 100 percent from proportions 1
+            model_survey_quantiles_of_parametric_subsample_replicates_metrics\
+            .loc[:,model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]==1]=100
+
+            #convert to values to type string
+            model_survey_quantiles_of_parametric_subsample_replicates_metrics=\
+            model_survey_quantiles_of_parametric_subsample_replicates_metrics.astype('string')
+
+
+
+            #add '%' to non-count column names
+            column_name_count_list=[('Model', 'Conversions'), ('Model', 'Coupons Recommended'), ('Survey', 'Conversions'), ('Survey', 'Coupons Recommended')]
+            column_name_list_metric_not_count=\
+            [column_name for column_name in model_survey_quantiles_of_parametric_subsample_replicates_metrics.columns.to_list() if not column_name in column_name_count_list]
+
+            model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[:,column_name_list_metric_not_count]=\
+            model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[:,column_name_list_metric_not_count]+'%'
+
+
+            #transpose to tall
+            model_survey_quantiles_of_parametric_subsample_replicates_metrics=\
+            model_survey_quantiles_of_parametric_subsample_replicates_metrics.T
+
+            multiple_index=get_metric_multiple_index(proportion_or_percentage='percentage')
+            model_survey_quantiles_of_parametric_subsample_replicates_metrics.index=multiple_index
+
+
+        elif convert_proportions_to_percentages=='no':
+
+            model_survey_quantiles_of_parametric_subsample_replicates_metrics .loc[:,(model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>=0) & (model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<1)]=round(model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[:,(model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>=0) & (model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<1)], rate_number_of_significant_digits)
+
+            model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[:,model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]==1]=1
+
+            #convert to values to type string
+            model_survey_quantiles_of_parametric_subsample_replicates_metrics=model_survey_quantiles_of_parametric_subsample_replicates_metrics.astype('string')
+
+
+            #transpose to tall
+            model_survey_quantiles_of_parametric_subsample_replicates_metrics=model_survey_quantiles_of_parametric_subsample_replicates_metrics.T
+
+
+        if keep_quantiles_confidence_interval_both=='quantiles':
+            return model_survey_quantiles_of_parametric_subsample_replicates_metrics
+
+        else:
+            #get 95% confidence interval column from 2.5% and 97.5% quantile columns
+
+            model_survey_number_confidence_interval_of_parametric_subsample_replicates_metrics= model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[:, (column_name_number_confidence_interval, quantile_lower_upper_list[0])]+'-'+model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[:, (column_name_number_confidence_interval, quantile_lower_upper_list[1])]
+
+
+            model_survey_number_confidence_interval_of_parametric_subsample_replicates_metrics=model_survey_number_confidence_interval_of_parametric_subsample_replicates_metrics.to_frame()
+            model_survey_number_confidence_interval_of_parametric_subsample_replicates_metrics.columns=pd.MultiIndex.from_tuples([(column_name_number_confidence_interval, feature_column_name_filter_value_list_dictionary_key)])
+
+            if keep_quantiles_confidence_interval_both=='confidence_interval':
+                return model_survey_number_confidence_interval_of_parametric_subsample_replicates_metrics
+
+
+            elif keep_quantiles_confidence_interval_both=='both':
+                model_survey_quantile_and_number_confidence_interval_of_parametric_subsample_replicates_metrics=\
+                pd.concat([model_survey_quantiles_of_parametric_subsample_replicates_metrics, model_survey_number_confidence_interval_of_parametric_subsample_replicates_metrics],axis=1)
+
+                return model_survey_quantile_and_number_confidence_interval_of_parametric_subsample_replicates_metrics
 
 
 
 
+
+    keep_quantiles_confidence_interval_both='confidence_interval'
+
+    convert_proportions_to_percentages='yes'
+
+    rate_number_of_significant_digits=3
+
+
+    model_survey_number_confidence_interval_of_parametric_subsample_replicates_metrics= convert_quantile_columns_to_confidence_interval_column(model_survey_quantiles_of_parametric_subsample_replicates_metrics=model_survey_quantiles_of_parametric_subsample_replicates_metrics, feature_column_name_filter_value_list_dictionary_key=feature_column_name_filter_value_list_dictionary_key)
+
+    return model_survey_number_confidence_interval_of_parametric_subsample_replicates_metrics, df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics
+    
+    
+
+
+def convert_collection_to_data_frame_and_drop_top_column_level(df_collection):
+    #convert to data frame from collection
+    df=pd.concat(df_collection, axis=1)
+
+    #drop column name top level (from collection key)
+    df.columns=df.columns.droplevel(level=0)
+    
+    return df
+
+
+
+############################################################
+#############################################################
 
 def get_model_predictions_decision_threshold_metric_aim_coupon_venue_type(model_name, metric_name, metric_quantity, coupon_name, coupon_name_short, Y_test_model_prediction_data_frame_collection, df_y_test_model_name_prediction_probability_y_actual_coupon_venue_type, decision_threshold_collection):
     Y_test_model_prediction_list_collection = {}

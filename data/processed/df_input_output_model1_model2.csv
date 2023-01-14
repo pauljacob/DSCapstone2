@@ -1,0 +1,16 @@
+,,alphabet,alphabet,alphabet
+,,a,b,c
+model1,metric1,1,11,6
+model1,metric2,2,12,7
+model1,metric3,3,13,8
+model1,metric4,4,14,9
+model1,metric5,5,15,10
+model1,metric6,6,16,11
+model1,metric7,7,17,12
+model2,metric1,100,1100,600
+model2,metric2,200,1200,700
+model2,metric3,300,1300,800
+model2,metric4,400,1400,900
+model2,metric5,500,1500,1000
+model2,metric6,600,1600,1100
+model2,metric7,700,1700,1200
