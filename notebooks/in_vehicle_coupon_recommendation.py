@@ -887,44 +887,15 @@ def precision_recall_auc_plots(df_collection, coupon_venue_type=None, precision_
                               recall_lower_upper=recall_lower_upper)
 
     
-    
-    
-#########################################################################################################
-#Model Metrics
-#########################################################################################################
-
-def get_metrics_by_venue_type(df, coupon_venue_type, prediction_column_name):
-    print('coupon_venue_type: ' + str(coupon_venue_type))
-    df_filtered_by_venue = df.loc[df.loc[:, 'coupon_venue_type'] == coupon_venue_type, :]
-    
-    precision = precision_score(y_true=df_filtered_by_venue.loc[:, 'Y_test'], y_pred=df_filtered_by_venue.loc[:, prediction_column_name])
-    print('precision: ' + str(precision))
-
-    recall = recall_score(y_true=df_filtered_by_venue.loc[:, 'Y_test'], y_pred=df_filtered_by_venue.loc[:, prediction_column_name])
-    print('recall: ' + str(recall))
-
-    confusion_matrix_ndarray = confusion_matrix(y_true=df_filtered_by_venue.loc[:, 'Y_test'], y_pred=df_filtered_by_venue.loc[:, prediction_column_name])
-    tn, fp, fn, number_of_conversions_correctly_predicted = confusion_matrix_ndarray.ravel()
-    print('number_of_conversions_correctly_predicted: ' + str(number_of_conversions_correctly_predicted))
-
-    number_of_conversions_predicted = \
-    number_of_conversions_correctly_predicted + fp
-    print('number_of_conversions_predicted: ' + str(number_of_conversions_predicted))
-
-    number_of_conversions = \
-    number_of_conversions_correctly_predicted + fn
-    print('number_of_conversions: ' + str(number_of_conversions))
 
     
     
     
     
+
     
-    
-    
-    
-    
-    
+
+
 ##############################################################################################################################
 #Model Test Results
 ##############################################################################################################################
@@ -1097,12 +1068,6 @@ def get_model_and_survey_metrics(df, model_y_predicted_column_name, survey_numbe
         
 
         
-        
-        
-        
-        
-        #how do we get survey coupons recommended here???
-        
         return metric_list
     
     
@@ -1131,17 +1096,10 @@ def calculate_and_add_model_survey_difference(df_model_survey_metrics, multiple_
     return pd.concat([df_model_survey_metrics, df_model_survey_difference_metrics], axis=0)    
 
 
-def convert_collection_to_data_frame_and_drop_top_column_level(df_collection):
-    #convert to data frame from collection
-    df=pd.concat(df_collection, axis=1)
-
-    #drop column name top level (from collection key)
-    df.columns=df.columns.droplevel(level=0)
-    
-    return df
 
 
-def get_metric_confidence_interval_table_by_feature_column_name_filter_value_list_dictionary_key_v2(df_y_test_model_name_predicted_y_test_survey_recall_estimate_predicted_y_actual_feature_column_name_filter, feature_column_name_filter, feature_column_name_filter_value_list_dictionary_key, feature_column_name_filter_value_list_dictionary, multiple_index, number_of_replicates, quantile_lower_upper_list, model_type,survey_number_recall_estimated_y_predicted_column_name, filename_version, save_metric_replicates_feature_column_name_filter_value_list_dictionary_key_list=[],):
+
+def get_metric_confidence_interval_table_by_feature_column_name_filter_value_list_dictionary_key(df_y_test_model_name_predicted_y_test_survey_recall_estimate_predicted_y_actual_feature_column_name_filter, feature_column_name_filter, feature_column_name_filter_value_list_dictionary_key, feature_column_name_filter_value_list_dictionary, multiple_index, number_of_replicates, quantile_lower_upper_list, model_type,survey_number_recall_estimated_y_predicted_column_name, filename_version, save_metric_replicates_feature_column_name_filter_value_list_dictionary_key_list=[],):
 
 
     def get_number_model_and_survey_metric_replicates_from_number_parametric_subsamples(df, number_of_replicates, model_type, survey_number_recall_estimated_y_predicted_column_name, feature_column_name_filter, feature_column_name_filter_value_list,):
@@ -1177,6 +1135,11 @@ def get_metric_confidence_interval_table_by_feature_column_name_filter_value_lis
     else:
         df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics=get_number_model_and_survey_metric_replicates_from_number_parametric_subsamples(df=df_y_test_model_name_predicted_y_test_survey_recall_estimate_predicted_y_actual_feature_column_name_filter, number_of_replicates=number_of_replicates, model_type=model_type, survey_number_recall_estimated_y_predicted_column_name=survey_number_recall_estimated_y_predicted_column_name, feature_column_name_filter=feature_column_name_filter, feature_column_name_filter_value_list=feature_column_name_filter_value_list_dictionary[feature_column_name_filter_value_list_dictionary_key])
 
+        #calculate metric replicate differences and append
+        df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics=calculate_and_add_model_survey_difference(df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics, multiple_index)
+        
+        
+        
         if feature_column_name_filter_value_list_dictionary_key in save_metric_replicates_feature_column_name_filter_value_list_dictionary_key_list:
 
             #save it
@@ -1205,23 +1168,39 @@ def get_metric_confidence_interval_table_by_feature_column_name_filter_value_lis
         #transpose to wide
         model_survey_quantiles_of_parametric_subsample_replicates_metrics=model_survey_quantiles_of_parametric_subsample_replicates_metrics.T
 
-        #convert counts to int64
+        #convert positive counts to int64
         model_survey_quantiles_of_parametric_subsample_replicates_metrics\
         .loc[:, model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>1]=\
         model_survey_quantiles_of_parametric_subsample_replicates_metrics\
         .loc[:, model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>1].astype('int64')
         model_survey_quantiles_of_parametric_subsample_replicates_metrics
+        
+        #convert negative counts to int64
+        model_survey_quantiles_of_parametric_subsample_replicates_metrics\
+        .loc[:, model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<-1]=\
+        model_survey_quantiles_of_parametric_subsample_replicates_metrics\
+        .loc[:, model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<-1].astype('int64')
+        model_survey_quantiles_of_parametric_subsample_replicates_metrics
 
 
         if convert_proportions_to_percentages=='yes':
+            
             #convert to percentages from proportions in [0,1) and round to number of signficant digits
-
             model_survey_quantiles_of_parametric_subsample_replicates_metrics\
             .loc[:,(model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>=0) &
                  (model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<1)]=\
             round(model_survey_quantiles_of_parametric_subsample_replicates_metrics\
             .loc[:,(model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>=0) &
                  (model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<1)]*100, rate_number_of_significant_digits-2)
+            
+            
+            #convert to percentages from proportions in (-1,0] and round to number of signficant digits
+            model_survey_quantiles_of_parametric_subsample_replicates_metrics\
+            .loc[:,(model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<=0) &
+                 (model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>-1)]=\
+            round(model_survey_quantiles_of_parametric_subsample_replicates_metrics\
+            .loc[:,(model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<=0) &
+                 (model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>-1)]*100, rate_number_of_significant_digits-2)
 
 
             #convert to 100 percent from proportions 1
@@ -1233,7 +1212,7 @@ def get_metric_confidence_interval_table_by_feature_column_name_filter_value_lis
 
 
             #add '%' to non-count column names
-            column_name_count_list=[('Model', 'Conversions'), ('Model', 'Coupons Recommended'), ('Survey', 'Conversions'), ('Survey', 'Coupons Recommended')]
+            column_name_count_list=[('Model', 'Conversions'), ('Model', 'Coupons Recommended'), ('Survey', 'Conversions'), ('Survey', 'Coupons Recommended'), ('Model-Survey Difference', 'Conversions'), ('Model-Survey Difference', 'Coupons Recommended')]
             column_name_list_metric_not_count=[column_name for column_name in model_survey_quantiles_of_parametric_subsample_replicates_metrics.columns.to_list() if not column_name in column_name_count_list]
 
             model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[:,column_name_list_metric_not_count]=\
@@ -1243,7 +1222,7 @@ def get_metric_confidence_interval_table_by_feature_column_name_filter_value_lis
             #transpose to tall
             model_survey_quantiles_of_parametric_subsample_replicates_metrics=model_survey_quantiles_of_parametric_subsample_replicates_metrics.T
 
-            multiple_index=get_metric_multiple_index(proportion_or_percentage='percentage')[0:20]
+            multiple_index=get_metric_multiple_index(proportion_or_percentage='percentage')[0:30]
             model_survey_quantiles_of_parametric_subsample_replicates_metrics.index=multiple_index
 
 
@@ -1267,7 +1246,7 @@ def get_metric_confidence_interval_table_by_feature_column_name_filter_value_lis
         else:
             #get 95% confidence interval column from 2.5% and 97.5% quantile columns
 
-            model_survey_number_confidence_interval_of_parametric_subsample_replicates_metrics= model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[:, (column_name_number_confidence_interval, quantile_lower_upper_list[0])]+'-'+model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[:, (column_name_number_confidence_interval, quantile_lower_upper_list[1])]
+            model_survey_number_confidence_interval_of_parametric_subsample_replicates_metrics= '('+model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[:, (column_name_number_confidence_interval, quantile_lower_upper_list[0])]+', '+model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[:, (column_name_number_confidence_interval, quantile_lower_upper_list[1])]+')'
 
 
             model_survey_number_confidence_interval_of_parametric_subsample_replicates_metrics=model_survey_number_confidence_interval_of_parametric_subsample_replicates_metrics.to_frame()
@@ -1293,11 +1272,30 @@ def get_metric_confidence_interval_table_by_feature_column_name_filter_value_lis
     rate_number_of_significant_digits=3
 
 
-    model_survey_number_confidence_interval_of_parametric_subsample_replicates_metrics= convert_quantile_columns_to_confidence_interval_column(model_survey_quantiles_of_parametric_subsample_replicates_metrics=model_survey_quantiles_of_parametric_subsample_replicates_metrics, feature_column_name_filter_value_list_dictionary_key=feature_column_name_filter_value_list_dictionary_key)
+    model_survey_number_confidence_interval_of_parametric_subsample_replicates_metrics=\
+    convert_quantile_columns_to_confidence_interval_column(model_survey_quantiles_of_parametric_subsample_replicates_metrics=model_survey_quantiles_of_parametric_subsample_replicates_metrics,
+                                                           feature_column_name_filter_value_list_dictionary_key=feature_column_name_filter_value_list_dictionary_key)
 
 
     
     return model_survey_number_confidence_interval_of_parametric_subsample_replicates_metrics, df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics
+
+
+
+
+
+
+
+def convert_collection_to_data_frame_and_drop_top_column_level(df_collection):
+    #convert to data frame from collection
+    df=pd.concat(df_collection, axis=1)
+
+    #drop column name top level (from collection key)
+    df.columns=df.columns.droplevel(level=0)
+    
+    return df
+
+
 
 
 ############################################################
