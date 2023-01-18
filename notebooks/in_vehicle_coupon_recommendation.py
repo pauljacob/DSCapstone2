@@ -970,6 +970,8 @@ def get_survey_coupon_recommendations_by_recall_estimate(number_of_predictions, 
     np.random.seed(random_state)
     class_1_probability=recall_estimated
     class_0_probability=1-class_1_probability
+    print(class_1_probability)
+    print(class_0_probability)
 
     Y_test_survey_recall_estimate_predicted=np.random.choice([0, 1], size=number_of_predictions, p=[class_0_probability, class_1_probability])
 
@@ -982,63 +984,133 @@ def get_survey_coupon_recommendations_by_recall_estimate(number_of_predictions, 
 
 
 
-
-def get_model_and_survey_metrics(df, model_y_predicted_column_name, survey_number_recall_estimated_y_predicted_column_name, y_actual_column_name, feature_column_name_filter, feature_column_name_filter_value_list, metrics_column_name_list=None,):
-    '''
-    df: data frame that contains model y predicted, y actual, and feature for filtering
-    model_y_predicted_column_name: name of the column column containing model y predicted
-    '''
+def get_metric_multiple_index(proportion_or_percentage):
     
-    if metrics_column_name_list == None:
-        metrics_column_name_list = ['model conversion rate', 'model recall', 'model number converted proportion', 'model number converted', 'model number of coupons recommended proportion','model number of coupons recommended', 'survey conversion rate', 'survey recall', 'survey number converted proportion', 'survey number converted', 'survey number of coupons recommended proportion', 'survey number of coupons recommended', 'model-survey ease of conversion', ]
+    metric_index_value_list = ['Conversion Rate', 'Recall', proportion_or_percentage.capitalize()+' of Conversions', 'Conversions', proportion_or_percentage.capitalize()+' of Coupons Recommended', 'Coupons Recommended', 
+                               'Conversions to Base Survey Coupons Recommended Ratio',
+                               'Conversions to Survey Conversions Ratio',
+                               'Coupons Recommended to Survey Coupons Recommended Ratio', 
+                               'Coupons Recommended to Base Survey Coupons Recommended Ratio',]
+
+    model_survey_index_value_list=['Model' for index in range(len(metric_index_value_list))]+\
+                                  ['Survey' for index in range(len(metric_index_value_list))]+\
+                                  ['Model-Survey Difference' for index in range(len(metric_index_value_list))]
+
+    metric_index_value_list_doubled = metric_index_value_list+metric_index_value_list+metric_index_value_list
+
+    tuple_list = list(zip(model_survey_index_value_list, metric_index_value_list_doubled))
+    multiple_index=pd.MultiIndex.from_tuples(tuple_list)
+    return multiple_index
+
+
+
+    
+
+
+
+def get_model_and_survey_metrics(df, model_y_predicted_column_name, survey_number_recall_estimated_y_predicted_column_name, y_predicted_column_name_base_survey, y_actual_column_name, feature_column_name_filter, feature_column_name_filter_value_list, metrics_column_name_list=None,):
+    '''
+    df_feature_column_name_unfiltered: data frame that contains model y predicted, y actual, and feature for filtering
+    model_y_predicted_column_name: name of the column containing model y predicted
+    '''
 
     metric_list=[]
     
     #get filtered data frame
-    df_filtered = df.loc[df.loc[:, feature_column_name_filter].isin(feature_column_name_filter_value_list), :]
+    df_feature_column_name_filtered = df.loc[df.loc[:, feature_column_name_filter].isin(feature_column_name_filter_value_list), :]
 
     
-    def get_model_or_survey_metric_list_by_y_predicted_column_name(df, df_filtered, y_predicted_column_name, y_actual_column_name):
+    def get_model_or_survey_metric_list_by_y_predicted_column_name(df_feature_column_name_unfiltered, df_feature_column_name_filtered, y_predicted_column_name, y_predicted_column_name_baseline, y_predicted_column_name_base_survey, y_actual_column_name):
+        
+        '''
+        y_predicted_column_name_baseline: y_predicted from the survey number metric estimated'''
+ 
         metric_list=[]
         
-        #get y_true and y_predicted
-        y_true=df_filtered.loc[:, y_actual_column_name]
-        y_predicted=df_filtered.loc[:, y_predicted_column_name]
+        #get unfiltered y_true and y_predicted
+        y_true_feature_column_name_filtered=df_feature_column_name_filtered.loc[:, y_actual_column_name]
+        y_predicted_feature_column_name_filtered=df_feature_column_name_filtered.loc[:, y_predicted_column_name]
+        
+        #get filtered y_true and y_predicted
+        y_true_feature_column_name_unfiltered=df_feature_column_name_unfiltered.loc[:, y_actual_column_name]
+        y_predicted_feature_column_name_unfiltered=df_feature_column_name_unfiltered.loc[:, y_predicted_column_name]
+        
+        #get survey as a baseline y_predicted
+        y_predicted_baseline_feature_column_name_filtered=df_feature_column_name_filtered.loc[:, y_predicted_column_name_baseline]
+
+        #get base survey y_predicted
+        y_predicted_base_survey_feature_column_name_filtered=df_feature_column_name_filtered.loc[:, y_predicted_column_name_base_survey]
+
         
         #get precision
-        metric_list += [precision_score(y_true=y_true, y_pred=y_predicted)]
+        metric_list += [precision_score(y_true=y_true_feature_column_name_filtered, y_pred=y_predicted_feature_column_name_filtered)]
 
         #get recall
-        metric_list += [recall_score(y_true=y_true, y_pred=y_predicted)]
+        metric_list += [recall_score(y_true=y_true_feature_column_name_filtered, y_pred=y_predicted_feature_column_name_filtered)]
         
-        confusion_matrix_ndarray = confusion_matrix(y_true=y_true, y_pred=y_predicted)
-        tn, fp, fn, tp = confusion_matrix_ndarray.ravel()
         
-        confusion_matrix_ndarray_unfiltered = confusion_matrix(y_true=df.loc[:, y_actual_column_name], y_pred=df.loc[:, y_predicted_column_name])
-        tn_unfiltered, fp_unfiltered, fn_unfiltered, tp_unfiltered = confusion_matrix_ndarray_unfiltered.ravel()
+        #tn, fp, fn, tp filtered
+        confusion_matrix_ndarray_feature_column_name_filtered = confusion_matrix(y_true=y_true_feature_column_name_filtered, y_pred=y_predicted_feature_column_name_filtered)
+        tn_feature_column_name_filtered, fp_feature_column_name_filtered, fn_feature_column_name_filtered, tp_feature_column_name_filtered = confusion_matrix_ndarray_feature_column_name_filtered.ravel()
         
-        #get number converted proportion
-        metric_list += [tp/tp_unfiltered]
+        #tn, fp, fn, tp unfiltered
+        confusion_matrix_ndarray_feature_column_name_unfiltered = confusion_matrix(y_true=df_feature_column_name_unfiltered.loc[:, y_actual_column_name], y_pred=df_feature_column_name_unfiltered.loc[:, y_predicted_column_name])
+        tn_feature_column_name_unfiltered, fp_feature_column_name_unfiltered, fn_feature_column_name_unfiltered, tp_feature_column_name_unfiltered = confusion_matrix_ndarray_feature_column_name_unfiltered.ravel()
         
-        #get number converted
-        metric_list += [tp]
+        #tn, fp, fn, tp baseline filtered
+        confusion_matrix_ndarray_feature_column_name_filtered_baseline = confusion_matrix(y_true=y_true_feature_column_name_filtered, y_pred=y_predicted_baseline_feature_column_name_filtered)
+        tn_feature_column_name_filtered_baseline, fp_feature_column_name_filtered_baseline, fn_feature_column_name_filtered_baseline, tp_feature_column_name_filtered_baseline = confusion_matrix_ndarray_feature_column_name_filtered_baseline.ravel()
         
-        #get number of coupons recommended proportion
-        metric_list += [(tp+fp)/(tp_unfiltered+fp_unfiltered)]
+        #tn, fp, fn, tp base survey filtered
+        confusion_matrix_ndarray_feature_column_name_filtered_base_survey = confusion_matrix(y_true=y_true_feature_column_name_filtered, y_pred=y_predicted_base_survey_feature_column_name_filtered)
+        tn_feature_column_name_filtered_base_survey, fp_feature_column_name_filtered_base_survey, fn_feature_column_name_filtered_base_survey, tp_feature_column_name_filtered_base_survey = confusion_matrix_ndarray_feature_column_name_filtered_base_survey.ravel()
         
-        #get number of coupons recommended
-        metric_list += [tp+fp]
-        
-        metric_list += [tp/(tn+fp+fn+tp)]
 
+        #get conversions proportion
+        metric_list += [tp_feature_column_name_filtered/tp_feature_column_name_unfiltered]
+        
+        #get conversions
+        metric_list += [tp_feature_column_name_filtered]
+        
+        #get coupons recommended proportion
+        metric_list += [(tp_feature_column_name_filtered+fp_feature_column_name_filtered)/(tp_feature_column_name_unfiltered+fp_feature_column_name_unfiltered)]
+        
+        #get coupons recommended
+        metric_list += [tp_feature_column_name_filtered+fp_feature_column_name_filtered]
+        
+        #get conversions to base survey coupons recommended ratio
+        base_survey_coupons_recommended=tp_feature_column_name_filtered_base_survey+fp_feature_column_name_filtered_base_survey
+        metric_list += [tp_feature_column_name_filtered/(base_survey_coupons_recommended)]
+
+        #get conversions to survey conversions ratio
+        metric_list += [(tp_feature_column_name_filtered)/(tp_feature_column_name_filtered_baseline)]
+        
+        #get conversions to base survey conversions ratio
+        #metric_list += [(tp_feature_column_name_filtered)/(tp_feature_column_name_filtered_base_survey)]
+        
+        
+        #get coupons recommended to survey coupons recommended ratio
+        metric_list += [(tp_feature_column_name_filtered+fp_feature_column_name_filtered)/(tp_feature_column_name_filtered_baseline+fp_feature_column_name_filtered_baseline)]
+        
+        #get coupons recommended to base survey coupons recommended ratio
+        metric_list += [(tp_feature_column_name_filtered+fp_feature_column_name_filtered)/(base_survey_coupons_recommended)]
+        
+
+        
+        
+        
+        
+        
+        #how do we get survey coupons recommended here???
+        
         return metric_list
     
     
     #get model metric list
-    model_metric_list=get_model_or_survey_metric_list_by_y_predicted_column_name(df=df, df_filtered=df_filtered, y_predicted_column_name=model_y_predicted_column_name, y_actual_column_name=y_actual_column_name,)
+    model_metric_list=get_model_or_survey_metric_list_by_y_predicted_column_name(df_feature_column_name_unfiltered=df, df_feature_column_name_filtered=df_feature_column_name_filtered, y_predicted_column_name=model_y_predicted_column_name, y_predicted_column_name_baseline=survey_number_recall_estimated_y_predicted_column_name, y_predicted_column_name_base_survey=y_predicted_column_name_base_survey, y_actual_column_name=y_actual_column_name,)
     
     #get survey metric list
-    survey_metric_list=get_model_or_survey_metric_list_by_y_predicted_column_name(df=df, df_filtered=df_filtered, y_predicted_column_name=survey_number_recall_estimated_y_predicted_column_name, y_actual_column_name=y_actual_column_name)
+    survey_metric_list=get_model_or_survey_metric_list_by_y_predicted_column_name(df_feature_column_name_unfiltered=df, df_feature_column_name_filtered=df_feature_column_name_filtered, y_predicted_column_name=survey_number_recall_estimated_y_predicted_column_name, y_predicted_column_name_baseline=survey_number_recall_estimated_y_predicted_column_name, y_predicted_column_name_base_survey=y_predicted_column_name_base_survey, y_actual_column_name=y_actual_column_name)
     
 
     metric_list=model_metric_list+survey_metric_list
@@ -1046,23 +1118,30 @@ def get_model_and_survey_metrics(df, model_y_predicted_column_name, survey_numbe
     return metric_list
 
 
+def calculate_and_add_model_survey_difference(df_model_survey_metrics, multiple_index):
     
+    column_name_list=df_model_survey_metrics.columns.to_list()
     
-def get_metric_multiple_index(proportion_or_percentage):
+    #calculate and add model-survey difference metrics
+    df_model_survey_difference_metrics=df_model_survey_metrics.iloc[0:10].reset_index().loc[:, column_name_list]-df_model_survey_metrics.iloc[10:20].reset_index().loc[:, column_name_list]
 
-        
-    metric_index_value_list = ['Conversion Rate', 'Recall', proportion_or_percentage.capitalize()+' of Conversions', 'Conversions', proportion_or_percentage.capitalize()+' of Coupons Recommended', 'Coupons Recommended', 'Conversions to Base Survey Coupons Recommended Ratio',]
+    df_model_survey_difference_metrics.index=multiple_index[20:30]
 
-    model_survey_index_value_list=['Model' for index in range(len(metric_index_value_list))]+['Survey' for index in range(len(metric_index_value_list))]
+    #combine model survey difference metrics to model and survey metrics
+    return pd.concat([df_model_survey_metrics, df_model_survey_difference_metrics], axis=0)    
 
-    metric_index_value_list_doubled = metric_index_value_list+metric_index_value_list
 
-    tuple_list = list(zip(model_survey_index_value_list, metric_index_value_list_doubled))
-    multiple_index=pd.MultiIndex.from_tuples(tuple_list)
-    return multiple_index
+def convert_collection_to_data_frame_and_drop_top_column_level(df_collection):
+    #convert to data frame from collection
+    df=pd.concat(df_collection, axis=1)
 
+    #drop column name top level (from collection key)
+    df.columns=df.columns.droplevel(level=0)
     
-def get_metric_confidence_interval_table_by_feature_column_name_filter_value_list_dictionary_key(df_y_test_model_name_predicted_y_test_survey_recall_estimate_predicted_y_actual_feature_column_name_filter, feature_column_name_filter, feature_column_name_filter_value_list_dictionary_key, feature_column_name_filter_value_list_dictionary, multiple_index, number_of_replicates, quantile_lower_upper_list, model_type,survey_number_recall_estimated_y_predicted_column_name, filename_version, save_metric_replicates_feature_column_name_filter_value_list_dictionary_key_list=[],):
+    return df
+
+
+def get_metric_confidence_interval_table_by_feature_column_name_filter_value_list_dictionary_key_v2(df_y_test_model_name_predicted_y_test_survey_recall_estimate_predicted_y_actual_feature_column_name_filter, feature_column_name_filter, feature_column_name_filter_value_list_dictionary_key, feature_column_name_filter_value_list_dictionary, multiple_index, number_of_replicates, quantile_lower_upper_list, model_type,survey_number_recall_estimated_y_predicted_column_name, filename_version, save_metric_replicates_feature_column_name_filter_value_list_dictionary_key_list=[],):
 
 
     def get_number_model_and_survey_metric_replicates_from_number_parametric_subsamples(df, number_of_replicates, model_type, survey_number_recall_estimated_y_predicted_column_name, feature_column_name_filter, feature_column_name_filter_value_list,):
@@ -1074,18 +1153,23 @@ def get_metric_confidence_interval_table_by_feature_column_name_filter_value_lis
             df_parametric_bootstrap_sample=df_y_test_model_name_predicted_y_test_survey_recall_estimate_predicted_y_actual_feature_column_name_filter.sample(n=None, frac=1, replace=True, weights=None, random_state=None, axis=0, ignore_index=False)
 
 
-            metric_list_collection[index]=get_model_and_survey_metrics(df=df_parametric_bootstrap_sample, model_y_predicted_column_name='Y_test_'+model_type+'_predicted', survey_number_recall_estimated_y_predicted_column_name=survey_number_recall_estimated_y_predicted_column_name, y_actual_column_name='Y', feature_column_name_filter=feature_column_name_filter, feature_column_name_filter_value_list=feature_column_name_filter_value_list, metrics_column_name_list=None,)
-
-        df_model_number_metric_estimate_metrics_feature_filter_number_bootstrap_replicates_metric=pd.DataFrame(metric_list_collection, index=multiple_index)
+            metric_list_collection[index]=get_model_and_survey_metrics(df=df_parametric_bootstrap_sample, 
+                                                                              model_y_predicted_column_name='Y_test_'+model_type+'_predicted', 
+                                                                              survey_number_recall_estimated_y_predicted_column_name=survey_number_recall_estimated_y_predicted_column_name, 
+                                                                              y_predicted_column_name_base_survey='Y_test_survey_100_recall_estimate_predicted',
+                                                                              y_actual_column_name='Y', 
+                                                                              feature_column_name_filter=feature_column_name_filter, 
+                                                                              feature_column_name_filter_value_list=feature_column_name_filter_value_list, 
+                                                                              metrics_column_name_list=None,)
+            
+            
+        df_model_number_metric_estimate_metrics_feature_filter_number_bootstrap_replicates_metric=pd.DataFrame(metric_list_collection, index=multiple_index[0:20])
 
         return df_model_number_metric_estimate_metrics_feature_filter_number_bootstrap_replicates_metric
 
-    
-    
-    
-    
+
     #get model and survey metric replicates from the 10,000 parametric subsamples
-    df_filename='df_'+model_type+'_number_metric_estimated_'+str(number_of_replicates)+'_metric_replicates_from_'+str(number_of_replicates)+'_parametric_subsamples_'+ feature_column_name_filter_value_list_dictionary_key.lower() +'_'+ filename_version + '.csv'
+    df_filename='df_'+model_type+'_number_metric_estimated_'+str(number_of_replicates)+'_metric_replicates_from_'+str(number_of_replicates)+'_parametric_subsamples_'+ feature_column_name_filter_value_list_dictionary_key.lower().replace(" ", "_") +'_'+ filename_version + '.csv'
 
     df_readback = return_processed_data_file_if_it_exists_v2(filename=df_filename, column_name_row_integer_location_list=[0,], index_column_integer_location_list=[0,1])
     if df_readback.empty != True:
@@ -1097,13 +1181,13 @@ def get_metric_confidence_interval_table_by_feature_column_name_filter_value_lis
 
             #save it
             df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics=save_and_return_data_frame_v2(df=df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics, filename=df_filename, index=True)
-            #print(df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics.columns)
-            #print(df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics.index)
+
 
     def get_metric_quatiles_from_number_parametric_subsample_replicates_metrics(df, quantile_lower_upper_list):
 
         return df.quantile(q=quantile_lower_upper_list, axis=1, numeric_only=True, interpolation='linear').T
 
+    
     #get 95% confidence interval upper and lower quantiles
     model_survey_quantiles_of_parametric_subsample_replicates_metrics=get_metric_quatiles_from_number_parametric_subsample_replicates_metrics(df=df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics, quantile_lower_upper_list=quantile_lower_upper_list)
 
@@ -1113,7 +1197,6 @@ def get_metric_confidence_interval_table_by_feature_column_name_filter_value_lis
     multiple_index=pd.MultiIndex.from_tuples([(column_name_number_confidence_interval, quantile_lower_upper_list[0]), 
                                               (column_name_number_confidence_interval, quantile_lower_upper_list[1])],)
     model_survey_quantiles_of_parametric_subsample_replicates_metrics.columns=multiple_index
-
 
 
 
@@ -1142,29 +1225,25 @@ def get_metric_confidence_interval_table_by_feature_column_name_filter_value_lis
 
 
             #convert to 100 percent from proportions 1
-            model_survey_quantiles_of_parametric_subsample_replicates_metrics\
-            .loc[:,model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]==1]=100
+            model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[:,model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]==1]=100
 
             #convert to values to type string
-            model_survey_quantiles_of_parametric_subsample_replicates_metrics=\
-            model_survey_quantiles_of_parametric_subsample_replicates_metrics.astype('string')
+            model_survey_quantiles_of_parametric_subsample_replicates_metrics=model_survey_quantiles_of_parametric_subsample_replicates_metrics.astype('string')
 
 
 
             #add '%' to non-count column names
             column_name_count_list=[('Model', 'Conversions'), ('Model', 'Coupons Recommended'), ('Survey', 'Conversions'), ('Survey', 'Coupons Recommended')]
-            column_name_list_metric_not_count=\
-            [column_name for column_name in model_survey_quantiles_of_parametric_subsample_replicates_metrics.columns.to_list() if not column_name in column_name_count_list]
+            column_name_list_metric_not_count=[column_name for column_name in model_survey_quantiles_of_parametric_subsample_replicates_metrics.columns.to_list() if not column_name in column_name_count_list]
 
             model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[:,column_name_list_metric_not_count]=\
             model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[:,column_name_list_metric_not_count]+'%'
 
 
             #transpose to tall
-            model_survey_quantiles_of_parametric_subsample_replicates_metrics=\
-            model_survey_quantiles_of_parametric_subsample_replicates_metrics.T
+            model_survey_quantiles_of_parametric_subsample_replicates_metrics=model_survey_quantiles_of_parametric_subsample_replicates_metrics.T
 
-            multiple_index=get_metric_multiple_index(proportion_or_percentage='percentage')
+            multiple_index=get_metric_multiple_index(proportion_or_percentage='percentage')[0:20]
             model_survey_quantiles_of_parametric_subsample_replicates_metrics.index=multiple_index
 
 
@@ -1199,8 +1278,7 @@ def get_metric_confidence_interval_table_by_feature_column_name_filter_value_lis
 
 
             elif keep_quantiles_confidence_interval_both=='both':
-                model_survey_quantile_and_number_confidence_interval_of_parametric_subsample_replicates_metrics=\
-                pd.concat([model_survey_quantiles_of_parametric_subsample_replicates_metrics, model_survey_number_confidence_interval_of_parametric_subsample_replicates_metrics],axis=1)
+                model_survey_quantile_and_number_confidence_interval_of_parametric_subsample_replicates_metrics=pd.concat([model_survey_quantiles_of_parametric_subsample_replicates_metrics, model_survey_number_confidence_interval_of_parametric_subsample_replicates_metrics],axis=1)
 
                 return model_survey_quantile_and_number_confidence_interval_of_parametric_subsample_replicates_metrics
 
@@ -1217,20 +1295,9 @@ def get_metric_confidence_interval_table_by_feature_column_name_filter_value_lis
 
     model_survey_number_confidence_interval_of_parametric_subsample_replicates_metrics= convert_quantile_columns_to_confidence_interval_column(model_survey_quantiles_of_parametric_subsample_replicates_metrics=model_survey_quantiles_of_parametric_subsample_replicates_metrics, feature_column_name_filter_value_list_dictionary_key=feature_column_name_filter_value_list_dictionary_key)
 
+
+    
     return model_survey_number_confidence_interval_of_parametric_subsample_replicates_metrics, df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics
-    
-    
-
-
-def convert_collection_to_data_frame_and_drop_top_column_level(df_collection):
-    #convert to data frame from collection
-    df=pd.concat(df_collection, axis=1)
-
-    #drop column name top level (from collection key)
-    df.columns=df.columns.droplevel(level=0)
-    
-    return df
-
 
 
 ############################################################
