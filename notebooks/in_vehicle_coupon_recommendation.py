@@ -107,9 +107,9 @@ def rcp(filename, parse_dates=None, index_col=None):
 
     
 
-def rcp_v2(filename, column_name_row_integer_location_list='infer', index_column_integer_location_list=None, parse_dates=None):
+def rcp_v2(filename, column_name_row_integer_location_list='infer', index_column_integer_location_list=None, parse_dates=None, data_directory_name='processed'):
         #read it back
-        return pd.read_csv(filepath_or_buffer=os.path.join('..', 'data', 'processed', filename), sep=',', delimiter=None, header=column_name_row_integer_location_list, index_col=index_column_integer_location_list, usecols=None, squeeze=None, mangle_dupe_cols=True, dtype=None, engine=None, converters=None, true_values=None, false_values=None, skipinitialspace=False, skiprows=None, skipfooter=0, nrows=None, na_values=None, keep_default_na=True, na_filter=True, verbose=False, skip_blank_lines=True, parse_dates=parse_dates, infer_datetime_format=False, keep_date_col=False, date_parser=None, dayfirst=False, cache_dates=True, iterator=False, chunksize=None, compression='infer', thousands=None, decimal='.', lineterminator=None, quotechar='"', quoting=0, doublequote=True, escapechar=None, comment=None, encoding=None, encoding_errors='strict', dialect=None, error_bad_lines=None, warn_bad_lines=None, on_bad_lines=None, delim_whitespace=False, low_memory=True, memory_map=False, float_precision=None, storage_options=None)
+        return pd.read_csv(filepath_or_buffer=os.path.join('..', 'data', data_directory_name, filename), sep=',', delimiter=None, header=column_name_row_integer_location_list, index_col=index_column_integer_location_list, usecols=None, squeeze=None, mangle_dupe_cols=True, dtype=None, engine=None, converters=None, true_values=None, false_values=None, skipinitialspace=False, skiprows=None, skipfooter=0, nrows=None, na_values=None, keep_default_na=True, na_filter=True, verbose=False, skip_blank_lines=True, parse_dates=parse_dates, infer_datetime_format=False, keep_date_col=False, date_parser=None, dayfirst=False, cache_dates=True, iterator=False, chunksize=None, compression='infer', thousands=None, decimal='.', lineterminator=None, quotechar='"', quoting=0, doublequote=True, escapechar=None, comment=None, encoding=None, encoding_errors='strict', dialect=None, error_bad_lines=None, warn_bad_lines=None, on_bad_lines=None, delim_whitespace=False, low_memory=True, memory_map=False, float_precision=None, storage_options=None)
 
     
 
@@ -183,7 +183,7 @@ def save_and_return_data_frame(df, filename, index=False, parse_dates=False, ind
 
     return rcp(filename, parse_dates, index_col=index_label)
 
-def save_and_return_data_frame_v2(df, filename, index=True):
+def save_and_return_data_frame_v2(df, filename, index=True, data_directory_name='processed'):
     '''
     Save data frame and return it.
     
@@ -194,7 +194,7 @@ def save_and_return_data_frame_v2(df, filename, index=True):
     
     
     #initialize for write out
-    relative_directory_path = os.path.join('..', 'data', 'processed')
+    relative_directory_path = os.path.join('..', 'data', data_directory_name)
     if not os.path.exists(relative_directory_path):
         os.mkdir(relative_directory_path)
         
@@ -215,7 +215,7 @@ def save_and_return_data_frame_v2(df, filename, index=True):
         column_name_row_integer_location_list=[index for index in range(pd.DataFrame(df.columns.to_list()).shape[1])]
         index_column_integer_location_list=None
     
-    return rcp_v2(filename=filename, column_name_row_integer_location_list=column_name_row_integer_location_list, index_column_integer_location_list=index_column_integer_location_list)
+    return rcp_v2(filename=filename, column_name_row_integer_location_list=column_name_row_integer_location_list, index_column_integer_location_list=index_column_integer_location_list, data_directory_name=data_directory_name)
 
 
 
