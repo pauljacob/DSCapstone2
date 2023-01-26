@@ -108,8 +108,12 @@ def rcp(filename, parse_dates=None, index_col=None):
     
 
 def rcp_v2(filename, column_name_row_integer_location_list='infer', index_column_integer_location_list=None, parse_dates=None, data_directory_name='processed'):
-        #read it back
-        return pd.read_csv(filepath_or_buffer=os.path.join('..', 'data', data_directory_name, filename), sep=',', delimiter=None, header=column_name_row_integer_location_list, index_col=index_column_integer_location_list, usecols=None, squeeze=None, mangle_dupe_cols=True, dtype=None, engine=None, converters=None, true_values=None, false_values=None, skipinitialspace=False, skiprows=None, skipfooter=0, nrows=None, na_values=None, keep_default_na=True, na_filter=True, verbose=False, skip_blank_lines=True, parse_dates=parse_dates, infer_datetime_format=False, keep_date_col=False, date_parser=None, dayfirst=False, cache_dates=True, iterator=False, chunksize=None, compression='infer', thousands=None, decimal='.', lineterminator=None, quotechar='"', quoting=0, doublequote=True, escapechar=None, comment=None, encoding=None, encoding_errors='strict', dialect=None, error_bad_lines=None, warn_bad_lines=None, on_bad_lines=None, delim_whitespace=False, low_memory=True, memory_map=False, float_precision=None, storage_options=None)
+    '''
+    filename: name of file
+    data_directory_name: name of data directory'''
+    
+    #read it back
+    return pd.read_csv(filepath_or_buffer=os.path.join('..', 'data', data_directory_name, filename), sep=',', delimiter=None, header=column_name_row_integer_location_list, index_col=index_column_integer_location_list, usecols=None, squeeze=None, mangle_dupe_cols=True, dtype=None, engine=None, converters=None, true_values=None, false_values=None, skipinitialspace=False, skiprows=None, skipfooter=0, nrows=None, na_values=None, keep_default_na=True, na_filter=True, verbose=False, skip_blank_lines=True, parse_dates=parse_dates, infer_datetime_format=False, keep_date_col=False, date_parser=None, dayfirst=False, cache_dates=True, iterator=False, chunksize=None, compression='infer', thousands=None, decimal='.', lineterminator=None, quotechar='"', quoting=0, doublequote=True, escapechar=None, comment=None, encoding=None, encoding_errors='strict', dialect=None, error_bad_lines=None, warn_bad_lines=None, on_bad_lines=None, delim_whitespace=False, low_memory=True, memory_map=False, float_precision=None, storage_options=None)
 
     
 
@@ -404,6 +408,212 @@ def merge_data_frame_list(data_frame_list):
 ##################################################################################################################################
 #exploratory data analysis
 ##################################################################################################################################
+
+
+
+
+def get_metrics_from_two_features_in_data_frame(df, feature_column_name_list, conversion_rate_minimum, conversions_minimum):
+    '''
+    two features with one feature value each to filter for (i.e. select) responses for coupon recommendation'''
+    
+    metric_value_two_dimensional_list=[]
+    
+    feature_column_name_01_value_collection={}
+    for feature_column_name_01_value_collection[0] in list(df.loc[:, feature_column_name_list[0]].unique()):
+        for feature_column_name_01_value_collection[1] in list(df.loc[:, feature_column_name_list[1]].unique()):
+            
+            metric_value_list=[]
+            
+            feature_column_name_01_value_01_coupons_recommended_collection={}
+            feature_column_name_01_value_01_conversions_collection={}
+            
+            
+            #get y_predicted for 3 df_filtered - feature column name 0 value feature column name 1 value, feature column name 0 value, feature column name 1 value
+            
+            #get y_predict for feature column name 0 value, feature column name 1 value
+            y_predicted_feature_column_name_collection={}
+            for index in range(len(feature_column_name_list)):
+                y_predicted_feature_column_name_collection[index]='y_predicted_'+feature_column_name_list[index]+'_'+str(feature_column_name_01_value_collection[index]).replace(' ', '_')
+                df.loc[:, y_predicted_feature_column_name_collection[index]]=0                
+                df.loc[df.loc[:, feature_column_name_list[index]]==feature_column_name_01_value_collection[index], y_predicted_feature_column_name_collection[index]]=1
+                
+                #get conversion per one feature one value filter 
+                feature_column_name_01_value_01_conversions_collection[index]=df.loc[(df.loc[:, feature_column_name_list[index]]==feature_column_name_01_value_collection[index]) & (df.loc[:, 'Y']==1), :].shape[0]
+                
+                #get coupons recommended per one feature one value filter
+                feature_column_name_01_value_01_coupons_recommended_collection[index]=df.loc[df.loc[:, feature_column_name_list[index]]==feature_column_name_01_value_collection[index], :].shape[0]
+            
+            
+            #get y_predicted for feature column name 0 value feature column name 1 value
+            y_predicted_feature_column_name_collection[2]='y_predicted_'+feature_column_name_list[0]+'_'+str(feature_column_name_01_value_collection[0]).replace(' ', '_')+'_'+feature_column_name_list[1]+'_'+str(feature_column_name_01_value_collection[1]).replace(' ', '_')
+            df.loc[:, y_predicted_feature_column_name_collection[2]]=0
+            df.loc[(df.loc[:, feature_column_name_list[0]]==feature_column_name_01_value_collection[0]) &
+                   (df.loc[:, feature_column_name_list[1]]==feature_column_name_01_value_collection[1]), y_predicted_feature_column_name_collection[2]]=1
+            
+            df_y_actual_y_predicted_feature_column_name_0_1_01 = df.loc[:, ['Y', y_predicted_feature_column_name_collection[0], y_predicted_feature_column_name_collection[1], y_predicted_feature_column_name_collection[2]]]
+            
+            metric_value_list+=[feature_column_name_list[0], feature_column_name_01_value_collection[0], feature_column_name_list[1], feature_column_name_01_value_collection[1],]
+            
+            
+            
+            
+            def get_metrics_for_two_feature_column_name_y_predicted_and_combination_filter(df, y_predicted_feature_column_name_collection, feature_column_name_01_value_01_coupons_recommended_collection, metric_value_list):
+                
+                
+                def get_metrics_from_y_predicted_and_y_predicted_feature_features_column_name_feature_features_column_name_value_values(df, y_predicted_column_name, feature_column_name_01_value_01_coupons_recommended_collection, metric_value_list, index):
+                    '''
+                    get metrics for y_predicted of a one feature column name and one feature column name value OR
+                                                     two feature column names and one feature column name value each'''
+                    
+                    y_true=df.loc[:, ['Y']]
+                    y_predicted=df.loc[:, [y_predicted_column_name]]
+                    
+                    survey_coupons_recommended=df.shape[0]
+                    survey_conversions=df.loc[df.loc[:, 'Y']==1,'Y'].shape[0]
+                    
+                    #conversion rate
+                    metric_value_list+=[precision_score(y_true=y_true, y_pred=y_predicted)]
+
+                    #recall
+                    metric_value_list += [recall_score(y_true=y_true, y_pred=y_predicted)]
+                    
+                    confusion_matrix_ndarray = confusion_matrix(y_true=y_true, y_pred=y_predicted)
+                    true_negatives, false_positives, false_negatives, true_positives = confusion_matrix_ndarray.ravel()
+                    
+                    if index==2:
+                        #get proportion of conversions for feature 0 and value feature 1 and value of feature 0 and value
+                        metric_value_list+=[true_positives/feature_column_name_01_value_01_conversions_collection[0]]
+                        
+                        #get proportion of conversions for feature 0 and value feauture 1 and value of feature 1 and value
+                        metric_value_list+=[true_positives/feature_column_name_01_value_01_conversions_collection[1]]
+                    
+                    #conversions
+                    metric_value_list += [true_positives]                    
+                    
+                    #proportion of coupons recommended
+                    coupons_recommended=true_positives+false_positives 
+                    if (index == 0) | (index == 1):
+                        metric_value_list += [coupons_recommended/survey_coupons_recommended]
+                    
+                    elif index == 2:
+                        #proportion of feature 0 and value coupons recommended by feature 0 and value and feature 1 and value
+                        metric_value_list += [coupons_recommended/feature_column_name_01_value_01_coupons_recommended_collection[0]]
+                        
+                        #proportion of feature 1 and value coupons recommended by feature 0 and value and feature 1 and value
+                        metric_value_list += [coupons_recommended/feature_column_name_01_value_01_coupons_recommended_collection[1]]
+                        
+                    #coupons recommended
+                    metric_value_list += [coupons_recommended]
+                    
+                    return metric_value_list
+                    
+                    
+                    
+                for index in range(3):           
+                    metric_value_list=get_metrics_from_y_predicted_and_y_predicted_feature_features_column_name_feature_features_column_name_value_values(df, y_predicted_column_name=y_predicted_feature_column_name_collection[index], feature_column_name_01_value_01_coupons_recommended_collection=feature_column_name_01_value_01_coupons_recommended_collection, metric_value_list=metric_value_list, index=index)
+
+                return metric_value_list
+                
+            metric_value_two_dimensional_list+=[get_metrics_for_two_feature_column_name_y_predicted_and_combination_filter(df=df_y_actual_y_predicted_feature_column_name_0_1_01, y_predicted_feature_column_name_collection=y_predicted_feature_column_name_collection, feature_column_name_01_value_01_coupons_recommended_collection=feature_column_name_01_value_01_coupons_recommended_collection, metric_value_list=metric_value_list,)]
+        
+    #get column name list
+    column_name_list_feature_0_feature_0_value_feature_1_feature_1_value=['Feature '+str(index)+ column_name_substring for index in range(2) for column_name_substring in ['', ' Value',]]
+    column_name_list_feature_0_metrics_feature_1_metrics= ['Feature ' + str(index) + ' ' + metric_name for index in range(2) for metric_name in ['Conversion Rate', 'Recall', 'Conversions', 'Proportion of Coupons Recommended', 'Coupons Recommended']]
+    column_name_list_feature_1_feature_2_metrics=['Conversion Rate', 'Recall', 'Conversions to Feature 0 Conversions Ratio', 'Conversions to Feature 1 Conversions Ratio', 'Conversions', 'Coupons Recommended to Feature 0 Coupons Recommended Ratio', 'Coupons Recommended to Feature 1 Coupons Recommended Ratio', 'Coupons Recommended']
+    #get column name list from column name lists
+    column_name_list=column_name_list_feature_0_feature_0_value_feature_1_feature_1_value+column_name_list_feature_0_metrics_feature_1_metrics+column_name_list_feature_1_feature_2_metrics
+
+    #convert list to data frame
+    df_metrics=pd.DataFrame(metric_value_two_dimensional_list, columns=column_name_list).sort_values('Conversion Rate', ascending=False)
+
+    #add metric differences
+    df_metrics.loc[:, 'Conversion Rate and Feature 0 Conversion Rate Difference']=df_metrics.loc[:,'Conversion Rate']-df_metrics.loc[:,'Feature 0 Conversion Rate']
+    df_metrics.loc[:, 'Conversion Rate and Feature 1 Conversion Rate Difference']=df_metrics.loc[:,'Conversion Rate']-df_metrics.loc[:,'Feature 1 Conversion Rate']
+    df_metrics.loc[:, 'Recall and Feature 0 Recall Difference']=df_metrics.loc[:, 'Recall']-df_metrics.loc[:, 'Feature 0 Recall']
+    df_metrics.loc[:, 'Recall and Feature 1 Recall Difference']=df_metrics.loc[:, 'Recall']-df_metrics.loc[:, 'Feature 1 Recall']
+    df_metrics.loc[:, 'Conversions and Feature 0 Conversions Difference']=df_metrics.loc[:, 'Conversions']-df_metrics.loc[:, 'Feature 0 Conversions']
+    df_metrics.loc[:, 'Conversions and Feature 1 Conversions Difference']=df_metrics.loc[:, 'Conversions']-df_metrics.loc[:, 'Feature 1 Conversions']
+    df_metrics.loc[:, 'Coupons Recommended and Feature 0 Coupons Recommended Difference']=df_metrics.loc[:, 'Coupons Recommended']-df_metrics.loc[:, 'Feature 0 Coupons Recommended']
+    df_metrics.loc[:, 'Coupons Recommended and Feature 1 Coupons Recommended Difference']=df_metrics.loc[:, 'Coupons Recommended']-df_metrics.loc[:, 'Feature 1 Coupons Recommended']
+    
+    #filter by conversion rate
+    df_metrics_filtered=df_metrics.loc[(df_metrics.loc[:,'Conversion Rate'] > conversion_rate_minimum) &
+                                       (df_metrics.loc[:,'Conversions'] > conversions_minimum), :]
+    
+    
+    return df_metrics_filtered
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# def get_survey_metrics_from_two_features_one_feature_value_each(df, feature_column_name_list):
+
+    
+    
+#     feature_0_column_name_value_list=list(df.loc[:, feature_column_name_list[0]].unique())
+#     feature_1_column_name_value_list=list(df.loc[:, feature_column_name_list[1]].unique())
+    
+#     metric_value_2_dimensional_list=[]
+
+#     def get_metrics_from_data_frame_Y_filtered(df_Y_filtered, metric_value_list):
+
+#         if df_Y_filtered.empty == False:
+
+#             #get target variable unique value list
+#             target_variable_value_unique_list=list(df_Y_filtered.loc[:, 'Y'].unique())
+
+#             #initialize booleans coupon acceptance exists and coupon refusal exists
+#             coupon_acceptance_exists=True if 1 in target_variable_value_unique_list else False
+#             coupon_refusal_exists=True if 0 in target_variable_value_unique_list else False
+
+#             #initialize coupons recommended, coupons acceptance/refusal count, coupons acceptance/refusal proportion
+#             coupons_recommended=df_Y_filtered.shape[0]
+#             df_Y_filtered_value_counts=df_Y_filtered.value_counts()
+#             df_Y_filtered_value_counts_normalized=df_Y_filtered_value_counts/coupons_recommended
+
+#             #get and add coupon acceptance rate, coupon refusal rate, coupons accepted, coupons refused, coupons recommended
+#             metric_value_list+=[df_Y_filtered_value_counts_normalized[1] if coupon_acceptance_exists==True else 0, df_Y_filtered_value_counts_normalized[0] if coupon_refusal_exists==True else 0, df_Y_filtered_value_counts[1] if coupon_acceptance_exists==True else 0, df_Y_filtered_value_counts[0] if coupon_refusal_exists==True else 0, coupons_recommended]
+#         else:
+#             #coupon acceptance rate, coupon refusal rate, coupons accepted, coupons refused, coupons recommended
+#             metric_value_list+=[None, None, 0, 0, 0]
+
+#         return metric_value_list
+    
+    
+#     for feature_0_column_name_value in feature_0_column_name_value_list:
+        
+#         for feature_1_column_name_value in feature_1_column_name_value_list:
+            
+#             metric_value_list=[]            
+#             metric_value_list+=[feature_0_column_name_value, feature_1_column_name_value]
+            
+#             df_Y_filtered=df.loc[(df.loc[:, feature_column_name_list[0]]==feature_0_column_name_value) &
+#                                  (df.loc[:, feature_column_name_list[1]]==feature_1_column_name_value), ['Y']]
+            
+#             metric_value_2_dimensional_list+=[get_metrics_from_data_frame_Y_filtered(df_Y_filtered, metric_value_list)]
+            
+#     column_name_list=feature_column_name_list+['Conversion Rate', 'Refusal Rate', 'Conversions', 'Refusals', 'Coupons Recommended']
+#     return pd.DataFrame(metric_value_2_dimensional_list, columns=column_name_list).sort_values('Conversion Rate', ascending=False)
+
+
+
+
+
+
+
+
+
 
 def reverse_key_value_of_dictionary(name_dictionary):
     return {name_dictionary[key]:key for key in name_dictionary.keys()}
@@ -1298,6 +1508,257 @@ def convert_collection_to_data_frame_and_drop_top_column_level(df_collection):
 
 
 
+
+
+
+
+
+
+
+def get_model_model_feature_and_model_feature_tuple_pair_metrics(df, column_name_y_predicted, feature_column_name_tuple_pair_list):
+    
+    metric_value_two_dimensional_list=[]
+    
+    def get_model_metric_value_list(df, column_name_y_predicted):
+        
+        model_metric_value_list=[]
+        
+        y_true=df.loc[:, 'Y']
+        y_predicted=df.loc[:, column_name_y_predicted]
+        
+        #precision
+        model_precision=precision_score(y_true=y_true, y_pred=y_predicted)
+        
+        #recall
+        model_recall=recall_score(y_true=y_true, y_pred=y_predicted)
+        
+        true_negative,false_positive,false_negative,true_positive=confusion_matrix(y_true=y_true, y_pred=y_predicted).ravel()
+        
+        #conversions
+        model_conversions=true_positive
+        
+        #coupons recommended
+        model_coupons_recommended=false_positive+true_positive
+        
+        model_metric_value_list+=[model_precision, model_recall, model_conversions, model_coupons_recommended,]
+        return model_metric_value_list
+        
+    model_metric_value_list=get_model_metric_value_list(df=df, column_name_y_predicted=column_name_y_predicted)
+    #print(model_metric_value_list)
+    
+    
+    
+    #get model feature tuple pair metrics
+    
+    ####
+    for feature_column_name_tuple_pair in feature_column_name_tuple_pair_list:
+        
+        feature_column_name_0_value_list=list(df.loc[:, feature_column_name_tuple_pair[0]].unique())
+        feature_column_name_1_value_list=list(df.loc[:, feature_column_name_tuple_pair[1]].unique())
+        
+        ####
+        for feature_column_name_0_value in feature_column_name_0_value_list:
+            
+            def get_model_feature_and_value_metric_list(df, 
+                                                        feature_column_name_tuple_pair,
+                                                        feature_column_name_tuple_pair_index, 
+                                                        feature_column_name_number_value, 
+                                                        model_metric_value_list):
+                
+                feature_number_and_value_metric_value_list=[]
+
+                y_predicted_feature_column_name_number_and_value_name='y_predicted_'+str(feature_column_name_tuple_pair[feature_column_name_tuple_pair_index])+'_'+str(feature_column_name_number_value)
+
+                #get y_predicted by feature number and value
+                df.loc[:, y_predicted_feature_column_name_number_and_value_name]=0
+                df.loc[(df.loc[:, feature_column_name_tuple_pair[feature_column_name_tuple_pair_index]]==feature_column_name_number_value), y_predicted_feature_column_name_number_and_value_name]=\
+                df.loc[(df.loc[:, feature_column_name_tuple_pair[feature_column_name_tuple_pair_index]]==feature_column_name_number_value), column_name_y_predicted]
+
+
+                y_true=df.loc[:, 'Y']
+                y_predicted=df.loc[:, y_predicted_feature_column_name_number_and_value_name]
+                #get feature number and value metrics
+
+                #precision
+                model_feature_number_and_value_precision=precision_score(y_true=y_true, y_pred=y_predicted)
+
+                #recall
+                model_feature_number_and_value_recall=recall_score(y_true=y_true, y_pred=y_predicted)
+
+                true_negative,false_positive,false_negative,true_positive=confusion_matrix(y_true=y_true, y_pred=y_predicted).ravel()
+
+                #conversions
+                model_feature_number_and_value_conversions=true_positive
+
+                #coupons recommended
+                model_feature_number_and_value_coupons_recommended=false_positive+true_positive
+                
+                #get metric differences
+                model_feature_number_and_value_precision_model_precision_difference=model_feature_number_and_value_precision-model_metric_value_list[0]
+                
+                model_feature_number_and_value_recall_model_recall_difference=model_feature_number_and_value_recall-model_metric_value_list[1]
+                
+                model_feature_number_and_value_conversions_model_conversions_difference=model_feature_number_and_value_conversions-model_metric_value_list[2]
+                
+                model_feature_number_and_value_coupons_recommended_model_coupons_recommended_difference=model_feature_number_and_value_coupons_recommended-model_metric_value_list[3]
+
+
+                feature_number_and_value_metric_value_list=[feature_column_name_tuple_pair[feature_column_name_tuple_pair_index],
+                                                            feature_column_name_number_value,
+                                                            model_feature_number_and_value_precision, 
+                                                            model_feature_number_and_value_recall,
+                                                            model_feature_number_and_value_conversions,
+                                                            model_feature_number_and_value_coupons_recommended,
+                                                            model_feature_number_and_value_precision_model_precision_difference,
+                                                            model_feature_number_and_value_recall_model_recall_difference,
+                                                            model_feature_number_and_value_conversions_model_conversions_difference,
+                                                            model_feature_number_and_value_coupons_recommended_model_coupons_recommended_difference,]
+                return feature_number_and_value_metric_value_list
+            
+            
+            model_feature_0_and_value_metric_value_list=get_model_feature_and_value_metric_list(df, 
+                                                                                                feature_column_name_tuple_pair=feature_column_name_tuple_pair,
+                                                                                                feature_column_name_tuple_pair_index=0, 
+                                                                                                feature_column_name_number_value=feature_column_name_0_value,
+                                                                                                model_metric_value_list=model_metric_value_list)
+            #print(model_feature_0_and_value_metric_value_list)
+            
+            
+            
+            ####
+            for feature_column_name_1_value in feature_column_name_1_value_list:
+                
+                model_feature_1_and_value_metric_value_list=get_model_feature_and_value_metric_list(df, 
+                                                                                                    feature_column_name_tuple_pair,
+                                                                                                    feature_column_name_tuple_pair_index=1, 
+                                                                                                    feature_column_name_number_value=feature_column_name_1_value,
+                                                                                                    model_metric_value_list=model_metric_value_list)
+                #print(model_feature_1_and_value_metric_value_list)
+
+                
+                
+                model_feature_0_and_value_feature_1_and_value_metric_value_list=[]
+                
+                y_model_feature_column_name_0_and_value_feature_column_name_1_and_value_predicted=\
+                'y_model_'+feature_column_name_tuple_pair[0]+'_'+str(feature_column_name_0_value).replace(' ', '_')+'_'+feature_column_name_tuple_pair[1]+'_'+str(feature_column_name_1_value).replace(' ', '_')+'_predicted'
+                
+                #print(y_model_feature_column_name_0_and_value_feature_column_name_1_and_value_predicted)
+                
+                
+                
+                df.loc[:, y_model_feature_column_name_0_and_value_feature_column_name_1_and_value_predicted]=0
+                df.loc[(df.loc[:, feature_column_name_tuple_pair[0]]==feature_column_name_0_value) &
+                       (df.loc[:, feature_column_name_tuple_pair[1]]==feature_column_name_1_value), y_model_feature_column_name_0_and_value_feature_column_name_1_and_value_predicted]=\
+                df.loc[(df.loc[:, feature_column_name_tuple_pair[0]]==feature_column_name_0_value) &
+                       (df.loc[:, feature_column_name_tuple_pair[1]]==feature_column_name_1_value), column_name_y_predicted]
+                
+                
+                y_true=df.loc[:, 'Y']
+                y_predicted=df.loc[:, y_model_feature_column_name_0_and_value_feature_column_name_1_and_value_predicted]
+                
+                
+                #get feature 0 and value and feature 1 and value metric value list
+
+                #get precision
+                model_feature_0_and_value_feature_1_and_value_precision=precision_score(y_true=y_true, y_pred=y_predicted)
+                
+                #get recall
+                model_feature_0_and_value_feature_1_and_value_recall=recall_score(y_true=y_true, y_pred=y_predicted)
+                
+                true_negatives, false_positives, false_negatives, true_positives = confusion_matrix(y_true=y_true, y_pred=y_predicted).ravel()
+                
+                #get conversions
+                model_feature_0_and_value_feature_1_and_value_conversions=true_positives
+                
+                #get coupons recommended
+                model_feature_0_and_value_feature_1_and_value_coupons_recommended=true_positives+false_positives
+                
+                
+                
+                #metric differences: precision, recall, conversions, coupons recommended
+                
+                #precision difference
+                model_feature_0_and_value_feature_1_and_value_precision_model_feature_0_and_value_precision_difference=\
+                model_feature_0_and_value_feature_1_and_value_precision-model_feature_0_and_value_metric_value_list[2]
+                
+                model_feature_0_and_value_feature_1_and_value_precision_model_feature_1_and_value_precision_difference=\
+                model_feature_0_and_value_feature_1_and_value_precision-model_feature_1_and_value_metric_value_list[2]
+                
+                #recall difference
+                model_feature_0_and_value_feature_1_and_value_recall_model_feature_0_and_value_recall_difference=\
+                model_feature_0_and_value_feature_1_and_value_recall-model_feature_0_and_value_metric_value_list[3]
+                
+                model_feature_0_and_value_feature_1_and_value_recall_model_feature_1_and_value_recall_difference=\
+                model_feature_0_and_value_feature_1_and_value_recall-model_feature_1_and_value_metric_value_list[3]
+                
+                #conversions
+                model_feature_0_and_value_feature_1_and_value_conversions_model_feature_0_and_value_conversions_difference=\
+                model_feature_0_and_value_feature_1_and_value_conversions-model_feature_0_and_value_metric_value_list[4]
+                
+                model_feature_0_and_value_feature_1_and_value_conversions_model_feature_1_and_value_conversions_difference=\
+                model_feature_0_and_value_feature_1_and_value_conversions-model_feature_1_and_value_metric_value_list[4]
+                
+                #coupons recommended
+                model_feature_0_and_value_feature_1_and_value_coupons_recommended_model_feature_0_and_value_coupons_recommended_difference=\
+                model_feature_0_and_value_feature_1_and_value_coupons_recommended-model_feature_0_and_value_metric_value_list[5]
+                
+                model_feature_0_and_value_feature_1_and_value_coupons_recommended_model_feature_1_and_value_coupons_recommended_difference=\
+                model_feature_0_and_value_feature_1_and_value_coupons_recommended-model_feature_1_and_value_metric_value_list[5]
+                
+                
+
+                model_feature_0_and_value_feature_1_and_value_metric_value_list+=\
+                [model_feature_0_and_value_feature_1_and_value_precision, 
+                 model_feature_0_and_value_feature_1_and_value_recall, 
+                 model_feature_0_and_value_feature_1_and_value_conversions,
+                 model_feature_0_and_value_feature_1_and_value_coupons_recommended,
+                 model_feature_0_and_value_feature_1_and_value_precision_model_feature_0_and_value_precision_difference,
+                 model_feature_0_and_value_feature_1_and_value_precision_model_feature_1_and_value_precision_difference,
+                 model_feature_0_and_value_feature_1_and_value_recall_model_feature_0_and_value_recall_difference,
+                 model_feature_0_and_value_feature_1_and_value_recall_model_feature_1_and_value_recall_difference,
+                 model_feature_0_and_value_feature_1_and_value_conversions_model_feature_0_and_value_conversions_difference,
+                 model_feature_0_and_value_feature_1_and_value_conversions_model_feature_1_and_value_conversions_difference,
+                 model_feature_0_and_value_feature_1_and_value_coupons_recommended_model_feature_0_and_value_coupons_recommended_difference,
+                 model_feature_0_and_value_feature_1_and_value_coupons_recommended_model_feature_1_and_value_coupons_recommended_difference,]
+                
+                metric_value_two_dimensional_list+=[model_metric_value_list+\
+                                                    model_feature_0_and_value_metric_value_list+\
+                                                    model_feature_1_and_value_metric_value_list+\
+                                                    model_feature_0_and_value_feature_1_and_value_metric_value_list]
+                
+    
+    #get feature number and value column names
+    feature_number_and_value_column_name_list=['Feature '+str(index)+substring for index in [0,1] for substring in ['', ' Value']]
+
+    #get feature number metric column names
+    substring_list='Conversion Rate', 'Recall', 'Conversions', 'Coupons Recommended', 'Conversion Rate Model Conversion Rate Difference', 'Recall Model Recall Difference', 'Conversions Model Conversions Difference', 'Coupons Recommended Model Coupons Recommended Difference',
+    model_feature_number_column_name_list=['Model Feature '+str(index)+' '+substring for index in [0,1] for substring in substring_list]
+
+    #get feature 0 feature 1 metric column names
+    base_metric_list=['Conversion Rate', 'Recall', 'Conversions', 'Coupons Recommended']
+    feature_0_feature_1_metric_list_first=['Model Feature 0 Feature 1 '+metric for metric in base_metric_list]
+    feature_0_feature_1_metric_list_second=['Model Feature 0 Feature 1 '+metric+' Feature '+str(feature_number)+' '+metric+' Difference' for metric in base_metric_list for feature_number in [0,1]]
+    feature_0_feature_1_metric_list=feature_0_feature_1_metric_list_first+feature_0_feature_1_metric_list_second
+
+        
+    column_name_list=['Model Conversion Rate', 'Model Recall', 'Model Conversions', 'Model Coupons Recommended']+\
+                      feature_number_and_value_column_name_list[0:2]+\
+                      model_feature_number_column_name_list[0:8]+\
+                      feature_number_and_value_column_name_list[2:4]+\
+                      model_feature_number_column_name_list[8:16]+\
+                      feature_0_feature_1_metric_list
+                      
+    
+    
+    df_metrics=pd.DataFrame(metric_value_two_dimensional_list, columns=column_name_list)
+    
+    return df_metrics
+
+
+
+
+
+
 ############################################################
 #############################################################
 
@@ -1318,15 +1779,6 @@ def get_model_predictions_decision_threshold_metric_aim_coupon_venue_type(model_
     return Y_test_model_prediction_data_frame_collection, key
 
 
-def get_survey_metrics(df, feature_column_name, feature_column_name_value_list, target_column_name):
-    print('SURVEY')
-    print(str(feature_column_name) + ': ' + str(feature_column_name_value_list))
-
-    number_of_coupons_recommendeded = df.loc[df.loc[:, feature_column_name].isin(feature_column_name_value_list), 'Y'].shape[0]
-    print('number_of_coupons_recommendeded: ' + str(number_of_coupons_recommendeded))
-    
-    conversion_rate = (df.loc[df.loc[:, feature_column_name].isin(feature_column_name_value_list), 'Y'].value_counts() / number_of_coupons_recommendeded)[1]
-    print('conversion_rate: ' + str(conversion_rate))
 
 
 
@@ -1335,43 +1787,43 @@ def get_survey_metrics(df, feature_column_name, feature_column_name_value_list, 
 #Survey Analysis
 ################################################################
 
-def plot_bar_graph(df, 
-                   x='coupon_venue_type', 
-                   bar_category_list=['Refused Coupon', 'Accepted Coupon'],
-                   title='Coupon Venue Count and Percentage per Acceptance or Refusal', 
-                   color=['#8c6bb1', '#41ab5d'], 
-                   figsize=(12, 10),
-                   figure_filename=None,
-                   dpi=100):
+# def plot_bar_graph(df, 
+#                    x='coupon_venue_type', 
+#                    bar_category_list=['Refused Coupon', 'Accepted Coupon'],
+#                    title='Coupon Venue Count and Percentage per Acceptance or Refusal', 
+#                    color=['#8c6bb1', '#41ab5d'], 
+#                    figsize=(12, 10),
+#                    figure_filename=None,
+#                    dpi=100):
 
-    #plt.figure(figsize=(10, 10))
+#     #plt.figure(figsize=(10, 10))
 
-    #sns.set(style="darkgrid")
+#     #sns.set(style="darkgrid")
 
-    figure_filename_exists = os.path.isfile(figure_filename)
-    if figure_filename_exists == True:
-        img = mpimg.imread(figure_filename)
-        plt.figure(figsize=(20, 16))
-        plt.grid(False)
-        plt.axis('off')
-        plt.imshow(img)
-    else:
-        df.plot(x=x, kind ='bar', stacked=True, title=title, mark_right=True, color=color, figsize=(12, 10))
+#     figure_filename_exists = os.path.isfile(figure_filename)
+#     if figure_filename_exists == True:
+#         img = mpimg.imread(figure_filename)
+#         plt.figure(figsize=(20, 16))
+#         plt.grid(False)
+#         plt.axis('off')
+#         plt.imshow(img)
+#     else:
+#         df.plot(x=x, kind ='bar', stacked=True, title=title, mark_right=True, color=color, figsize=(12, 10))
 
-        df_row_sum = df.loc[:, bar_category_list[0]] + df.loc[:, bar_category_list[1]]
+#         df_row_sum = df.loc[:, bar_category_list[0]] + df.loc[:, bar_category_list[1]]
 
-        df_stacked_bar_percentage = df.loc[:, df.columns[1:]].div(df_row_sum, 0) * 100
+#         df_stacked_bar_percentage = df.loc[:, df.columns[1:]].div(df_row_sum, 0) * 100
 
-        for column_name in df_stacked_bar_percentage:
+#         for column_name in df_stacked_bar_percentage:
 
-            for i, (cs, ab, pc) in enumerate(zip(df.iloc[:, 1:].cumsum(1).loc[:, column_name], df.loc[:, column_name], df_stacked_bar_percentage.loc[:, column_name])):
-                plt.text(i, cs-ab/2, str(np.round(pc, 1)) + '%', verticalalignment='center', horizontalalignment='center', rotation=0, fontsize=14)
-        plt.ylabel('count')
+#             for i, (cs, ab, pc) in enumerate(zip(df.iloc[:, 1:].cumsum(1).loc[:, column_name], df.loc[:, column_name], df_stacked_bar_percentage.loc[:, column_name])):
+#                 plt.text(i, cs-ab/2, str(np.round(pc, 1)) + '%', verticalalignment='center', horizontalalignment='center', rotation=0, fontsize=14)
+#         plt.ylabel('count')
 
-        #save it
-        plt.savefig(figure_filename, bbox_inches='tight', dpi=dpi)
+#         #save it
+#         plt.savefig(figure_filename, bbox_inches='tight', dpi=dpi)
 
-        plt.show()
+#         plt.show()
 
 
 
