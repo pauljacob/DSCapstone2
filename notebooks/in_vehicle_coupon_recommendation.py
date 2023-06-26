@@ -968,8 +968,36 @@ def get_data_frame_from_collection(collection_name, column_name='Y_predicted'):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #Modeling Metrics
 def plot_learning_curve(estimator, title, X, y, filename, axes=None, ylim=None, cv=None, n_jobs=None, scoring=None, train_sizes=np.linspace(0.1, 1.0, 5)):
+    '''Plots learning curve using matplotlib axes
+    
+    Args:
+        estimator: random forest or gradient boosting estimator
+        title (string): title of the first of three plots
+        X (DataFrame): train features
+        y (DataFrame): train target
+        filename (str): filename to check for saved plot to read and display
+        
+    Returns:
+        plt (module): matplotlib module
+        learning_curve_model_name (dict): learning curve score, time, size data and statistics.
+        
+    '''
     if axes is None:
         _, axes = plt.subplots(1, 3, figsize=(20, 5))
 
@@ -985,7 +1013,7 @@ def plot_learning_curve(estimator, title, X, y, filename, axes=None, ylim=None, 
         #read in file
         learning_curve_model_name = return_processed_collection_if_it_exists(filename=filename)
         
-        train_scores_mean = learning_curve_model_name['learning_curve_mean_std']['test_scores_mean']
+        train_scores_mean = learning_curve_model_name['learning_curve_mean_std']['train_scores_mean']
         train_scores_std = learning_curve_model_name['learning_curve_mean_std']['train_scores_std']
         test_scores_mean = learning_curve_model_name['learning_curve_mean_std']['test_scores_mean']
         test_scores_std = learning_curve_model_name['learning_curve_mean_std']['test_scores_std']
@@ -996,6 +1024,9 @@ def plot_learning_curve(estimator, title, X, y, filename, axes=None, ylim=None, 
         train_scores = learning_curve_model_name['learning_curve_raw']['train_scores']
         test_scores = learning_curve_model_name['learning_curve_raw']['test_scores']
         fit_times = learning_curve_model_name['learning_curve_raw']['fit_times']
+        
+        print(learning_curve_model_name['learning_curve_raw']['train_sizes'])
+        print(learning_curve_model_name['learning_curve_raw']['train_scores'])
 
     else:
         #get learning curve stats
@@ -1050,6 +1081,11 @@ def plot_learning_curve(estimator, title, X, y, filename, axes=None, ylim=None, 
     axes[2].set_title("Performance of the model")
 
     return plt, learning_curve_model_name
+
+
+
+
+
 
 
 
