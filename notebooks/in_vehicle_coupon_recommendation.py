@@ -2,6 +2,7 @@
 import pandas as pd
 import os
 import numpy as np
+import itertools
 #from functools import reduce
 
 
@@ -99,7 +100,7 @@ def p(df):
 
 def rcp(filename, parse_dates=None, index_col=None):
     '''
-    Read a file from the processed_data folder.'''
+    Read a file from the data/processed folder.'''
     if parse_dates == None:
         return pd.read_csv(os.path.join('..', 'data', 'processed', filename), index_col=index_col)
     else:
@@ -119,7 +120,7 @@ def rcp_v2(filename, column_name_row_integer_location_list='infer', index_column
 
 def rpp(filename, parse_dates=None):
     '''
-    Save collection and return it.'''
+    Read a collection from the processed_data folder.'''
 
     relative_file_path = os.path.join('..', 'data', 'processed', filename)
         
@@ -218,7 +219,7 @@ def save_and_return_data_frame_v2(df, filename, index=True, data_directory_name=
     elif index==False:
         column_name_row_integer_location_list=[index for index in range(pd.DataFrame(df.columns.to_list()).shape[1])]
         index_column_integer_location_list=None
-    
+
     return rcp_v2(filename=filename, column_name_row_integer_location_list=column_name_row_integer_location_list, index_column_integer_location_list=index_column_integer_location_list, data_directory_name=data_directory_name)
 
 
@@ -397,6 +398,20 @@ def merge_data_frame_list(data_frame_list):
                                                 on=[column_name for column_name in left if column_name in right],
                                                 how='inner'), 
                   data_frame_list)
+
+
+def concatenate_multiindex_objects(multiindex_list):
+    '''
+    multiindex_list: list of MultiIndex objects to be appended to each other
+    return: single MultiIndex Object
+    '''
+    
+    tuple_list=[]
+    for multiindex in multiindex_list:
+        tuple_list+=list(multiindex)
+        
+    return pd.MultiIndex.from_tuples(tuple_list)
+
 
 
 ##################################################################################################################################
@@ -935,10 +950,9 @@ def column_name_value_sets_equal(df, column_name1, column_name2):
     
     
     
-##################################################################################################################################
+#################################################################################################################################
 #Modeling
-
-##################################################################################################################################
+#################################################################################################################################
 
 
 
@@ -1040,8 +1054,9 @@ def plot_learning_curve(estimator, title, X, y, filename, axes=None, ylim=None, 
 
 
 
-
-#Train Modeling Results
+#################################################################################################################################
+#Model Train Results
+#################################################################################################################################
 
 def precision_recall_auc_plot(y_true=None, probas_pred=None, model_name_coupon_type=None, precision_lower_upper=None, recall_lower_upper=None):
     markersize=1
@@ -1101,22 +1116,17 @@ def precision_recall_auc_plots(df_collection, coupon_venue_type=None, precision_
     
     
     
-    
+#################################################################################################################################
+#Model Train or Test Results
+#################################################################################################################################
 
-    
-
-
-##############################################################################################################################
-#Model Test Results
-##############################################################################################################################
-
-def get_model_predictions_from_prediction_probabilities_and_decision_threshold_proportion_metric_estimated(df, model_precision_column_name, model_recall_column_name, model_decision_threshold_column_name, df_Y_test_model_prediction_probability, model_proportion_precision=None, model_proportion_recall=None,):
+def get_model_predictions_from_prediction_probabilities_and_decision_threshold_proportion_metric_estimated(df, model_precision_column_name, model_recall_column_name, model_decision_threshold_column_name, df_Y_train_test_model_prediction_probability, model_proportion_precision=None, model_proportion_recall=None, train_test='test'):
     '''
     df: contains the model decision threshold per model precision and recall
     model_proportion_precision: level of precision you want predictions to have
     model_precision_column_name: name of the precision column in df
     model_decision_threshold_column_name: name of the decision threshold column in df
-    df_Y_test_model_prediction_probability: prediction probabilities for some target data (e.g. Y_test) by the same model type (e.g. random forest classifier) that produced df'''
+    df_Y_train_test_model_prediction_probability: prediction probabilities for some target data (e.g. Y_test) by the same model type (e.g. random forest classifier) that produced df'''
     
     if model_proportion_precision != None:
         #sort df by model recall descending
@@ -1126,11 +1136,11 @@ def get_model_predictions_from_prediction_probabilities_and_decision_threshold_p
         model_decision_threshold_number_precision = df.loc[df.loc[:, model_precision_column_name] >= model_proportion_precision, model_decision_threshold_column_name].iloc[0]
 
         #get y_test predictions from prediction probabilties and decision threshold 90% precision estimated
-        df_Y_test_model_prediction_probability = df_Y_test_model_prediction_probability.to_list()
-        Y_test_predicted_list = [1 if prediction_probability > model_decision_threshold_number_precision else 0 for prediction_probability in df_Y_test_model_prediction_probability]
-        df_Y_test_predicted = pd.DataFrame(Y_test_predicted_list, columns=['Y_test_predicted'])
+        df_Y_train_test_model_prediction_probability = df_Y_train_test_model_prediction_probability.to_list()
+        Y_train_test_predicted_list = [1 if prediction_probability > model_decision_threshold_number_precision else 0 for prediction_probability in df_Y_train_test_model_prediction_probability]
+        df_Y_train_test_predicted = pd.DataFrame(Y_train_test_predicted_list, columns=['Y_'+str(train_test)+'_predicted'])
         
-        return df_Y_test_predicted
+        return df_Y_train_test_predicted
     
     elif model_proportion_recall != None:
         #sort df by model precision descending
@@ -1140,13 +1150,16 @@ def get_model_predictions_from_prediction_probabilities_and_decision_threshold_p
         model_decision_threshold_number_recall = df.loc[df.loc[:, model_recall_column_name] >= model_proportion_recall, model_decision_threshold_column_name].iloc[0]
         
         #get y_test predictions from prediction probabilties and decision threshold 80% recall estimated
-        df_Y_test_model_prediction_probability = df_Y_test_model_prediction_probability.to_list()
-        Y_test_predicted_list = [1 if prediction_probability > model_decision_threshold_number_recall else 0 for prediction_probability in df_Y_test_model_prediction_probability]
-        df_Y_test_predicted = pd.DataFrame(Y_test_predicted_list, columns=['Y_test_predicted'])
+        df_Y_train_test_model_prediction_probability = df_Y_train_test_model_prediction_probability.to_list()
+        Y_train_test_predicted_list = [1 if prediction_probability > model_decision_threshold_number_recall else 0 for prediction_probability in df_Y_train_test_model_prediction_probability]
+        df_Y_train_test_predicted = pd.DataFrame(Y_train_test_predicted_list, columns=['Y_'+str(train_test)+'_predicted'])
         
-        return df_Y_test_predicted
+        return df_Y_train_test_predicted 
 
-def get_survey_coupon_recommendations_by_recall_estimate(number_of_predictions, recall_estimated, random_state=200):
+
+    
+
+def get_survey_coupon_recommendations_by_recall_estimate(number_of_predictions, recall_estimated, random_state=200, train_test='test'):
 
     np.random.seed(random_state)
     class_1_probability=recall_estimated
@@ -1154,11 +1167,17 @@ def get_survey_coupon_recommendations_by_recall_estimate(number_of_predictions, 
     print(class_1_probability)
     print(class_0_probability)
 
-    Y_test_survey_recall_estimate_predicted=np.random.choice([0, 1], size=number_of_predictions, p=[class_0_probability, class_1_probability])
+    Y_train_test_survey_recall_estimate_predicted=np.random.choice([0, 1], size=number_of_predictions, p=[class_0_probability, class_1_probability])
 
-    df_Y_test_survey_number_recall_estimate_predicted=pd.DataFrame(Y_test_survey_recall_estimate_predicted, columns=['Y_test_survey_'+str(round(recall_estimated*100))+'_recall_estimate_predicted'])
+    df_Y_train_test_survey_number_recall_estimate_predicted=pd.DataFrame(Y_train_test_survey_recall_estimate_predicted, columns=['Y_'+str(train_test)+'_survey_'+str(round(recall_estimated*100))+'_recall_estimate_predicted'])
 
-    return df_Y_test_survey_number_recall_estimate_predicted
+    return df_Y_train_test_survey_number_recall_estimate_predicted
+
+
+##############################################################################################################################
+#Model Test Results
+##############################################################################################################################
+
 
 
 
@@ -1167,7 +1186,7 @@ def get_survey_coupon_recommendations_by_recall_estimate(number_of_predictions, 
 
 def get_metric_multiple_index(proportion_or_percentage):
     
-    metric_index_value_list = ['Conversion Rate', 'Recall', proportion_or_percentage.capitalize()+' of Conversions', 'Conversions', proportion_or_percentage.capitalize()+' of Coupons Recommended', 'Coupons Recommended', 
+    metric_index_value_list=['Conversion Rate', 'Recall', proportion_or_percentage.capitalize()+' of Conversions', 'Conversions', proportion_or_percentage.capitalize()+' of Coupons Recommended', 'Coupons Recommended', 
                                'Conversions to Base Survey Coupons Recommended Ratio',
                                'Conversions to Survey Conversions Ratio',
                                'Coupons Recommended to Survey Coupons Recommended Ratio', 
@@ -1177,15 +1196,196 @@ def get_metric_multiple_index(proportion_or_percentage):
                                   ['Survey' for index in range(len(metric_index_value_list))]+\
                                   ['Model-Survey Difference' for index in range(len(metric_index_value_list))]
 
-    metric_index_value_list_doubled = metric_index_value_list+metric_index_value_list+metric_index_value_list
+    metric_index_value_list_tripled=metric_index_value_list+metric_index_value_list+metric_index_value_list
 
-    tuple_list = list(zip(model_survey_index_value_list, metric_index_value_list_doubled))
+    tuple_list = list(zip(model_survey_index_value_list, metric_index_value_list_tripled))
     multiple_index=pd.MultiIndex.from_tuples(tuple_list)
     return multiple_index
 
 
 
+
+
+
+
+
+
+
+
+
+#################################################################################################################################
+#Get Survey or Model Average Coupon Recommendation Cost Estimated
+
+
+def get_survey_or_model_metrics_conversions_conversion_rate_recall_coupons_recommended(df, column_name_y_actual, column_name_y_predicted, feature_column_name_filter, feature_column_name_filter_value_two_dimensional_list):
+    """
+    Calculate metrics (i.e. Conversions, Conversion Rate, Recall, and Coupons Recommended) for each rows filter Data Frame.
+
+    Parameters:
+    df: Input DataFrame.
+    column_name_y_actual: Column name of true target values.
+    column_name_y_predicted: Column name of predicted target values.
+    feature_column_name_filter: Feature column name to filter on.
+    feature_column_name_filter_value_two_dimensional_list: Two-dimensional list of feature values to filter on.
+
+    Returns:
+    metric_value_two_dimensional_list.
+    """
     
+    metric_value_two_dimensional_list=[]
+    
+    for feature_column_name_filter_value_list in feature_column_name_filter_value_two_dimensional_list:
+        
+        metric_value_list=[]
+
+        df_filtered=df.loc[df.loc[:, feature_column_name_filter].isin(feature_column_name_filter_value_list), :]
+        
+        y_true=df_filtered.loc[:, column_name_y_actual]
+        y_predicted=df_filtered.loc[:, column_name_y_predicted]
+        
+        true_negatives, false_positives, false_negatives, true_positives=confusion_matrix(y_true=y_true, y_pred=y_predicted, labels=None, sample_weight=None, normalize=None).ravel()
+                
+        #get number of conversions
+        metric_value_list+=[true_positives]
+        
+        #get conversion rate
+        metric_value_list+=[true_positives/(true_positives+false_positives)*100]
+        
+        #get recall
+        metric_value_list+=[true_positives/(true_positives+false_negatives)*100]
+        
+        #get coupons recommended
+        metric_value_list+=[true_positives+false_positives]
+        
+        
+        metric_value_two_dimensional_list+=[metric_value_list]
+    
+    return metric_value_two_dimensional_list
+
+
+def get_average_sale_and_survey_100_recall_metrics_per_coupon_venue_type(df_y_train_model_name_predicted_y_train_survey_recall_estimate_predicted_y_actual_coupon_venue_type,
+                                                                         column_name_y_predicted,
+                                                                         column_name_y_actual,
+                                                                         feature_column_name_filter,
+                                                                         feature_column_name_filter_value_two_dimensional_list,
+                                                                         feature_column_name_filter_value_list_dictionary_key_list,
+                                                                         venue_type_average_sale_dictionary={'Coffee House':[5.50], 'Bar':[15], 'Takeout':[15], 'Low-Cost Restaurant':[12], 'Mid-Range Restaurant':[35],}):
+
+    metric_value_two_dimensional_list=\
+    get_survey_or_model_metrics_conversions_conversion_rate_recall_coupons_recommended(df=df_y_train_model_name_predicted_y_train_survey_recall_estimate_predicted_y_actual_coupon_venue_type,
+                                                                                       column_name_y_predicted=column_name_y_predicted, 
+                                                                                       column_name_y_actual=column_name_y_actual, 
+                                                                                       feature_column_name_filter=feature_column_name_filter,
+                                                                                       feature_column_name_filter_value_two_dimensional_list=feature_column_name_filter_value_two_dimensional_list,)
+
+    #convert to Data Frame from metric values two dimensional list
+    metric_name_list=['Conversions', 'Conversion Rate', 'Percentage of Conversions Captured', 'Coupons Recommended']
+    df_train_survey_100_recall_metrics=pd.DataFrame(metric_value_two_dimensional_list, index=feature_column_name_filter_value_list_dictionary_key_list, columns=metric_name_list)
+
+    
+    #Add Venue Type Average Sale to Survey 100% Recall Metrics (Per Coupon Venue Type) Table
+
+    #get Data Frame Venue Type Average Sale
+    df_venue_type_average_sale=pd.DataFrame.from_dict(venue_type_average_sale_dictionary)
+
+
+    #Combine Survey 100 Percent Recall Estimated Metrics and Venue Type Average Sale
+    df_train_survey_100_recall_metrics_venue_type_average_sale=pd.merge(df_train_survey_100_recall_metrics.reset_index(), 
+                                                                        df_venue_type_average_sale.T.reset_index(),
+                                                                        how='outer').rename(columns={'index':'Venue Type',0:'Average Sale Estimated'})
+    
+    return df_train_survey_100_recall_metrics_venue_type_average_sale
+
+
+
+    
+def extract_and_add_revenue_estimated_ad_spend_estimated_average_coupon_recommendation_cost_estimated(df):
+    
+    #get Revenue Estimated
+    df.loc[:, 'Revenue Estimated']=df.loc[:, 'Average Sale Estimated']* df.loc[:, 'Conversions']
+
+    #get Ad Spend Estimated
+    df.loc[:, 'Ad Spend Estimated']=df.loc[:, 'Revenue Estimated']*.2
+
+    #get Average Coupon Recommendation Cost Estimated
+    df.loc[:, 'Average Coupon Recommendation Cost Estimated']=df.loc[:, 'Ad Spend Estimated']/df.loc[:, 'Coupons Recommended']
+    
+    return df
+
+
+def get_metric_multiple_index_ROAS(model_survey_index_value_list, metric_index_value_list):
+    
+    tuple_list = list(zip(model_survey_index_value_list, metric_index_value_list))
+    multiple_index=pd.MultiIndex.from_tuples(tuple_list)
+    return multiple_index
+
+
+
+
+
+
+
+
+def get_survey_or_model_average_coupon_recommendation_cost_estimated(df_y_train_model_name_predicted_y_train_survey_recall_estimate_predicted_y_actual_coupon_venue_type,
+                                                                     column_name_y_predicted,
+                                                                     column_name_y_actual,
+                                                                     feature_column_name_filter,
+                                                                     feature_column_name_filter_value_two_dimensional_list,
+                                                                     feature_column_name_filter_value_list_dictionary_key_list,
+                                                                     venue_type_average_sale_dictionary,
+                                                                     model_survey='Survey'):
+
+    #get average sale and survey/model number metric estimated metrics
+    df_train_survey_model_number_metric_estimate_metrics_conversions_conversion_rate_recall_coupons_recommended_venue_type_average_sale=\
+    get_average_sale_and_survey_100_recall_metrics_per_coupon_venue_type(df_y_train_model_name_predicted_y_train_survey_recall_estimate_predicted_y_actual_coupon_venue_type=df_y_train_model_name_predicted_y_train_survey_recall_estimate_predicted_y_actual_coupon_venue_type,
+                                                                         column_name_y_predicted=column_name_y_predicted,
+                                                                         column_name_y_actual=column_name_y_actual,
+                                                                         feature_column_name_filter=feature_column_name_filter,
+                                                                         feature_column_name_filter_value_two_dimensional_list=feature_column_name_filter_value_two_dimensional_list,
+                                                                         feature_column_name_filter_value_list_dictionary_key_list=feature_column_name_filter_value_list_dictionary_key_list,
+                                                                         venue_type_average_sale_dictionary=venue_type_average_sale_dictionary)
+
+    #Get (by Venue Type) Average Coupon Recommendation Cost Estimated and Average Sale Estimated DataFrame
+
+    df_train_survey_model_number_metric_estimate_metrics_venue_type_average_sale_revenue_estimated_ad_spend_estimated_average_coupon_recommendation_cost_estimated=\
+    extract_and_add_revenue_estimated_ad_spend_estimated_average_coupon_recommendation_cost_estimated(df=df_train_survey_model_number_metric_estimate_metrics_conversions_conversion_rate_recall_coupons_recommended_venue_type_average_sale)
+
+    #filter for Venue Type, Average Coupon Recommendation Cost, and Average Sale DataFrame
+    column_name_list=['Venue Type', 'Average Coupon Recommendation Cost Estimated', 'Average Sale Estimated']
+    df_train_survey_model_number_metric_estimate_average_coupon_recommendation_cost_estimated_venue_type=df_train_survey_model_number_metric_estimate_metrics_venue_type_average_sale_revenue_estimated_ad_spend_estimated_average_coupon_recommendation_cost_estimated.loc[:, column_name_list]
+
+
+    #get value list from average coupon recommendation cost, average sale estimated data frame
+    venue_type_average_coupon_recommendation_cost_estimated_venue_type_sale_estimated_two_dimensional_list=[list(df_train_survey_model_number_metric_estimate_average_coupon_recommendation_cost_estimated_venue_type.set_index('Venue Type').T.reset_index(drop=True).values[0])]+\
+                                                                                                          [list(df_train_survey_model_number_metric_estimate_average_coupon_recommendation_cost_estimated_venue_type.set_index('Venue Type').T.reset_index(drop=True).values[1])]
+
+
+    multiple_index_ROAS=get_metric_multiple_index_ROAS(model_survey_index_value_list=[model_survey, model_survey], metric_index_value_list=['Average Coupon Recommendation Cost Estimated', 'Average Sale Estimated'])
+
+
+    df_survey_model_coupon_recommendation_cost_estimated_sale_estimated=\
+    pd.DataFrame(data=venue_type_average_coupon_recommendation_cost_estimated_venue_type_sale_estimated_two_dimensional_list, 
+                 index=multiple_index_ROAS,
+                 columns=feature_column_name_filter_value_list_dictionary_key_list)
+
+    return df_survey_model_coupon_recommendation_cost_estimated_sale_estimated
+
+
+#################################################################################################################################
+
+
+
+  
+
+
+    
+    
+    
+    
+
+
+
+
 
 
 
@@ -1309,169 +1509,164 @@ def calculate_and_add_model_survey_difference(df_model_survey_metrics, multiple_
 
 
 
-def get_metric_confidence_interval_table_by_feature_column_name_filter_value_list_dictionary_key(df_y_test_model_name_predicted_y_test_survey_recall_estimate_predicted_y_actual_feature_column_name_filter, feature_column_name_filter, feature_column_name_filter_value_list_dictionary_key, feature_column_name_filter_value_list_dictionary, multiple_index, number_of_replicates, quantile_lower_upper_list, model_type,survey_number_recall_estimated_y_predicted_column_name, filename_version, save_metric_replicates_feature_column_name_filter_value_list_dictionary_key_list=[],):
 
 
-    def get_number_model_and_survey_metric_replicates_from_number_parametric_subsamples(df, number_of_replicates, model_type, survey_number_recall_estimated_y_predicted_column_name, feature_column_name_filter, feature_column_name_filter_value_list,):
+def get_metric_quatiles_from_number_subsample_replicates_metrics(df, quantile_lower_upper_list):
+
+    return df.quantile(q=quantile_lower_upper_list, axis=1, numeric_only=True, interpolation='linear').T
+
+def get_metric_confidence_interval_table_by_feature_column_name_filter_value_list_dictionary_key(df_y_train_test_model_name_predicted_y_train_test_survey_recall_estimate_predicted_y_actual_feature_column_name_filter, feature_column_name_filter, feature_column_name_filter_value_list_dictionary_key, feature_column_name_filter_value_list_dictionary, multiple_index, number_of_replicates, quantile_lower_upper_list, model_type, survey_number_recall_estimated_y_predicted_column_name, filename_version, save_metric_replicates_feature_column_name_filter_value_list_dictionary_key_list=[], train_test='test', sample_size=None):
+
+    
+    def get_number_model_and_survey_metric_replicates_from_number_subsamples(df, number_of_replicates, model_type, survey_number_recall_estimated_y_predicted_column_name, feature_column_name_filter, feature_column_name_filter_value_list, sample_size=None,):
         metric_list_collection = {}
 
         np.random.seed(seed=200)
         for index in range(number_of_replicates):
 
-            df_parametric_bootstrap_sample=df_y_test_model_name_predicted_y_test_survey_recall_estimate_predicted_y_actual_feature_column_name_filter.sample(n=None, frac=1, replace=True, weights=None, random_state=None, axis=0, ignore_index=False)
+            if sample_size == None:
+                df_bootstrap_sample=df_y_train_test_model_name_predicted_y_train_test_survey_recall_estimate_predicted_y_actual_feature_column_name_filter.sample(n=None, frac=1, replace=True, weights=None, random_state=None, axis=0, ignore_index=False)
+            elif sample_size != None:
+                df_bootstrap_sample=df_y_train_test_model_name_predicted_y_train_test_survey_recall_estimate_predicted_y_actual_feature_column_name_filter.sample(n=sample_size, frac=None, replace=True, weights=None, random_state=None, axis=0, ignore_index=False)
+                
+            metric_list_collection[index]=get_model_and_survey_metrics(df=df_bootstrap_sample, model_y_predicted_column_name='Y_'+train_test+'_'+model_type+'_predicted', survey_number_recall_estimated_y_predicted_column_name=survey_number_recall_estimated_y_predicted_column_name, y_predicted_column_name_base_survey='Y_'+train_test+'_survey_100_recall_estimate_predicted', y_actual_column_name='Y', feature_column_name_filter=feature_column_name_filter, feature_column_name_filter_value_list=feature_column_name_filter_value_list, metrics_column_name_list=None,)
 
-
-            metric_list_collection[index]=get_model_and_survey_metrics(df=df_parametric_bootstrap_sample, 
-                                                                              model_y_predicted_column_name='Y_test_'+model_type+'_predicted', 
-                                                                              survey_number_recall_estimated_y_predicted_column_name=survey_number_recall_estimated_y_predicted_column_name, 
-                                                                              y_predicted_column_name_base_survey='Y_test_survey_100_recall_estimate_predicted',
-                                                                              y_actual_column_name='Y', 
-                                                                              feature_column_name_filter=feature_column_name_filter, 
-                                                                              feature_column_name_filter_value_list=feature_column_name_filter_value_list, 
-                                                                              metrics_column_name_list=None,)
-            
-            
         df_model_number_metric_estimate_metrics_feature_filter_number_bootstrap_replicates_metric=pd.DataFrame(metric_list_collection, index=multiple_index[0:20])
 
         return df_model_number_metric_estimate_metrics_feature_filter_number_bootstrap_replicates_metric
 
 
-    #get model and survey metric replicates from the 10,000 parametric subsamples
-    df_filename='df_'+model_type+'_number_metric_estimated_'+str(number_of_replicates)+'_metric_replicates_from_'+str(number_of_replicates)+'_parametric_subsamples_'+ feature_column_name_filter_value_list_dictionary_key.lower().replace(" ", "_") +'_'+ filename_version + '.csv'
-
-    df_readback = return_processed_data_file_if_it_exists_v2(filename=df_filename, column_name_row_integer_location_list=[0,], index_column_integer_location_list=[0,1])
+    #get model and survey metric replicates from the 10,000 nonparametric or parametric subsamples
+    if sample_size==None:
+        df_filename='df_'+train_test+'_'+model_type+'_number_metric_estimated_'+str(number_of_replicates)+'_metric_replicates_from_'+str(number_of_replicates)+'_nonparametric_subsamples_'+ feature_column_name_filter_value_list_dictionary_key.lower().replace(" ", "_") +'_'+filename_version + '.csv'
+    elif sample_size!=None:
+        df_filename='df_'+train_test+'_'+model_type+'_number_metric_estimated_'+str(number_of_replicates)+'_metric_replicates_from_'+str(number_of_replicates)+'_parametric_subsamples_n_'+str(sample_size)+'_'+feature_column_name_filter_value_list_dictionary_key.lower().replace(" ", "_") +'_'+filename_version + '.csv'
+    
+    df_readback=return_processed_data_file_if_it_exists_v2(filename=df_filename, column_name_row_integer_location_list=[0,], index_column_integer_location_list=[0,1])
     if df_readback.empty != True:
-        df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics = df_readback
+        df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics=df_readback
     else:
-        df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics=get_number_model_and_survey_metric_replicates_from_number_parametric_subsamples(df=df_y_test_model_name_predicted_y_test_survey_recall_estimate_predicted_y_actual_feature_column_name_filter, number_of_replicates=number_of_replicates, model_type=model_type, survey_number_recall_estimated_y_predicted_column_name=survey_number_recall_estimated_y_predicted_column_name, feature_column_name_filter=feature_column_name_filter, feature_column_name_filter_value_list=feature_column_name_filter_value_list_dictionary[feature_column_name_filter_value_list_dictionary_key])
+        df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics=get_number_model_and_survey_metric_replicates_from_number_subsamples(df=df_y_train_test_model_name_predicted_y_train_test_survey_recall_estimate_predicted_y_actual_feature_column_name_filter, number_of_replicates=number_of_replicates, model_type=model_type, survey_number_recall_estimated_y_predicted_column_name=survey_number_recall_estimated_y_predicted_column_name, feature_column_name_filter=feature_column_name_filter, feature_column_name_filter_value_list=feature_column_name_filter_value_list_dictionary[feature_column_name_filter_value_list_dictionary_key], sample_size=sample_size,)
+
 
         #calculate metric replicate differences and append
         df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics=calculate_and_add_model_survey_difference(df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics, multiple_index)
-        
-        
-        
+
         if feature_column_name_filter_value_list_dictionary_key in save_metric_replicates_feature_column_name_filter_value_list_dictionary_key_list:
 
             #save it
             df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics=save_and_return_data_frame_v2(df=df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics, filename=df_filename, index=True)
 
 
-    def get_metric_quatiles_from_number_parametric_subsample_replicates_metrics(df, quantile_lower_upper_list):
-
-        return df.quantile(q=quantile_lower_upper_list, axis=1, numeric_only=True, interpolation='linear').T
-
     
     #get 95% confidence interval upper and lower quantiles
-    model_survey_quantiles_of_parametric_subsample_replicates_metrics=get_metric_quatiles_from_number_parametric_subsample_replicates_metrics(df=df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics, quantile_lower_upper_list=quantile_lower_upper_list)
-
+    model_survey_quantiles_of_subsample_replicates_metrics=get_metric_quatiles_from_number_subsample_replicates_metrics(df=df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics, quantile_lower_upper_list=quantile_lower_upper_list)
 
     #rename columns to multi index
     column_name_number_confidence_interval=str((round((quantile_lower_upper_list[1] - quantile_lower_upper_list[0])*100)))+'%'+' Confidence Interval'
     multiple_index=pd.MultiIndex.from_tuples([(column_name_number_confidence_interval, quantile_lower_upper_list[0]), 
                                               (column_name_number_confidence_interval, quantile_lower_upper_list[1])],)
-    model_survey_quantiles_of_parametric_subsample_replicates_metrics.columns=multiple_index
+    model_survey_quantiles_of_subsample_replicates_metrics.columns=multiple_index
 
 
 
 
-    def convert_quantile_columns_to_confidence_interval_column(model_survey_quantiles_of_parametric_subsample_replicates_metrics, feature_column_name_filter_value_list_dictionary_key):
+    def convert_quantile_columns_to_confidence_interval_column(model_survey_quantiles_of_subsample_replicates_metrics, feature_column_name_filter_value_list_dictionary_key):
         #transpose to wide
-        model_survey_quantiles_of_parametric_subsample_replicates_metrics=model_survey_quantiles_of_parametric_subsample_replicates_metrics.T
+        model_survey_quantiles_of_subsample_replicates_metrics=model_survey_quantiles_of_subsample_replicates_metrics.T
 
         #convert positive counts to int64
-        model_survey_quantiles_of_parametric_subsample_replicates_metrics\
-        .loc[:, model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>1]=\
-        model_survey_quantiles_of_parametric_subsample_replicates_metrics\
-        .loc[:, model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>1].astype('int64')
-        model_survey_quantiles_of_parametric_subsample_replicates_metrics
+        model_survey_quantiles_of_subsample_replicates_metrics\
+        .loc[:, model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>1]=\
+        model_survey_quantiles_of_subsample_replicates_metrics\
+        .loc[:, model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>1].astype('int64')
+        model_survey_quantiles_of_subsample_replicates_metrics
         
         #convert negative counts to int64
-        model_survey_quantiles_of_parametric_subsample_replicates_metrics\
-        .loc[:, model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<-1]=\
-        model_survey_quantiles_of_parametric_subsample_replicates_metrics\
-        .loc[:, model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<-1].astype('int64')
-        model_survey_quantiles_of_parametric_subsample_replicates_metrics
+        model_survey_quantiles_of_subsample_replicates_metrics\
+        .loc[:, model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<-1]=\
+        model_survey_quantiles_of_subsample_replicates_metrics\
+        .loc[:, model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<-1].astype('int64')
+        model_survey_quantiles_of_subsample_replicates_metrics
 
 
         if convert_proportions_to_percentages=='yes':
             
             #convert to percentages from proportions in [0,1) and round to number of signficant digits
-            model_survey_quantiles_of_parametric_subsample_replicates_metrics\
-            .loc[:,(model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>=0) &
-                 (model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<1)]=\
-            round(model_survey_quantiles_of_parametric_subsample_replicates_metrics\
-            .loc[:,(model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>=0) &
-                 (model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<1)]*100, rate_number_of_significant_digits-2)
+            model_survey_quantiles_of_subsample_replicates_metrics\
+            .loc[:,(model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>=0) &
+                 (model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<1)]=\
+            round(model_survey_quantiles_of_subsample_replicates_metrics\
+            .loc[:,(model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>=0) &
+                 (model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<1)]*100, rate_number_of_significant_digits-2)
             
             
             #convert to percentages from proportions in (-1,0] and round to number of signficant digits
-            model_survey_quantiles_of_parametric_subsample_replicates_metrics\
-            .loc[:,(model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<=0) &
-                 (model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>-1)]=\
-            round(model_survey_quantiles_of_parametric_subsample_replicates_metrics\
-            .loc[:,(model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<=0) &
-                 (model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>-1)]*100, rate_number_of_significant_digits-2)
+            model_survey_quantiles_of_subsample_replicates_metrics\
+            .loc[:,(model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<=0) &
+                 (model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>-1)]=\
+            round(model_survey_quantiles_of_subsample_replicates_metrics\
+            .loc[:,(model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<=0) &
+                 (model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>-1)]*100, rate_number_of_significant_digits-2)
 
 
             #convert to 100 percent from proportions 1
-            model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[:,model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]==1]=100
+            model_survey_quantiles_of_subsample_replicates_metrics.loc[:,model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]==1]=100
 
             #convert to values to type string
-            model_survey_quantiles_of_parametric_subsample_replicates_metrics=model_survey_quantiles_of_parametric_subsample_replicates_metrics.astype('string')
+            model_survey_quantiles_of_subsample_replicates_metrics=model_survey_quantiles_of_subsample_replicates_metrics.astype('string')
 
 
 
             #add '%' to non-count column names
             column_name_count_list=[('Model', 'Conversions'), ('Model', 'Coupons Recommended'), ('Survey', 'Conversions'), ('Survey', 'Coupons Recommended'), ('Model-Survey Difference', 'Conversions'), ('Model-Survey Difference', 'Coupons Recommended')]
-            column_name_list_metric_not_count=[column_name for column_name in model_survey_quantiles_of_parametric_subsample_replicates_metrics.columns.to_list() if not column_name in column_name_count_list]
+            column_name_list_metric_not_count=[column_name for column_name in model_survey_quantiles_of_subsample_replicates_metrics.columns.to_list() if not column_name in column_name_count_list]
 
-            model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[:,column_name_list_metric_not_count]=\
-            model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[:,column_name_list_metric_not_count]+'%'
+            model_survey_quantiles_of_subsample_replicates_metrics.loc[:,column_name_list_metric_not_count]=\
+            model_survey_quantiles_of_subsample_replicates_metrics.loc[:,column_name_list_metric_not_count]+'%'
 
 
             #transpose to tall
-            model_survey_quantiles_of_parametric_subsample_replicates_metrics=model_survey_quantiles_of_parametric_subsample_replicates_metrics.T
+            model_survey_quantiles_of_subsample_replicates_metrics=model_survey_quantiles_of_subsample_replicates_metrics.T
 
             multiple_index=get_metric_multiple_index(proportion_or_percentage='percentage')[0:30]
-            model_survey_quantiles_of_parametric_subsample_replicates_metrics.index=multiple_index
+            model_survey_quantiles_of_subsample_replicates_metrics.index=multiple_index
 
 
         elif convert_proportions_to_percentages=='no':
 
-            model_survey_quantiles_of_parametric_subsample_replicates_metrics .loc[:,(model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>=0) & (model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<1)]=round(model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[:,(model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>=0) & (model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<1)], rate_number_of_significant_digits)
+            model_survey_quantiles_of_subsample_replicates_metrics .loc[:,(model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>=0) & (model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<1)]=round(model_survey_quantiles_of_subsample_replicates_metrics.loc[:,(model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>=0) & (model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<1)], rate_number_of_significant_digits)
 
-            model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[:,model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]==1]=1
+            model_survey_quantiles_of_subsample_replicates_metrics.loc[:,model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]==1]=1
 
             #convert to values to type string
-            model_survey_quantiles_of_parametric_subsample_replicates_metrics=model_survey_quantiles_of_parametric_subsample_replicates_metrics.astype('string')
+            model_survey_quantiles_of_subsample_replicates_metrics=model_survey_quantiles_of_subsample_replicates_metrics.astype('string')
 
 
             #transpose to tall
-            model_survey_quantiles_of_parametric_subsample_replicates_metrics=model_survey_quantiles_of_parametric_subsample_replicates_metrics.T
+            model_survey_quantiles_of_subsample_replicates_metrics=model_survey_quantiles_of_subsample_replicates_metrics.T
 
 
         if keep_quantiles_confidence_interval_both=='quantiles':
-            return model_survey_quantiles_of_parametric_subsample_replicates_metrics
+            return model_survey_quantiles_of_subsample_replicates_metrics
 
         else:
             #get 95% confidence interval column from 2.5% and 97.5% quantile columns
 
-            model_survey_number_confidence_interval_of_parametric_subsample_replicates_metrics= '('+model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[:, (column_name_number_confidence_interval, quantile_lower_upper_list[0])]+', '+model_survey_quantiles_of_parametric_subsample_replicates_metrics.loc[:, (column_name_number_confidence_interval, quantile_lower_upper_list[1])]+')'
+            model_survey_number_confidence_interval_of_subsample_replicates_metrics= '('+model_survey_quantiles_of_subsample_replicates_metrics.loc[:, (column_name_number_confidence_interval, quantile_lower_upper_list[0])]+', '+model_survey_quantiles_of_subsample_replicates_metrics.loc[:, (column_name_number_confidence_interval, quantile_lower_upper_list[1])]+')'
 
 
-            model_survey_number_confidence_interval_of_parametric_subsample_replicates_metrics=model_survey_number_confidence_interval_of_parametric_subsample_replicates_metrics.to_frame()
-            model_survey_number_confidence_interval_of_parametric_subsample_replicates_metrics.columns=pd.MultiIndex.from_tuples([(column_name_number_confidence_interval, feature_column_name_filter_value_list_dictionary_key)])
+            model_survey_number_confidence_interval_of_subsample_replicates_metrics=model_survey_number_confidence_interval_of_subsample_replicates_metrics.to_frame()
+            model_survey_number_confidence_interval_of_subsample_replicates_metrics.columns=pd.MultiIndex.from_tuples([(column_name_number_confidence_interval, feature_column_name_filter_value_list_dictionary_key)])
 
             if keep_quantiles_confidence_interval_both=='confidence_interval':
-                return model_survey_number_confidence_interval_of_parametric_subsample_replicates_metrics
+                return model_survey_number_confidence_interval_of_subsample_replicates_metrics
 
 
             elif keep_quantiles_confidence_interval_both=='both':
-                model_survey_quantile_and_number_confidence_interval_of_parametric_subsample_replicates_metrics=pd.concat([model_survey_quantiles_of_parametric_subsample_replicates_metrics, model_survey_number_confidence_interval_of_parametric_subsample_replicates_metrics],axis=1)
+                model_survey_quantile_and_number_confidence_interval_of_subsample_replicates_metrics=pd.concat([model_survey_quantiles_of_subsample_replicates_metrics, model_survey_number_confidence_interval_of_subsample_replicates_metrics],axis=1)
 
-                return model_survey_quantile_and_number_confidence_interval_of_parametric_subsample_replicates_metrics
-
-
+                return model_survey_quantile_and_number_confidence_interval_of_subsample_replicates_metrics
 
 
 
@@ -1482,13 +1677,412 @@ def get_metric_confidence_interval_table_by_feature_column_name_filter_value_lis
     rate_number_of_significant_digits=3
 
 
-    model_survey_number_confidence_interval_of_parametric_subsample_replicates_metrics=\
-    convert_quantile_columns_to_confidence_interval_column(model_survey_quantiles_of_parametric_subsample_replicates_metrics=model_survey_quantiles_of_parametric_subsample_replicates_metrics,
-                                                           feature_column_name_filter_value_list_dictionary_key=feature_column_name_filter_value_list_dictionary_key)
+    model_survey_number_confidence_interval_of_subsample_replicates_metrics=convert_quantile_columns_to_confidence_interval_column(model_survey_quantiles_of_subsample_replicates_metrics=model_survey_quantiles_of_subsample_replicates_metrics, feature_column_name_filter_value_list_dictionary_key=feature_column_name_filter_value_list_dictionary_key)
 
 
     
-    return model_survey_number_confidence_interval_of_parametric_subsample_replicates_metrics, df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics
+    return model_survey_number_confidence_interval_of_subsample_replicates_metrics, df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics
+
+
+
+
+
+
+
+
+
+
+
+
+
+###############################################################################################################################
+#Calculate Overall and Coupon Venue Type Ad Revenue, Ad Spend, ROAS, Profit, Spend, and ROI 95% Confidence Intervals from metric replicates and append to metric confidence interval table
+
+def get_model_survey_coupon_recommendation_cost_estimated_and_sale_estimated_replicate_collection_venue_type(df, column_name_list=None, column_name_drop_list=None, number_of_replicates=10000):
+    '''
+    df: data frame with columns containing feature values and indexes model-survey description and metric
+    column_name_list: column names to use in creating colum name metric replicates collection
+    column_name_drop_list: column names not to use
+    '''
+    
+    df_model_survey_coupon_recommendation_cost_estimated_sale_estimated_replicate_collection={}
+    
+    if column_name_list==None:
+        column_name_list=df.columns.to_list()
+    
+    if column_name_drop_list==None:
+        column_name_drop_list=['Overall']
+    
+    
+    #df_model_survey_coupon_recommendation_cost_estimated_sale_estimated_collection_venue_type={column_name:[df.loc[:, column_name] for _ in range(number_of_replicates)] for column_name in column_name_list}
+    df_model_survey_coupon_recommendation_cost_estimated_sale_estimated_collection_venue_type={column_name:[df.loc[:, column_name]]*number_of_replicates for column_name in column_name_list}
+
+
+    
+    for coupon_venue_type in column_name_list:
+
+        #get replicates of venue type coupon recommendation cost estimated and sale estimated metrics from data frame table
+        df_model_survey_coupon_recommendation_cost_estimated_sale_estimated_replicates_coupon_venue_type=pd.concat(df_model_survey_coupon_recommendation_cost_estimated_sale_estimated_collection_venue_type[coupon_venue_type], axis=1,).T.reset_index(drop=True).T
+        
+        #fix column names to string from integers
+        df_model_survey_coupon_recommendation_cost_estimated_sale_estimated_replicates_coupon_venue_type.columns=[str(integer) for integer in range(number_of_replicates)]
+
+        df_model_survey_coupon_recommendation_cost_estimated_sale_estimated_replicate_collection[coupon_venue_type]=df_model_survey_coupon_recommendation_cost_estimated_sale_estimated_replicates_coupon_venue_type
+    
+    return df_model_survey_coupon_recommendation_cost_estimated_sale_estimated_replicate_collection
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def get_Ad_Revenue_Ad_Spend_ROAS_replicate_metrics_from_venue_type_replicate_metrics(df, Ad_Revenue_Ad_Spend_ROAS_list=[True, True]):
+    coupon_recommendation_cost_model_survey_list=['Model', 'Model']
+    
+    if Ad_Revenue_Ad_Spend_ROAS_list[0]==True:
+        #Model Total Revenue, Total Ad Spend Metrics
+        df.loc[('Model', 'Ad Revenue'), :]=df.loc[('Model', 'Conversions'), :]*df.loc[('Model', 'Average Sale Estimated'), :]
+
+        df.loc[('Model', 'Ad Spend'), :]=df.loc[(coupon_recommendation_cost_model_survey_list[0], 'Average Coupon Recommendation Cost Estimated'), :]*df.loc[('Model', 'Coupons Recommended'), :]
+
+        
+        #Survey Total Revenue, Total Ad Spend Metrics    
+        df.loc[('Survey', 'Ad Revenue'), :]=df.loc[('Survey', 'Conversions'), :]*df.loc[('Survey', 'Average Sale Estimated'), :]
+
+        df.loc[('Survey', 'Ad Spend'), :]=df.loc[(coupon_recommendation_cost_model_survey_list[1], 'Average Coupon Recommendation Cost Estimated'), :]*df.loc[('Survey', 'Coupons Recommended'), :]
+
+        
+        #Model-Survey Total Revenue, Total Ad Spend Metrics
+        df.loc[('Model-Survey Difference', 'Ad Revenue'), :]=df.loc[('Model', 'Ad Revenue'), :]-df.loc[('Survey', 'Ad Revenue'), :]
+        df.loc[('Model-Survey Difference', 'Ad Spend'), :]=df.loc[('Model', 'Ad Spend'), :]-df.loc[('Survey', 'Ad Spend'), :]
+        
+    if Ad_Revenue_Ad_Spend_ROAS_list[1]==True:
+        df.loc[('Model', 'ROAS'), :]=df.loc[('Model', 'Ad Revenue'), :]/df.loc[('Model', 'Ad Spend'), :]*100
+
+
+        df.loc[('Survey', 'ROAS'), :]=df.loc[('Survey', 'Ad Revenue'), :]/df.loc[('Survey', 'Ad Spend'), :]*100
+
+
+        df.loc[('Model-Survey Difference', 'ROAS'), :]=df.loc[('Model', 'ROAS'), :]-df.loc[('Survey', 'ROAS'), :]
+
+    
+    return df
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def get_Overall_ROAS_Profit_Spend_ROI_per_Survey_Model_Survey_Difference(df, ROAS_Profit_Spend_ROI_list=[True, True, True, True]):
+
+    df.loc[('Model', 'ROAS'), :]=df.loc[('Model', 'Ad Revenue'), :]/df.loc[('Model', 'Ad Spend'), :]*100
+    df.loc[('Survey', 'ROAS'), :]=df.loc[('Survey', 'Ad Revenue'), :]/df.loc[('Survey', 'Ad Spend'), :]*100
+    
+    df.loc[('Model-Survey Difference', 'ROAS'), :]=df.loc[('Model', 'ROAS'), :]-df.loc[('Survey', 'ROAS'), :]
+
+    
+    def get_Profit_Spend_ROI_with_additional_spend(df, additional_spend=None):
+
+        if additional_spend==None:
+            additional_spend=200
+
+
+        #Model ROI Metrics
+        model_campaign_spend=df.loc[('Model', 'Ad Spend'), :]+additional_spend
+        model_campaign_profit=df.loc[('Model', 'Ad Revenue'), :]-model_campaign_spend
+
+        df.loc[('Model', 'Profit '+str(additional_spend)), :]=model_campaign_profit
+        df.loc[('Model', 'Spend '+str(additional_spend)), :]=model_campaign_spend
+
+        df.loc[('Model', 'ROI '+str(additional_spend)), :]=model_campaign_profit/model_campaign_spend*100
+
+
+        #Survey ROI Metrics
+        survey_campaign_spend=df.loc[('Survey', 'Ad Spend'), :]+additional_spend
+        survey_campaign_profit=df.loc[('Survey', 'Ad Revenue'), :]-survey_campaign_spend
+
+        df.loc[('Survey', 'Profit '+str(additional_spend)), :]=survey_campaign_profit
+        df.loc[('Survey', 'Spend '+str(additional_spend)), :]=survey_campaign_spend
+
+        df.loc[('Survey', 'ROI '+str(additional_spend)), :]=survey_campaign_profit/survey_campaign_spend*100
+
+        #Survey-Model Difference ROI Metrics
+
+        df.loc[('Model-Survey Difference', 'Profit '+str(additional_spend)), :]=df.loc[('Model', 'Profit '+str(additional_spend)), :]-\
+                                                                                      df.loc[('Survey', 'Profit '+str(additional_spend)), :]
+
+        df.loc[('Model-Survey Difference', 'Spend '+str(additional_spend)), :]=df.loc[('Model', 'Spend '+str(additional_spend)), :]-\
+                                                                                     df.loc[('Survey', 'Spend '+str(additional_spend)), :]
+
+        df.loc[('Model-Survey Difference', 'ROI '+str(additional_spend)), :]=df.loc[('Model', 'ROI '+str(additional_spend)), :]-\
+                                                                             df.loc[('Survey', 'ROI '+str(additional_spend)), :]
+        
+        return df
+    
+    df=get_Profit_Spend_ROI_with_additional_spend(df, additional_spend=200)
+    df=get_Profit_Spend_ROI_with_additional_spend(df, additional_spend=2000)
+    df=get_Profit_Spend_ROI_with_additional_spend(df, additional_spend=20000)
+    
+
+    return df
+
+
+
+
+def calculate_Overall_and_Coupon_Venue_Type_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_95_Confidence_Intervals_from_metric_replicates_and_append_to_metric_confidence_interval_table(
+    df_model_name_model_survey_coupon_recommendation_cost_estimated_sale_estimated_replicate_collection,
+    df_test_model_name_model_survey_95_confidence_interval_metric_feature_column_name_filter_value,
+    test_model_name_metric_replicate_filename_collection,
+    model_type,
+    filename_version,
+    number_of_replicates=1000,):
+    
+    #get Ad Revenue, Ad Spend, and ROAS (for Model, Survey, and Model-Survey Difference) by reading in the five (5) Coupon Venue Type Metric Replicates files
+    column_name_list=['Coffee House', 'Bar', 'Takeout', 'Low-Cost Restaurant', 'Mid-Range Restaurant']
+    df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type={}
+
+    for column_name in column_name_list:
+        #read in random forest coupon venue type metric replicates
+        df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name]=\
+        rcp(test_model_name_metric_replicate_filename_collection[column_name], index_col=[0,1])
+
+        #add (Random Forest or Gradient Boosting) Model and Survey Coupon Recommendation Cost Estimated and Sale Estimated Replicates
+        df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name]=pd.concat([df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name], 
+                                                                                                                                   df_model_name_model_survey_coupon_recommendation_cost_estimated_sale_estimated_replicate_collection[column_name]], axis=0)
+
+        #get and add Ad Spend, Ad Revenue, ROAS per coupon venue type
+        df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name]=\
+        get_Ad_Revenue_Ad_Spend_ROAS_replicate_metrics_from_venue_type_replicate_metrics(df=df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name], 
+                                                                                         Ad_Revenue_Ad_Spend_ROAS_list=[True, True])
+
+
+
+
+
+    #get 95% confidence interval quantile collection per Coupon Venue Type from Ad Revenue, Ad Spend, and ROAS replicate metrics
+    column_name_list=['Coffee House', 'Bar', 'Takeout', 'Low-Cost Restaurant', 'Mid-Range Restaurant']
+    tuple_index_name_list=[('Model', 'Average Coupon Recommendation Cost Estimated'), ('Model', 'Average Sale Estimated'), ('Survey', 'Average Coupon Recommendation Cost Estimated'), ('Survey', 'Average Sale Estimated'),
+     ('Model', 'Ad Revenue'), ('Model', 'Ad Spend'),
+     ('Survey', 'Ad Revenue'), ('Survey', 'Ad Spend'),
+     ('Model-Survey Difference', 'Ad Revenue'), ('Model-Survey Difference', 'Ad Spend'), 
+     ('Model', 'ROAS'), ('Survey', 'ROAS'), ('Model-Survey Difference', 'ROAS'),]
+    df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection={}
+
+    for column_name in column_name_list:
+        df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection[column_name]=\
+        get_metric_quatiles_from_number_subsample_replicates_metrics(df=df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name],
+                                                                         quantile_lower_upper_list=[.025, .975]).loc[tuple_index_name_list,:]
+
+
+
+
+
+
+    #get and add confidence interval column from two quantile columns
+    multiple_index_tuple_list_usd=[('Model', 'Average Coupon Recommendation Cost Estimated'), ('Model', 'Average Sale Estimated'), ('Survey', 'Average Coupon Recommendation Cost Estimated'), ('Survey', 'Average Sale Estimated'), ('Model', 'Ad Revenue'), ('Model', 'Ad Spend'), ('Survey', 'Ad Revenue'), ('Survey', 'Ad Spend'), ('Model-Survey Difference', 'Ad Revenue'), ('Model-Survey Difference', 'Ad Spend'), ('Model', 'Profit 200'), ('Model', 'Spend 200'), ('Survey', 'Profit 200'), ('Survey', 'Spend 200'), ('Model-Survey Difference', 'Profit 200'), ('Model-Survey Difference', 'Spend 200'), ('Model', 'Profit 2000'), ('Model', 'Spend 2000'), ('Survey', 'Profit 2000'), ('Survey', 'Spend 2000'), ('Model-Survey Difference', 'Profit 2000'), ('Model-Survey Difference', 'Spend 2000'), ('Model', 'Profit 20000'), ('Model', 'Spend 20000'), ('Survey', 'Profit 20000'), ('Survey', 'Spend 20000'), ('Model-Survey Difference', 'Profit 20000'), ('Model-Survey Difference', 'Spend 20000'),]
+    multiple_index_tuple_list_percent=[('Model', 'ROAS'), ('Survey', 'ROAS'), ('Model-Survey Difference', 'ROAS'), ('Model', 'ROI 200'), ('Survey', 'ROI 200'), ('Model-Survey Difference', 'ROI 200'), ('Model', 'ROI 2000'),('Survey', 'ROI 2000'), ('Model-Survey Difference', 'ROI 2000'),('Model', 'ROI 20000'), ('Survey', 'ROI 20000'), ('Model-Survey Difference', 'ROI 20000')]
+
+    column_name_list=df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection['Coffee House'].columns.to_list()
+    multiple_index_tuple_list=df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection['Coffee House'].index.to_list()
+    venue_type_list=['Coffee House', 'Bar', 'Takeout', 'Low-Cost Restaurant', 'Mid-Range Restaurant']
+
+
+    for venue_type in venue_type_list:
+
+        for multiple_index_tuple in multiple_index_tuple_list:
+
+            if multiple_index_tuple in multiple_index_tuple_list_usd:
+
+                df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection[venue_type].loc[multiple_index_tuple, venue_type]=\
+                '(\$'+str(round(df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection[venue_type].loc[multiple_index_tuple,column_name_list[0]], 2))+\
+                ', \$'+str(round(df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection[venue_type].loc[multiple_index_tuple,column_name_list[1]], 2))+\
+                ')'
+
+            elif multiple_index_tuple in multiple_index_tuple_list_percent:
+                df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection[venue_type].loc[multiple_index_tuple, venue_type]=\
+                '('+str(round(df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection[venue_type].loc[multiple_index_tuple,column_name_list[0]], 2))+\
+                '%, '+str(round(df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection[venue_type].loc[multiple_index_tuple,column_name_list[1]], 2))+\
+                '%)'
+
+
+
+
+
+
+
+
+
+
+    #get Ad Revenue, Ad Spend, ROAS 95% Confidence Interval per Coupon Venue Type DataFrame from 95% Confidence Interval and Quantile Collection (by Coupon Venue TYpe)
+    venue_type_list=['Coffee House', 'Bar', 'Takeout', 'Low-Cost Restaurant', 'Mid-Range Restaurant']
+
+    data_frame_list=[df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection[venue_type].loc[:, [venue_type]] for venue_type in venue_type_list]
+    df_Ad_Revenue_Ad_Spend_ROAS_coupon_venue_type_confidence_interval=pd.concat(data_frame_list, axis=1)
+    del data_frame_list
+
+
+
+
+
+
+
+
+
+
+
+
+
+    #get Overall Ad Revenue, Ad Spend, ROAS, Profit, Spend, and ROI Metric Replicates from Coupon Venue Type Ad Revenue and Ad Spend Replicates Collection
+
+
+    #Get Overall Ad Revenue and Ad Spend per Model, Survey, and Model-Survey Difference
+    #Initialize variables
+    column_name_list=['Coffee House', 'Bar', 'Takeout', 'Low-Cost Restaurant', 'Mid-Range Restaurant',]
+    tuple_index_name_list=[('Model', 'Ad Revenue'), ('Model', 'Ad Spend'), ('Survey', 'Ad Revenue'), ('Survey', 'Ad Spend'), ('Model-Survey Difference', 'Ad Revenue'), ('Model-Survey Difference', 'Ad Spend'),]
+    #Calculate Overall Ad Revenue and Ad Spend per Model, Survey, and Model-Survey Difference (via a sum up of Ad Revenue and Ad Spend per Coupon Venue Type)
+    df_test_model_name_number_metric_estimated_10000_metric_replicates_overall=\
+    df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name_list[0]].loc[tuple_index_name_list,:]+\
+    df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name_list[1]].loc[tuple_index_name_list,:]+\
+    df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name_list[2]].loc[tuple_index_name_list,:]+\
+    df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name_list[3]].loc[tuple_index_name_list,:]+\
+    df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name_list[4]].loc[tuple_index_name_list,:]
+
+
+    #Calculate and add Overall ROAS from Ad Revenue and Ad Spend by Model, Survey, and Model-Survey Difference (via Ad Revenue / Ad Spend)
+    df_test_model_name_number_metric_estimated_10000_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_replicates_overall=\
+    get_Overall_ROAS_Profit_Spend_ROI_per_Survey_Model_Survey_Difference(df_test_model_name_number_metric_estimated_10000_metric_replicates_overall)
+
+
+
+    #save df_test_model_name_number_metric_estimated_10000_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_replicates_overall as DataFrame table with model type description????
+    
+
+    filename='df_test_'+str(model_type)+'_number_metric_estimated_10000_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_replicates_overall_v'+str(filename_version)+'.pkl'
+    _=\
+    save_and_return_data_frame_v2(df_test_model_name_number_metric_estimated_10000_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_replicates_overall, filename=filename)
+
+
+
+
+
+
+
+
+    #get 95% Confidence Interval Quantile columns of Overall Ad Revenue, Ad Spend, ROAS, Profit, Spend, and ROI replicates
+    df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles=\
+    get_metric_quatiles_from_number_subsample_replicates_metrics(df=df_test_model_name_number_metric_estimated_10000_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_replicates_overall,
+                                                                     quantile_lower_upper_list=[.025, .975])
+
+
+
+
+
+
+
+
+
+
+    #convert to 95% Confidence Interval column from two Quantile columns
+
+
+    #get multiple index tuple list
+    multiple_index_tuple_list=df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles.index.to_list()
+
+    multiple_index_tuple_list_usd=[('Model', 'Average Coupon Recommendation Cost Estimated'), ('Model', 'Average Sale Estimated'), ('Survey', 'Average Coupon Recommendation Cost Estimated'), ('Survey', 'Average Sale Estimated'), ('Model', 'Ad Revenue'), ('Model', 'Ad Spend'), ('Survey', 'Ad Revenue'), ('Survey', 'Ad Spend'), ('Model-Survey Difference', 'Ad Revenue'), ('Model-Survey Difference', 'Ad Spend'), ('Model', 'Profit 200'), ('Model', 'Spend 200'), ('Survey', 'Profit 200'), ('Survey', 'Spend 200'), ('Model-Survey Difference', 'Profit 200'), ('Model-Survey Difference', 'Spend 200'), ('Model', 'Profit 2000'), ('Model', 'Spend 2000'), ('Survey', 'Profit 2000'), ('Survey', 'Spend 2000'), ('Model-Survey Difference', 'Profit 2000'), ('Model-Survey Difference', 'Spend 2000'), ('Model', 'Profit 20000'), ('Model', 'Spend 20000'), ('Survey', 'Profit 20000'), ('Survey', 'Spend 20000'), ('Model-Survey Difference', 'Profit 20000'), ('Model-Survey Difference', 'Spend 20000'),]
+
+    multiple_index_tuple_list_percent=[('Model', 'ROAS'), ('Survey', 'ROAS'), ('Model-Survey Difference', 'ROAS'), ('Model', 'ROI 200'), ('Survey', 'ROI 200'), ('Model-Survey Difference', 'ROI 200'), ('Model', 'ROI 2000'),('Survey', 'ROI 2000'), ('Model-Survey Difference', 'ROI 2000'),('Model', 'ROI 20000'), ('Survey', 'ROI 20000'), ('Model-Survey Difference', 'ROI 20000')]
+
+    #get lower and upper quantile column names
+    column_name_list=df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles.columns.to_list()
+
+
+    #combine two columns into one based on multiple index name
+
+    for multiple_index_tuple in multiple_index_tuple_list:
+
+        if multiple_index_tuple in multiple_index_tuple_list_usd:
+            df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles.loc[multiple_index_tuple, 'Overall']=\
+            '(\$'+str(round(df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles.loc[multiple_index_tuple, column_name_list[0]], 2))+', \$'+\
+            str(round(df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles.loc[multiple_index_tuple, column_name_list[1]], 2))+')'
+
+        elif multiple_index_tuple in multiple_index_tuple_list_percent:
+            df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles.loc[multiple_index_tuple, 'Overall']=\
+            '('+str(round(df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles.loc[multiple_index_tuple, column_name_list[0]], 2))+'%, '+\
+            str(round(df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles.loc[multiple_index_tuple, column_name_list[1]],2))+'%)'
+
+    df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_confidence_interval_and_quantiles=df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles
+    del df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles
+
+
+
+
+
+
+
+
+    #combine Overall and Coupon Venue Type Ad Revenue, Ad Spend, ROAS, Profit, Spend, ROI 95% Confidence Interval metrics
+    df_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_confidence_interval_overall_and_coupon_venue_type=\
+    pd.concat([df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_confidence_interval_and_quantiles.loc[:, ['Overall']], df_Ad_Revenue_Ad_Spend_ROAS_coupon_venue_type_confidence_interval], axis=1)
+
+    del df_Ad_Revenue_Ad_Spend_ROAS_coupon_venue_type_confidence_interval, df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_confidence_interval_and_quantiles
+    df_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_confidence_interval_overall_and_coupon_venue_type
+
+
+
+
+
+
+
+
+    #add '95% Confidence Interval' as column index to Overall and Coupon Venue Type columns
+    overall_and_coupon_venue_type_list=['Overall']+venue_type_list
+    column_name_tuple_list=[('95% Confidence Interval', coupon_venue_type) for coupon_venue_type in overall_and_coupon_venue_type_list]
+    multiple_index_overall_and_coupon_venue_type=pd.MultiIndex.from_tuples(column_name_tuple_list)
+
+    df_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_confidence_interval_overall_and_coupon_venue_type.columns=multiple_index_overall_and_coupon_venue_type
+
+
+
+
+
+
+
+
+
+    #get all metrics for Overall and Coupon Venue Type 95% Confidence Interval Table by adding Confidence Interval Metrics and Ad Revenue, Ad Spend, ROAS, Profit, Spend, ROI 95% Confidence Intervals
+    df_model_name_95_confidence_interval_metrics_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI=\
+    pd.concat([df_test_model_name_model_survey_95_confidence_interval_metric_feature_column_name_filter_value, 
+               df_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_confidence_interval_overall_and_coupon_venue_type], axis=0)
+
+    return df_model_name_95_confidence_interval_metrics_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI
+
+
+###########################################################################################################################
+
+
+
+
+
+
+
+
 
 
 
@@ -1515,7 +2109,113 @@ def convert_collection_to_data_frame_and_drop_top_column_level(df_collection):
 
 
 
-def get_model_model_feature_and_model_feature_tuple_pair_metrics(df, column_name_y_predicted, feature_column_name_tuple_pair_list):
+
+
+
+
+
+
+
+############################################################
+#############################################################
+
+def get_model_predictions_decision_threshold_metric_aim_coupon_venue_type(model_name, metric_name, metric_quantity, coupon_name, coupon_name_short, Y_test_model_prediction_data_frame_collection, df_y_test_model_name_prediction_probability_y_actual_coupon_venue_type, decision_threshold_collection):
+    Y_test_model_prediction_list_collection = {}
+    
+    key = model_name + '_' + metric_name + '_' + metric_quantity + '_' + coupon_name_short + '_coupon'
+    column_name = model_name + '_prediction_' + metric_name + '_' + metric_quantity + '_' + coupon_name_short + '_coupon'
+    model_name_metric_name = model_name + '_' + metric_name
+
+    Y_test_model_prediction_list_collection[key] = \
+    [1 if prediction_probability > decision_threshold_collection[coupon_name][model_name_metric_name] else 0 \
+     for prediction_probability in df_y_test_model_name_prediction_probability_y_actual_coupon_venue_type.loc[:, 'Y_test_' + model_name + '_prediction_probability'].to_list()]
+
+    Y_test_model_prediction_data_frame_collection[key] = \
+    pd.DataFrame(Y_test_model_prediction_list_collection[key], columns=[column_name])
+    
+    return Y_test_model_prediction_data_frame_collection, key
+
+
+
+
+
+
+####################################################
+#Survey Analysis
+################################################################
+
+# def plot_bar_graph(df, 
+#                    x='coupon_venue_type', 
+#                    bar_category_list=['Refused Coupon', 'Accepted Coupon'],
+#                    title='Coupon Venue Count and Percentage per Acceptance or Refusal', 
+#                    color=['#8c6bb1', '#41ab5d'], 
+#                    figsize=(12, 10),
+#                    figure_filename=None,
+#                    dpi=100):
+
+#     #plt.figure(figsize=(10, 10))
+
+#     #sns.set(style="darkgrid")
+
+#     figure_filename_exists = os.path.isfile(figure_filename)
+#     if figure_filename_exists == True:
+#         img = mpimg.imread(figure_filename)
+#         plt.figure(figsize=(20, 16))
+#         plt.grid(False)
+#         plt.axis('off')
+#         plt.imshow(img)
+#     else:
+#         df.plot(x=x, kind ='bar', stacked=True, title=title, mark_right=True, color=color, figsize=(12, 10))
+
+#         df_row_sum = df.loc[:, bar_category_list[0]] + df.loc[:, bar_category_list[1]]
+
+#         df_stacked_bar_percentage = df.loc[:, df.columns[1:]].div(df_row_sum, 0) * 100
+
+#         for column_name in df_stacked_bar_percentage:
+
+#             for i, (cs, ab, pc) in enumerate(zip(df.iloc[:, 1:].cumsum(1).loc[:, column_name], df.loc[:, column_name], df_stacked_bar_percentage.loc[:, column_name])):
+#                 plt.text(i, cs-ab/2, str(np.round(pc, 1)) + '%', verticalalignment='center', horizontalalignment='center', rotation=0, fontsize=14)
+#         plt.ylabel('count')
+
+#         #save it
+#         plt.savefig(figure_filename, bbox_inches='tight', dpi=dpi)
+
+#         plt.show()
+
+
+
+
+def donut_plot(name_list, size_list, title, title_fontsize, figure_filename, dpi, color_list, circle_color='white'):
+    figure_filename_exists = os.path.isfile(figure_filename)
+    if figure_filename_exists == True:
+        img = mpimg.imread(figure_filename)
+        plt.figure(figsize=(10, 8))
+        plt.grid(False)
+        plt.axis('off')
+        plt.imshow(img)
+    else:
+        white_circle = plt.Circle((0,0), 0.7, color=circle_color)
+        plt.title(title, fontsize=title_fontsize)
+        plt.pie(size_list, labels=name_list, colors=color_list)
+        p = plt.gcf()
+        p.gca().add_artist(white_circle)
+        
+        #save it
+        plt.savefig(figure_filename, bbox_inches='tight', dpi=dpi)
+
+        plt.show()
+
+        
+        
+        
+        
+        
+        
+        
+#######################################################################################################################
+# Model Metrics By Feature Pair
+
+def get_model_model_feature_and_model_feature_two_tuple_metrics(df, column_name_y_predicted, feature_column_name_two_tuple_list):
     
     metric_value_two_dimensional_list=[]
     
@@ -1548,31 +2248,31 @@ def get_model_model_feature_and_model_feature_tuple_pair_metrics(df, column_name
     
     
     
-    #get model feature tuple pair metrics
+    #get model feature two-tuple metrics
     
     ####
-    for feature_column_name_tuple_pair in feature_column_name_tuple_pair_list:
+    for feature_column_name_two_tuple in feature_column_name_two_tuple_list:
         
-        feature_column_name_0_value_list=list(df.loc[:, feature_column_name_tuple_pair[0]].unique())
-        feature_column_name_1_value_list=list(df.loc[:, feature_column_name_tuple_pair[1]].unique())
+        feature_column_name_0_value_list=list(df.loc[:, feature_column_name_two_tuple[0]].unique())
+        feature_column_name_1_value_list=list(df.loc[:, feature_column_name_two_tuple[1]].unique())
         
         ####
         for feature_column_name_0_value in feature_column_name_0_value_list:
             
             def get_model_feature_and_value_metric_list(df, 
-                                                        feature_column_name_tuple_pair,
-                                                        feature_column_name_tuple_pair_index, 
+                                                        feature_column_name_two_tuple,
+                                                        feature_column_name_two_tuple_index, 
                                                         feature_column_name_number_value, 
                                                         model_metric_value_list):
                 
                 feature_number_and_value_metric_value_list=[]
 
-                y_predicted_feature_column_name_number_and_value_name='y_predicted_'+str(feature_column_name_tuple_pair[feature_column_name_tuple_pair_index])+'_'+str(feature_column_name_number_value)
+                y_predicted_feature_column_name_number_and_value_name='y_predicted_'+str(feature_column_name_two_tuple[feature_column_name_two_tuple_index])+'_'+str(feature_column_name_number_value)
 
                 #get y_predicted by feature number and value
                 df.loc[:, y_predicted_feature_column_name_number_and_value_name]=0
-                df.loc[(df.loc[:, feature_column_name_tuple_pair[feature_column_name_tuple_pair_index]]==feature_column_name_number_value), y_predicted_feature_column_name_number_and_value_name]=\
-                df.loc[(df.loc[:, feature_column_name_tuple_pair[feature_column_name_tuple_pair_index]]==feature_column_name_number_value), column_name_y_predicted]
+                df.loc[(df.loc[:, feature_column_name_two_tuple[feature_column_name_two_tuple_index]]==feature_column_name_number_value), y_predicted_feature_column_name_number_and_value_name]=\
+                df.loc[(df.loc[:, feature_column_name_two_tuple[feature_column_name_two_tuple_index]]==feature_column_name_number_value), column_name_y_predicted]
 
 
                 y_true=df.loc[:, 'Y']
@@ -1603,7 +2303,7 @@ def get_model_model_feature_and_model_feature_tuple_pair_metrics(df, column_name
                 model_feature_number_and_value_coupons_recommended_model_coupons_recommended_difference=model_feature_number_and_value_coupons_recommended-model_metric_value_list[3]
 
 
-                feature_number_and_value_metric_value_list=[feature_column_name_tuple_pair[feature_column_name_tuple_pair_index],
+                feature_number_and_value_metric_value_list=[feature_column_name_two_tuple[feature_column_name_two_tuple_index],
                                                             feature_column_name_number_value,
                                                             model_feature_number_and_value_precision, 
                                                             model_feature_number_and_value_recall,
@@ -1617,8 +2317,8 @@ def get_model_model_feature_and_model_feature_tuple_pair_metrics(df, column_name
             
             
             model_feature_0_and_value_metric_value_list=get_model_feature_and_value_metric_list(df, 
-                                                                                                feature_column_name_tuple_pair=feature_column_name_tuple_pair,
-                                                                                                feature_column_name_tuple_pair_index=0, 
+                                                                                                feature_column_name_two_tuple=feature_column_name_two_tuple,
+                                                                                                feature_column_name_two_tuple_index=0, 
                                                                                                 feature_column_name_number_value=feature_column_name_0_value,
                                                                                                 model_metric_value_list=model_metric_value_list)
             #print(model_feature_0_and_value_metric_value_list)
@@ -1629,8 +2329,8 @@ def get_model_model_feature_and_model_feature_tuple_pair_metrics(df, column_name
             for feature_column_name_1_value in feature_column_name_1_value_list:
                 
                 model_feature_1_and_value_metric_value_list=get_model_feature_and_value_metric_list(df, 
-                                                                                                    feature_column_name_tuple_pair,
-                                                                                                    feature_column_name_tuple_pair_index=1, 
+                                                                                                    feature_column_name_two_tuple,
+                                                                                                    feature_column_name_two_tuple_index=1, 
                                                                                                     feature_column_name_number_value=feature_column_name_1_value,
                                                                                                     model_metric_value_list=model_metric_value_list)
                 #print(model_feature_1_and_value_metric_value_list)
@@ -1640,17 +2340,17 @@ def get_model_model_feature_and_model_feature_tuple_pair_metrics(df, column_name
                 model_feature_0_and_value_feature_1_and_value_metric_value_list=[]
                 
                 y_model_feature_column_name_0_and_value_feature_column_name_1_and_value_predicted=\
-                'y_model_'+feature_column_name_tuple_pair[0]+'_'+str(feature_column_name_0_value).replace(' ', '_')+'_'+feature_column_name_tuple_pair[1]+'_'+str(feature_column_name_1_value).replace(' ', '_')+'_predicted'
+                'y_model_'+feature_column_name_two_tuple[0]+'_'+str(feature_column_name_0_value).replace(' ', '_')+'_'+feature_column_name_two_tuple[1]+'_'+str(feature_column_name_1_value).replace(' ', '_')+'_predicted'
                 
                 #print(y_model_feature_column_name_0_and_value_feature_column_name_1_and_value_predicted)
                 
                 
                 
                 df.loc[:, y_model_feature_column_name_0_and_value_feature_column_name_1_and_value_predicted]=0
-                df.loc[(df.loc[:, feature_column_name_tuple_pair[0]]==feature_column_name_0_value) &
-                       (df.loc[:, feature_column_name_tuple_pair[1]]==feature_column_name_1_value), y_model_feature_column_name_0_and_value_feature_column_name_1_and_value_predicted]=\
-                df.loc[(df.loc[:, feature_column_name_tuple_pair[0]]==feature_column_name_0_value) &
-                       (df.loc[:, feature_column_name_tuple_pair[1]]==feature_column_name_1_value), column_name_y_predicted]
+                df.loc[(df.loc[:, feature_column_name_two_tuple[0]]==feature_column_name_0_value) &
+                       (df.loc[:, feature_column_name_two_tuple[1]]==feature_column_name_1_value), y_model_feature_column_name_0_and_value_feature_column_name_1_and_value_predicted]=\
+                df.loc[(df.loc[:, feature_column_name_two_tuple[0]]==feature_column_name_0_value) &
+                       (df.loc[:, feature_column_name_two_tuple[1]]==feature_column_name_1_value), column_name_y_predicted]
                 
                 
                 y_true=df.loc[:, 'Y']
@@ -1759,92 +2459,949 @@ def get_model_model_feature_and_model_feature_tuple_pair_metrics(df, column_name
 
 
 
-############################################################
-#############################################################
 
-def get_model_predictions_decision_threshold_metric_aim_coupon_venue_type(model_name, metric_name, metric_quantity, coupon_name, coupon_name_short, Y_test_model_prediction_data_frame_collection, df_y_test_model_name_prediction_probability_y_actual_coupon_venue_type, decision_threshold_collection):
-    Y_test_model_prediction_list_collection = {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+################################################################################################################################
+#Model Metrics by Feature Number and Value Star Number
+
+def get_model_feature_and_value_star_zero_metric_value_list(df, column_name_y_predicted, model_feature_number_and_value_star_number_metric_value_list_collection):
+
+    model_feature_number_and_value_star_number_metric_value_list_collection['model']=[None]*4
+
+    y_true=df.loc[:, 'Y']
+    y_predicted=df.loc[:, column_name_y_predicted]
+
+    #precision
+    model_feature_number_and_value_star_number_metric_value_list_collection['model'][0]=precision_score(y_true=y_true, y_pred=y_predicted)
+
+    #recall
+    model_feature_number_and_value_star_number_metric_value_list_collection['model'][1]=recall_score(y_true=y_true, y_pred=y_predicted)
+
+    true_negative,false_positive,false_negative,true_positive=confusion_matrix(y_true=y_true, y_pred=y_predicted).ravel()
+
+    #conversions
+    model_feature_number_and_value_star_number_metric_value_list_collection['model'][2]=true_positive
+
+    #coupons recommended
+    model_feature_number_and_value_star_number_metric_value_list_collection['model'][3]=false_positive+true_positive
+
+    return model_feature_number_and_value_star_number_metric_value_list_collection['model']
+
+
+
+
+def get_model_feature_and_value_star_one_metric_list(df, 
+                                                     column_name_y_predicted,
+                                                     feature_column_name_tuple_triple,
+                                                     feature_column_name_tuple_triple_index, 
+                                                     feature_column_name_number_value, 
+                                                     model_feature_number_and_value_star_number_metric_value_list_collection):
+
+    feature_number_string='feature_'+str(feature_column_name_tuple_triple_index)
+    feature_number_and_model_difference_string='feature_'+str(feature_column_name_tuple_triple_index)+'_and_model_difference'
     
-    key = model_name + '_' + metric_name + '_' + metric_quantity + '_' + coupon_name_short + '_coupon'
-    column_name = model_name + '_prediction_' + metric_name + '_' + metric_quantity + '_' + coupon_name_short + '_coupon'
-    model_name_metric_name = model_name + '_' + metric_name
-
-    Y_test_model_prediction_list_collection[key] = \
-    [1 if prediction_probability > decision_threshold_collection[coupon_name][model_name_metric_name] else 0 \
-     for prediction_probability in df_y_test_model_name_prediction_probability_y_actual_coupon_venue_type.loc[:, 'Y_test_' + model_name + '_prediction_probability'].to_list()]
-
-    Y_test_model_prediction_data_frame_collection[key] = \
-    pd.DataFrame(Y_test_model_prediction_list_collection[key], columns=[column_name])
+    model_feature_number_and_value_star_number_metric_value_list_collection[feature_number_string]=[None]*6
+    model_feature_number_and_value_star_number_metric_value_list_collection[feature_number_and_model_difference_string]=[None]*4
     
-    return Y_test_model_prediction_data_frame_collection, key
+    
+    #get feature number column name
+    model_feature_number_and_value_star_number_metric_value_list_collection[feature_number_string][0]=\
+    feature_column_name_tuple_triple[feature_column_name_tuple_triple_index]
+    
+    #get feature number value
+    model_feature_number_and_value_star_number_metric_value_list_collection[feature_number_string][1]=\
+    feature_column_name_number_value
+    
+
+    y_predicted_feature_column_name_number_and_value_name='y_predicted_'+str(feature_column_name_tuple_triple[feature_column_name_tuple_triple_index])+'_'+str(feature_column_name_number_value)
+
+    #get y_predicted by feature number and value
+    df.loc[:, y_predicted_feature_column_name_number_and_value_name]=0
+    df.loc[(df.loc[:, feature_column_name_tuple_triple[feature_column_name_tuple_triple_index]]==feature_column_name_number_value), y_predicted_feature_column_name_number_and_value_name]=\
+    df.loc[(df.loc[:, feature_column_name_tuple_triple[feature_column_name_tuple_triple_index]]==feature_column_name_number_value), column_name_y_predicted]
+
+
+    y_true=df.loc[:, 'Y']
+    y_predicted=df.loc[:, y_predicted_feature_column_name_number_and_value_name]
+    #get feature number and value metrics
+
+    #precision
+    model_feature_number_and_value_star_number_metric_value_list_collection[feature_number_string][2]=precision_score(y_true=y_true, y_pred=y_predicted)
+
+    #recall
+    model_feature_number_and_value_star_number_metric_value_list_collection[feature_number_string][3]=recall_score(y_true=y_true, y_pred=y_predicted)
+
+    true_negative,false_positive,false_negative,true_positive=confusion_matrix(y_true=y_true, y_pred=y_predicted).ravel()
+
+    #conversions
+    model_feature_number_and_value_star_number_metric_value_list_collection[feature_number_string][4]=true_positive
+
+    #coupons recommended
+    model_feature_number_and_value_star_number_metric_value_list_collection[feature_number_string][5]=false_positive+true_positive
+
+    
+    
+    
+    #get Model Single Feature and Model No Filter Difference Metrics
+    
+    #precision
+    model_feature_number_and_value_star_number_metric_value_list_collection[feature_number_and_model_difference_string][0]=\
+    model_feature_number_and_value_star_number_metric_value_list_collection[feature_number_string][2]-\
+    model_feature_number_and_value_star_number_metric_value_list_collection['model'][0]
+
+    
+    model_feature_number_and_value_star_number_metric_value_list_collection[feature_number_and_model_difference_string][1]=\
+    model_feature_number_and_value_star_number_metric_value_list_collection[feature_number_string][3]-\
+    model_feature_number_and_value_star_number_metric_value_list_collection['model'][1]
+
+    model_feature_number_and_value_star_number_metric_value_list_collection[feature_number_and_model_difference_string][2]=\
+    model_feature_number_and_value_star_number_metric_value_list_collection[feature_number_string][4]-\
+    model_feature_number_and_value_star_number_metric_value_list_collection['model'][2]
+
+    model_feature_number_and_value_star_number_metric_value_list_collection[feature_number_and_model_difference_string][3]=\
+    model_feature_number_and_value_star_number_metric_value_list_collection[feature_number_string][5]-\
+    model_feature_number_and_value_star_number_metric_value_list_collection['model'][3]
+    
+    
+    return model_feature_number_and_value_star_number_metric_value_list_collection[feature_number_string], \
+           model_feature_number_and_value_star_number_metric_value_list_collection[feature_number_and_model_difference_string]
 
 
 
 
 
 
-####################################################
-#Survey Analysis
-################################################################
-
-# def plot_bar_graph(df, 
-#                    x='coupon_venue_type', 
-#                    bar_category_list=['Refused Coupon', 'Accepted Coupon'],
-#                    title='Coupon Venue Count and Percentage per Acceptance or Refusal', 
-#                    color=['#8c6bb1', '#41ab5d'], 
-#                    figsize=(12, 10),
-#                    figure_filename=None,
-#                    dpi=100):
-
-#     #plt.figure(figsize=(10, 10))
-
-#     #sns.set(style="darkgrid")
-
-#     figure_filename_exists = os.path.isfile(figure_filename)
-#     if figure_filename_exists == True:
-#         img = mpimg.imread(figure_filename)
-#         plt.figure(figsize=(20, 16))
-#         plt.grid(False)
-#         plt.axis('off')
-#         plt.imshow(img)
-#     else:
-#         df.plot(x=x, kind ='bar', stacked=True, title=title, mark_right=True, color=color, figsize=(12, 10))
-
-#         df_row_sum = df.loc[:, bar_category_list[0]] + df.loc[:, bar_category_list[1]]
-
-#         df_stacked_bar_percentage = df.loc[:, df.columns[1:]].div(df_row_sum, 0) * 100
-
-#         for column_name in df_stacked_bar_percentage:
-
-#             for i, (cs, ab, pc) in enumerate(zip(df.iloc[:, 1:].cumsum(1).loc[:, column_name], df.loc[:, column_name], df_stacked_bar_percentage.loc[:, column_name])):
-#                 plt.text(i, cs-ab/2, str(np.round(pc, 1)) + '%', verticalalignment='center', horizontalalignment='center', rotation=0, fontsize=14)
-#         plt.ylabel('count')
-
-#         #save it
-#         plt.savefig(figure_filename, bbox_inches='tight', dpi=dpi)
-
-#         plt.show()
 
 
 
 
-def donut_plot(name_list, size_list, title, title_fontsize, figure_filename, dpi, color_list, circle_color='white'):
-    figure_filename_exists = os.path.isfile(figure_filename)
-    if figure_filename_exists == True:
-        img = mpimg.imread(figure_filename)
-        plt.figure(figsize=(10, 8))
-        plt.grid(False)
-        plt.axis('off')
-        plt.imshow(img)
-    else:
-        white_circle = plt.Circle((0,0), 0.7, color=circle_color)
-        plt.title(title, fontsize=title_fontsize)
-        plt.pie(size_list, labels=name_list, colors=color_list)
-        p = plt.gcf()
-        p.gca().add_artist(white_circle)
+def get_model_feature_and_value_star_two_metric_lists_to_collection(df, 
+                                                                    feature_column_name_tuple_triple, 
+                                                                    feature_number_index_list,
+                                                                    feature_number_single_value_collection,
+                                                                    column_name_y_predicted,
+                                                                    model_feature_number_and_value_star_number_metric_value_list_collection,):
+    
+    #get y_predicted column
+    
+    #get y_predicted column string
+    y_model_feature_column_name_number_and_value_star_two_predicted=\
+    'y_model_'+feature_column_name_tuple_triple[feature_number_index_list[0]]+'_'+\
+    str(feature_number_single_value_collection['feature_'+str(feature_number_index_list[0])]).replace(' ', '_')+'_'+\
+    feature_column_name_tuple_triple[feature_number_index_list[1]]+'_'+\
+    str(feature_number_single_value_collection['feature_'+str(feature_number_index_list[1])]).replace(' ', '_')+'_predicted'
+    
+    
+    #get feature number key index
+    key_value_list=[None]*5
+    
+    key_value_list[3]='feature_'+str(feature_number_index_list[0])
+    key_value_list[4]='feature_'+str(feature_number_index_list[1])
+    
+
+    
+    #get predictions column by feature and value, feature and value filter. And 0 for exclusion by filter
+    df.loc[:, y_model_feature_column_name_number_and_value_star_two_predicted]=0
+    df.loc[(df.loc[:, feature_column_name_tuple_triple[feature_number_index_list[0]]]==feature_number_single_value_collection[key_value_list[3]]) &
+           (df.loc[:, feature_column_name_tuple_triple[feature_number_index_list[1]]]==feature_number_single_value_collection[key_value_list[4]]), y_model_feature_column_name_number_and_value_star_two_predicted]=\
+    df.loc[(df.loc[:, feature_column_name_tuple_triple[feature_number_index_list[0]]]==feature_number_single_value_collection[key_value_list[3]]) &
+           (df.loc[:, feature_column_name_tuple_triple[feature_number_index_list[1]]]==feature_number_single_value_collection[key_value_list[4]]), column_name_y_predicted]
+
+
+    y_true=df.loc[:, 'Y']
+    y_predicted=df.loc[:, y_model_feature_column_name_number_and_value_star_two_predicted]
+
+
+    #calculate feature 0 and value and feature 1 and value metric value list: precision, recall, conversions, coupons recommended
+
+    #get key value list for feature number and value star two metric calculations
+    
+    key_value_list[0]='feature_'+str(feature_number_index_list[0])+'_feature_'+str(feature_number_index_list[1])
+    model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[0]]=[None]*4
+    
+    key_value_list[1]='feature_'+str(feature_number_index_list[0])+'_feature_'+str(feature_number_index_list[1])+'_and_feature_'+str(feature_number_index_list[0])+'_difference'
+    model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[1]]=[None]*4
+
+    key_value_list[2]='feature_'+str(feature_number_index_list[0])+'_feature_'+str(feature_number_index_list[1])+'_and_feature_'+str(feature_number_index_list[1])+'_difference'
+    model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[2]]=[None]*4
+    
+    #get precision
+    model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[0]][0]=precision_score(y_true=y_true, y_pred=y_predicted)
+
+    #get recall
+    model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[0]][1]=recall_score(y_true=y_true, y_pred=y_predicted)
+
+    true_negatives, false_positives, false_negatives, true_positives = confusion_matrix(y_true=y_true, y_pred=y_predicted).ravel()
+
+    #get conversions
+    model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[0]][2]=true_positives
+
+    #get coupons recommended
+    model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[0]][3]=true_positives+false_positives
+
+    
+    
+    
+    
+    
+    #calculate metrics, e.g. feature 0 and value, feature 1 and value, feature 0 and value difference; 
+    #                        feature 0 and value, feature 1 and value, feature 1 and value difference
+    #metrics: precision, recall, conversions, coupons recommended
+
+    
+    #precision difference
+    model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[1]][0]=\
+    model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[0]][0]-model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[3]][2]
+
+    #recall difference
+    model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[1]][1]=\
+    model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[0]][1]-model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[3]][3]
+
+    #conversions
+    model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[1]][2]=\
+    model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[0]][2]-model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[3]][4]
+
+    #coupons recommended
+    model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[1]][3]=\
+    model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[0]][3]-model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[3]][5]
+
+    
+    
+
+    
+    #precision difference
+    model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[2]][0]=\
+    model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[0]][0]-model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[4]][2]
+
+
+    #recall difference
+    model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[2]][1]=\
+    model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[0]][1]-model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[4]][3]
+
+    #conversions
+    model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[2]][2]=\
+    model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[0]][2]-model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[4]][4]
+
+    #coupons recommended
+    model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[2]][3]=\
+    model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[0]][3]-model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[4]][5]
+
+    return model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[0]],\
+           model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[1]],\
+           model_feature_number_and_value_star_number_metric_value_list_collection[key_value_list[2]]
+
+
+
+
+
+def get_feature_number_and_value_star_number_and_feature_number_and_value_star_number_difference_metric_value_list_collection(df, key_list, model_feature_number_and_value_star_number_metric_value_list_collection):
+
+    
+    
+    feature_number_star_one_list=['feature_0','feature_1','feature_2']
+    
+    #precision difference, recall difference, conversions, coupons recommended
+    if not key_list[1] in feature_number_star_one_list:
+        for index in range(4):
+            model_feature_number_and_value_star_number_metric_value_list_collection[key_list[2]][index]=\
+            model_feature_number_and_value_star_number_metric_value_list_collection[key_list[0]][index]-\
+            model_feature_number_and_value_star_number_metric_value_list_collection[key_list[1]][index]
+
+    elif key_list[1] in feature_number_star_one_list:
+        for index in range(4):
+            model_feature_number_and_value_star_number_metric_value_list_collection[key_list[2]][index]=\
+            model_feature_number_and_value_star_number_metric_value_list_collection[key_list[0]][index]-\
+            model_feature_number_and_value_star_number_metric_value_list_collection[key_list[1]][index+2]
+
+    return model_feature_number_and_value_star_number_metric_value_list_collection[key_list[2]]
+
+
+
+
+def get_model_feature_and_value_star_three_metric_lists_to_collection(df, 
+                                                                      feature_column_name_tuple_triple,
+                                                                      feature_number_single_value_collection,
+                                                                      column_name_y_predicted, 
+                                                                      model_feature_number_and_value_star_number_metric_value_list_collection,):
+
+    
+    #get y_predicted column
+    
+    #get y_predicted column string
+    y_model_feature_column_name_number_and_value_star_three_predicted=\
+    'y_model_'+feature_column_name_tuple_triple[0]+'_'+\
+               str(feature_number_single_value_collection['feature_0']).replace(' ', '_')+'_'+\
+               feature_column_name_tuple_triple[1]+'_'+\
+               str(feature_number_single_value_collection['feature_1']).replace(' ', '_')+'_'+\
+               feature_column_name_tuple_triple[2]+'_'+\
+               str(feature_number_single_value_collection['feature_2']).replace(' ', '_')+'_predicted'
+    
+
+    #print(y_model_feature_column_name_number_and_value_star_two_predicted)
+
+    
+    #get feature number key index
+
+    
+    #get predictions column by feature and value, feature and value filter. And 0 for exclusion by filter
+    df.loc[:, y_model_feature_column_name_number_and_value_star_three_predicted]=0
+    df.loc[(df.loc[:, feature_column_name_tuple_triple[0]]==feature_number_single_value_collection['feature_0']) & \
+           (df.loc[:, feature_column_name_tuple_triple[1]]==feature_number_single_value_collection['feature_1']) & \
+           (df.loc[:, feature_column_name_tuple_triple[2]]==feature_number_single_value_collection['feature_2']), y_model_feature_column_name_number_and_value_star_three_predicted]=\
+    df.loc[(df.loc[:, feature_column_name_tuple_triple[0]]==feature_number_single_value_collection['feature_0']) & \
+           (df.loc[:, feature_column_name_tuple_triple[1]]==feature_number_single_value_collection['feature_1']) & \
+           (df.loc[:, feature_column_name_tuple_triple[2]]==feature_number_single_value_collection['feature_2']), column_name_y_predicted]
+
+
+    y_true=df.loc[:, 'Y']
+    y_predicted=df.loc[:, y_model_feature_column_name_number_and_value_star_three_predicted]
+
+
+    #calculate feature 0 and value and feature 1 and value metric value list: precision, recall, conversions, coupons recommended
+
+    model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2']=[None]*4
+    model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2_and_feature_0_feature_1_difference']=[None]*4
+    model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2_and_feature_0_feature_2_difference']=[None]*4
+    model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2_and_feature_1_feature_2_difference']=[None]*4
+    model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2_and_feature_0_difference']=[None]*4
+    model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2_and_feature_1_difference']=[None]*4
+    model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2_and_feature_2_difference']=[None]*4
+    model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2_and_model_difference']=[None]*4
+    
+    
+
+    
+    
+    
+    #get precision
+    model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2'][0]=precision_score(y_true=y_true, y_pred=y_predicted)
+
+    #get recall
+    model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2'][1]=recall_score(y_true=y_true, y_pred=y_predicted)
+
+    true_negatives, false_positives, false_negatives, true_positives = confusion_matrix(y_true=y_true, y_pred=y_predicted).ravel()
+
+    #get conversions
+    model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2'][2]=true_positives
+
+    #get coupons recommended
+    model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2'][3]=true_positives+false_positives
+
+
+
+    
+    #calculate difference metrics: precision, recall, conversions, coupons recommended
+    feature_number_star_number_list=['feature_0_feature_1', 'feature_0_feature_2', 'feature_1_feature_2', 'feature_0', 'feature_1', 'feature_2', 'model']
+    key_two_dimensional_list=[['feature_0_feature_1_feature_2', feature_number_star_number] for feature_number_star_number in feature_number_star_number_list]
+    
+    
+    
+    for key_list in key_two_dimensional_list:
         
+        #add output key to key list
+        key_list+=[key_list[0]+'_and_'+key_list[1]+'_difference']
+        
+        model_feature_number_and_value_star_number_metric_value_list_collection[key_list[2]]=[None]*4
+        
+        model_feature_number_and_value_star_number_metric_value_list_collection[key_list[2]]=\
+        get_feature_number_and_value_star_number_and_feature_number_and_value_star_number_difference_metric_value_list_collection(df=df,
+                                                                                                                                  key_list=key_list,
+                                                                                                                                  model_feature_number_and_value_star_number_metric_value_list_collection=model_feature_number_and_value_star_number_metric_value_list_collection)
+
+        
+        
+    return model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2'],\
+           model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2_and_feature_0_feature_1_difference'],\
+           model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2_and_feature_0_feature_2_difference'],\
+           model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2_and_feature_1_feature_2_difference'],\
+           model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2_and_feature_0_difference'],\
+           model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2_and_feature_1_difference'],\
+           model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2_and_feature_2_difference'],\
+           model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2_and_model_difference']
+
+
+
+
+
+
+def get_model_feature_tuple_zero_model_feature_tuple_single_model_feature_two_tuple_and_model_feature_tuple_triple_metrics(df, column_name_y_predicted, feature_column_name_tuple_triple_list):
+    
+    metric_value_two_dimensional_list=[]
+        
+    model_feature_number_and_value_star_number_metric_value_list_collection={}
+    
+    #<><>get Model metric value list
+    model_feature_number_and_value_star_number_metric_value_list_collection['model']=\
+    get_model_feature_and_value_star_zero_metric_value_list(df=df, column_name_y_predicted=column_name_y_predicted, model_feature_number_and_value_star_number_metric_value_list_collection=model_feature_number_and_value_star_number_metric_value_list_collection)
+
+
+    #get model feature two-tuple metrics
+    
+    ####
+    for feature_column_name_tuple_triple in feature_column_name_tuple_triple_list:
+        
+        feature_column_name_number_value_list_collection={}
+        
+        feature_column_name_number_value_list_collection['feature_0']=list(df.loc[:, feature_column_name_tuple_triple[0]].unique())
+        feature_column_name_number_value_list_collection['feature_1']=list(df.loc[:, feature_column_name_tuple_triple[1]].unique())
+        feature_column_name_number_value_list_collection['feature_2']=list(df.loc[:, feature_column_name_tuple_triple[2]].unique())
+        
+        ####
+
+        feature_number_single_value_collection={}
+        
+        for feature_number_single_value_collection['feature_0'] in feature_column_name_number_value_list_collection['feature_0']:
+            
+            #<><>
+            model_feature_number_and_value_star_number_metric_value_list_collection['feature_0'],\
+            model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_and_model_difference']=\
+            get_model_feature_and_value_star_one_metric_list(df=df,\
+                                                             column_name_y_predicted=column_name_y_predicted,\
+                                                             feature_column_name_tuple_triple=feature_column_name_tuple_triple,\
+                                                             feature_column_name_tuple_triple_index=0,\
+                                                             feature_column_name_number_value=feature_number_single_value_collection['feature_0'],\
+                                                             model_feature_number_and_value_star_number_metric_value_list_collection=model_feature_number_and_value_star_number_metric_value_list_collection)
+            
+            
+            ####
+            
+            for feature_number_single_value_collection['feature_1'] in feature_column_name_number_value_list_collection['feature_1']:
+                
+                #<><>
+                model_feature_number_and_value_star_number_metric_value_list_collection['feature_1'],\
+                model_feature_number_and_value_star_number_metric_value_list_collection['feature_1_and_model_difference']=\
+                get_model_feature_and_value_star_one_metric_list(df=df,\
+                                                                 column_name_y_predicted=column_name_y_predicted,\
+                                                                 feature_column_name_tuple_triple=feature_column_name_tuple_triple,\
+                                                                 feature_column_name_tuple_triple_index=1,\
+                                                                 feature_column_name_number_value=feature_number_single_value_collection['feature_1'],\
+                                                                 model_feature_number_and_value_star_number_metric_value_list_collection=model_feature_number_and_value_star_number_metric_value_list_collection)
+                
+                
+#                 #print(model_feature_number_and_value_star_number_metric_value_list_collection['feature_1'])
+
+
+                  
+                
+                #<><>get Model Feature number and value star two metrics: feature 0, feature 1; 
+                #                                                         feature 0, feature 1 and feature 0 difference;
+                #                                                         feature 0, feature 1 and feature 1 difference
+                model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1'],\
+                model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_and_feature_0_difference'],\
+                model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_and_feature_1_difference']=\
+                get_model_feature_and_value_star_two_metric_lists_to_collection(df=df,\
+                                                                                feature_column_name_tuple_triple=feature_column_name_tuple_triple,\
+                                                                                feature_number_index_list=[0,1],\
+                                                                                feature_number_single_value_collection=feature_number_single_value_collection,\
+                                                                                column_name_y_predicted=column_name_y_predicted,\
+                                                                                model_feature_number_and_value_star_number_metric_value_list_collection=model_feature_number_and_value_star_number_metric_value_list_collection)
+
+                
+
+
+    
+
+
+                
+                ####
+                
+                for feature_number_single_value_collection['feature_2'] in feature_column_name_number_value_list_collection['feature_2']:
+                    
+                    
+                    #<><>get feature 2 and value metrics
+                    model_feature_number_and_value_star_number_metric_value_list_collection['feature_2'],\
+                    model_feature_number_and_value_star_number_metric_value_list_collection['feature_2_and_model_difference']=\
+                    get_model_feature_and_value_star_one_metric_list(df=df,\
+                                                                     column_name_y_predicted=column_name_y_predicted,\
+                                                                     feature_column_name_tuple_triple=feature_column_name_tuple_triple,\
+                                                                     feature_column_name_tuple_triple_index=2,\
+                                                                     feature_column_name_number_value=feature_number_single_value_collection['feature_2'],\
+                                                                     model_feature_number_and_value_star_number_metric_value_list_collection=model_feature_number_and_value_star_number_metric_value_list_collection,)
+
+
+                    #get feature 0 and value, feature 2 and value metrics
+                    #<><>get Model Feature number and value star two metrics
+                    model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_2'],\
+                    model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_2_and_feature_0_difference'],\
+                    model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_2_and_feature_2_difference']=\
+                    get_model_feature_and_value_star_two_metric_lists_to_collection(df=df,\
+                                                                                    feature_column_name_tuple_triple=feature_column_name_tuple_triple,\
+                                                                                    feature_number_index_list=[0,2],\
+                                                                                    feature_number_single_value_collection=feature_number_single_value_collection,\
+                                                                                    column_name_y_predicted=column_name_y_predicted,\
+                                                                                    model_feature_number_and_value_star_number_metric_value_list_collection=model_feature_number_and_value_star_number_metric_value_list_collection,)
+                                                  
+
+                    #get feature 1 and value, feature 2 and value metrics                                                             
+                    #<><>get Model Feature number and value star two metrics
+                    model_feature_number_and_value_star_number_metric_value_list_collection['feature_1_feature_2'],\
+                    model_feature_number_and_value_star_number_metric_value_list_collection['feature_1_feature_2_and_feature_1_difference'],\
+                    model_feature_number_and_value_star_number_metric_value_list_collection['feature_1_feature_2_and_feature_2_difference']=\
+                    get_model_feature_and_value_star_two_metric_lists_to_collection(df=df, \
+                                                                                    feature_column_name_tuple_triple=feature_column_name_tuple_triple,\
+                                                                                    feature_number_index_list=[1,2],\
+                                                                                    feature_number_single_value_collection=feature_number_single_value_collection,\
+                                                                                    column_name_y_predicted=column_name_y_predicted,\
+                                                                                    model_feature_number_and_value_star_number_metric_value_list_collection=model_feature_number_and_value_star_number_metric_value_list_collection,)
+                    
+                    
+                    
+                    
+                    
+                        
+                        
+                        
+                    
+                    model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2'],\
+                    model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2_and_feature_0_feature_1_difference'],\
+                    model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2_and_feature_0_feature_2_difference'],\
+                    model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2_and_feature_1_feature_2_difference'],\
+                    model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2_and_feature_0_difference'],\
+                    model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2_and_feature_1_difference'],\
+                    model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2_and_feature_2_difference'],\
+                    model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2_and_model_difference']=\
+                    get_model_feature_and_value_star_three_metric_lists_to_collection(df=df,\
+                                                                                      feature_column_name_tuple_triple=feature_column_name_tuple_triple,\
+                                                                                      feature_number_single_value_collection=feature_number_single_value_collection,\
+                                                                                      column_name_y_predicted=column_name_y_predicted,\
+                                                                                      model_feature_number_and_value_star_number_metric_value_list_collection=model_feature_number_and_value_star_number_metric_value_list_collection,)
+                    
+
+                    
+                    
+                    #end of the line, get all metrics into the output list
+                    metric_value_two_dimensional_list+=[model_feature_number_and_value_star_number_metric_value_list_collection['model']+\
+                                                        model_feature_number_and_value_star_number_metric_value_list_collection['feature_0']+\
+                                                        model_feature_number_and_value_star_number_metric_value_list_collection['feature_1']+\
+                                                        model_feature_number_and_value_star_number_metric_value_list_collection['feature_2']+\
+                                                        model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1']+\
+                                                        model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_and_feature_0_difference']+\
+                                                        model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_and_feature_1_difference']+\
+                                                        model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_2']+\
+                                                        model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_2_and_feature_0_difference']+\
+                                                        model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_2_and_feature_2_difference']+\
+                                                        model_feature_number_and_value_star_number_metric_value_list_collection['feature_1_feature_2']+\
+                                                        model_feature_number_and_value_star_number_metric_value_list_collection['feature_1_feature_2_and_feature_1_difference']+\
+                                                        model_feature_number_and_value_star_number_metric_value_list_collection['feature_1_feature_2_and_feature_2_difference']+\
+                                                        model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2']+\
+                                                        model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2_and_feature_0_feature_1_difference']+\
+                                                        model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2_and_feature_0_feature_2_difference']+\
+                                                        model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2_and_feature_1_feature_2_difference']+\
+                                                        model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2_and_feature_0_difference']+\
+                                                        model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2_and_feature_1_difference']+\
+                                                        model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2_and_feature_2_difference']+\
+                                                        model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2_and_model_difference']]
+                    
+                    
+                    
+    return metric_value_two_dimensional_list
+
+
+
+def get_model_feature_and_value_star_three_metric_lists_to_collection_v2(df, 
+                                                                         feature_column_name_tuple_triple,
+                                                                         feature_number_single_value_collection,
+                                                                         column_name_y_predicted, 
+                                                                         model_feature_number_and_value_star_number_metric_value_list_collection,):
+
+    
+    #get y_predicted column
+    
+    #get y_predicted column string
+    y_model_feature_column_name_number_and_value_star_three_predicted=\
+    'y_model_'+feature_column_name_tuple_triple[0]+'_'+\
+               str(feature_number_single_value_collection['feature_0']).replace(' ', '_')+'_'+\
+               feature_column_name_tuple_triple[1]+'_'+\
+               str(feature_number_single_value_collection['feature_1']).replace(' ', '_')+'_'+\
+               feature_column_name_tuple_triple[2]+'_'+\
+               str(feature_number_single_value_collection['feature_2']).replace(' ', '_')+'_predicted'
+    
+
+    #print(y_model_feature_column_name_number_and_value_star_two_predicted)
+
+    
+    #get feature number key index
+
+    
+    #get predictions column by feature and value, feature and value filter. And 0 for exclusion by filter
+    df.loc[:, y_model_feature_column_name_number_and_value_star_three_predicted]=0
+    df.loc[(df.loc[:, feature_column_name_tuple_triple[0]]==feature_number_single_value_collection['feature_0']) & \
+           (df.loc[:, feature_column_name_tuple_triple[1]]==feature_number_single_value_collection['feature_1']) & \
+           (df.loc[:, feature_column_name_tuple_triple[2]]==feature_number_single_value_collection['feature_2']), y_model_feature_column_name_number_and_value_star_three_predicted]=\
+    df.loc[(df.loc[:, feature_column_name_tuple_triple[0]]==feature_number_single_value_collection['feature_0']) & \
+           (df.loc[:, feature_column_name_tuple_triple[1]]==feature_number_single_value_collection['feature_1']) & \
+           (df.loc[:, feature_column_name_tuple_triple[2]]==feature_number_single_value_collection['feature_2']), column_name_y_predicted]
+
+
+    y_true=df.loc[:, 'Y']
+    y_predicted=df.loc[:, y_model_feature_column_name_number_and_value_star_three_predicted]
+
+
+    #calculate feature 0 and value and feature 1 and value metric value list: precision, recall, conversions, coupons recommended
+
+    model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2']=[None]*4
+    model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2_and_model_difference']=[None]*4
+    
+    
+
+    
+    
+    
+    #get precision
+    model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2'][0]=precision_score(y_true=y_true, y_pred=y_predicted)
+
+    #get recall
+    model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2'][1]=recall_score(y_true=y_true, y_pred=y_predicted)
+
+    true_negatives, false_positives, false_negatives, true_positives = confusion_matrix(y_true=y_true, y_pred=y_predicted).ravel()
+
+    #get conversions
+    model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2'][2]=true_positives
+
+    #get coupons recommended
+    model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2'][3]=true_positives+false_positives
+
+
+
+    
+    #calculate difference metrics: precision, recall, conversions, coupons recommended
+    feature_number_star_number_list=['model'] #['feature_0_feature_1', 'feature_0_feature_2', 'feature_1_feature_2', 'feature_0', 'feature_1', 'feature_2',]
+    key_two_dimensional_list=[['feature_0_feature_1_feature_2', feature_number_star_number] for feature_number_star_number in feature_number_star_number_list]
+    
+    
+    
+    for key_list in key_two_dimensional_list:
+        
+        #add output key to key list
+        key_list+=[key_list[0]+'_and_'+key_list[1]+'_difference']
+        
+        model_feature_number_and_value_star_number_metric_value_list_collection[key_list[2]]=[None]*4
+        
+        model_feature_number_and_value_star_number_metric_value_list_collection[key_list[2]]=\
+        get_feature_number_and_value_star_number_and_feature_number_and_value_star_number_difference_metric_value_list_collection(df=df,
+                                                                                                                                  key_list=key_list,
+                                                                                                                                  model_feature_number_and_value_star_number_metric_value_list_collection=model_feature_number_and_value_star_number_metric_value_list_collection)
+
+        
+        
+    return model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2'],\
+           model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2_and_model_difference']
+
+
+
+
+def get_model_feature_tuple_zero_model_feature_tuple_single_model_feature_two_tuple_and_model_feature_tuple_triple_metrics_v2(df, column_name_y_predicted, feature_column_name_tuple_triple_list, random_forest_gradient_boosting_survey, tuples_completed, filename_version):
+    
+    metric_value_two_dimensional_list=[]
+        
+    model_feature_number_and_value_star_number_metric_value_list_collection={}
+    
+    #<><>get Model metric value list
+    model_feature_number_and_value_star_number_metric_value_list_collection['model']=\
+    get_model_feature_and_value_star_zero_metric_value_list(df=df, column_name_y_predicted=column_name_y_predicted, model_feature_number_and_value_star_number_metric_value_list_collection=model_feature_number_and_value_star_number_metric_value_list_collection)
+
+
+    #get model feature two-tuple metrics
+    
+    combination_count=0
+    
+    ####
+    for feature_column_name_tuple_triple in feature_column_name_tuple_triple_list:
+        
+        feature_column_name_number_value_list_collection={}
+        
+        feature_column_name_number_value_list_collection['feature_0']=list(df.loc[:, feature_column_name_tuple_triple[0]].unique())
+        feature_column_name_number_value_list_collection['feature_1']=list(df.loc[:, feature_column_name_tuple_triple[1]].unique())
+        feature_column_name_number_value_list_collection['feature_2']=list(df.loc[:, feature_column_name_tuple_triple[2]].unique())
+        
+        
+        #########
+        #save every 100 combinations and then reset metric_value_two_dimensional_list
+        if ((combination_count%100==0) and (combination_count!=0)):
+
+            filename='model_feature_number_and_value_star_number_metric_value_list_collection_tuple_combination_count_'+str(random_forest_gradient_boosting_survey)+'_'+str(combination_count+tuples_completed).zfill(4)+'_v'+filename_version+'.csv'
+
+            df_feature_0_and_value_out=pd.DataFrame(metric_value_two_dimensional_list)
+
+            #save it
+            _=\
+            save_and_return_data_frame_v2(df=df_feature_0_and_value_out, 
+                                              filename=filename,)
+
+            metric_value_two_dimensional_list=[]
+
+            
+        combination_count+=1
+        
+        ####
+
+        feature_number_single_value_collection={}
+        
+
+        for feature_number_single_value_collection['feature_0'] in feature_column_name_number_value_list_collection['feature_0']:
+                    
+            #<><>
+            model_feature_number_and_value_star_number_metric_value_list_collection['feature_0'],\
+            _=\
+            get_model_feature_and_value_star_one_metric_list(df=df,\
+                                                             column_name_y_predicted=column_name_y_predicted,\
+                                                             feature_column_name_tuple_triple=feature_column_name_tuple_triple,\
+                                                             feature_column_name_tuple_triple_index=0,\
+                                                             feature_column_name_number_value=feature_number_single_value_collection['feature_0'],\
+                                                             model_feature_number_and_value_star_number_metric_value_list_collection=model_feature_number_and_value_star_number_metric_value_list_collection)
+
+            
+
+            
+            for feature_number_single_value_collection['feature_1'] in feature_column_name_number_value_list_collection['feature_1']:
+
+                #<><>
+                model_feature_number_and_value_star_number_metric_value_list_collection['feature_1'],\
+                _=\
+                get_model_feature_and_value_star_one_metric_list(df=df,\
+                                                                 column_name_y_predicted=column_name_y_predicted,\
+                                                                 feature_column_name_tuple_triple=feature_column_name_tuple_triple,\
+                                                                 feature_column_name_tuple_triple_index=1,\
+                                                                 feature_column_name_number_value=feature_number_single_value_collection['feature_1'],\
+                                                                 model_feature_number_and_value_star_number_metric_value_list_collection=model_feature_number_and_value_star_number_metric_value_list_collection)
+
+
+             
+                for feature_number_single_value_collection['feature_2'] in feature_column_name_number_value_list_collection['feature_2']:
+                    
+                    #<><>get feature 2 and value metrics
+                    model_feature_number_and_value_star_number_metric_value_list_collection['feature_2'],\
+                    _=\
+                    get_model_feature_and_value_star_one_metric_list(df=df,\
+                                                                     column_name_y_predicted=column_name_y_predicted,\
+                                                                     feature_column_name_tuple_triple=feature_column_name_tuple_triple,\
+                                                                     feature_column_name_tuple_triple_index=2,\
+                                                                     feature_column_name_number_value=feature_number_single_value_collection['feature_2'],\
+                                                                     model_feature_number_and_value_star_number_metric_value_list_collection=model_feature_number_and_value_star_number_metric_value_list_collection,)
+
+
+                    
+                    model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2'],\
+                    model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2_and_model_difference']=\
+                    get_model_feature_and_value_star_three_metric_lists_to_collection_v2(df=df,\
+                                                                                         feature_column_name_tuple_triple=feature_column_name_tuple_triple,\
+                                                                                         feature_number_single_value_collection=feature_number_single_value_collection,\
+                                                                                         column_name_y_predicted=column_name_y_predicted,\
+                                                                                         model_feature_number_and_value_star_number_metric_value_list_collection=model_feature_number_and_value_star_number_metric_value_list_collection,)
+                    
+
+                    
+                    
+                    #end of the line, get all metrics into the output list
+                    metric_value_two_dimensional_list+=[model_feature_number_and_value_star_number_metric_value_list_collection['model']+\
+                                                        model_feature_number_and_value_star_number_metric_value_list_collection['feature_0']+\
+                                                        model_feature_number_and_value_star_number_metric_value_list_collection['feature_1']+\
+                                                        model_feature_number_and_value_star_number_metric_value_list_collection['feature_2']+\
+                                                        model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2']+\
+                                                        model_feature_number_and_value_star_number_metric_value_list_collection['feature_0_feature_1_feature_2_and_model_difference']]
+    
+    if(combination_count==1540-tuples_completed):
+
+        filename='model_feature_number_and_value_star_number_metric_value_list_collection_tuple_combination_count_'+str(random_forest_gradient_boosting_survey)+'_'+str(combination_count+tuples_completed)+'_v'+filename_version+'.csv'
+
+        df_feature_0_and_value_out=pd.DataFrame(metric_value_two_dimensional_list)
+
         #save it
-        plt.savefig(figure_filename, bbox_inches='tight', dpi=dpi)
+        _=\
+        save_and_return_data_frame_v2(df=df_feature_0_and_value_out, 
+                                          filename=filename,)
 
-        plt.show()
+        metric_value_two_dimensional_list=[]
+
+                    
+                    
+                    
+    return metric_value_two_dimensional_list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+################################################################################################################################
+#Get Ad Revenue, Ad Spend, ROAS, Profit, Spend, and ROI
+
+
+
+def get_metrics_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI(df):
+    venue_type_list=['Coffee House', 'Bar', 'Takeout', 'Low-Cost Restaurant', 'Mid-Range Restaurant']
+
+    coupon_recommendation_cost_model_survey_list=['Model', 'Model']
+    
+    #Model Revenue, Ad Spend Metrics
+    #per venue type
+    df.loc[('Model', 'Ad Revenue'), :]=df.loc[('Model', 'Conversions'), :]*df.loc[('Model', 'Average Sale Estimated'), :]
+
+    #overall
+    df.loc[('Model', 'Ad Revenue'), 'Overall']=df.loc[('Model', 'Ad Revenue'), venue_type_list].sum()
+
+    
+    #per venue type
+    df.loc[('Model', 'Ad Spend'), :]=df.loc[(coupon_recommendation_cost_model_survey_list[0], 'Average Coupon Recommendation Cost Estimated'), :]*df.loc[('Model', 'Coupons Recommended'), :]
+
+    #overall
+    df.loc[('Model', 'Ad Spend'), 'Overall']=df.loc[('Model', 'Ad Spend'), venue_type_list].sum()
+
+
+
+    #Survey Revenue, Ad Spend Metrics
+    #per venue type
+    df.loc[('Survey', 'Ad Revenue'), :]=df.loc[('Survey', 'Conversions'), :]*df.loc[('Survey', 'Average Sale Estimated'), :]
+
+    #overall
+    df.loc[('Survey', 'Ad Revenue'), 'Overall']=df.loc[('Survey', 'Ad Revenue'), venue_type_list].sum()
+    
+    
+    #per venue type
+    df.loc[('Survey', 'Ad Spend'), :]=df.loc[(coupon_recommendation_cost_model_survey_list[1], 'Average Coupon Recommendation Cost Estimated'), :]*df.loc[('Survey', 'Coupons Recommended'), :]
+
+    #overall
+    df.loc[('Survey', 'Ad Spend'), 'Overall']=df.loc[('Survey', 'Ad Spend'), venue_type_list].sum()
+
+
+
+
+
+    #model-survey difference metrics
+    df.loc[('Model-Survey Difference', 'Ad Revenue'), :]=df.loc[('Model', 'Ad Revenue'), :]-df.loc[('Survey', 'Ad Revenue'), :]
+    df.loc[('Model-Survey Difference', 'Ad Spend'), :]=df.loc[('Model', 'Ad Spend'), :]-df.loc[('Survey', 'Ad Spend'), :]
+    
+    
+    #model, survey, model-survey difference ROAS metrics
+    df.loc[('Model', 'ROAS'), :]=df.loc[('Model', 'Ad Revenue'), :]/df.loc[('Model', 'Ad Spend'), :]*100
+
+
+    df.loc[('Survey', 'ROAS'), :]=df.loc[('Survey', 'Ad Revenue'), :]/df.loc[('Survey', 'Ad Spend'), :]*100
+
+
+    df.loc[('Model-Survey Difference', 'ROAS'), :]=df.loc[('Model', 'ROAS'), :]-df.loc[('Survey', 'ROAS'), :]
+    
+    
+    def calculate_Profit_Spend_ROI_with_added_production_cost(df, added_production_cost=2000):
+        model_campaign_spend=df.loc[('Model', 'Ad Spend'), 'Overall']+added_production_cost
+        model_campaign_profit=df.loc[('Model', 'Ad Revenue'), 'Overall']-model_campaign_spend
         
+        df.loc[('Model', 'Profit '+str(added_production_cost)), 'Overall']=model_campaign_profit
+        df.loc[('Model', 'Spend '+str(added_production_cost)), 'Overall']=model_campaign_spend
+        df.loc[('Model', 'ROI '+str(added_production_cost)), 'Overall']=model_campaign_profit/model_campaign_spend*100
+
+        
+        
+        survey_campaign_spend=df.loc[('Survey', 'Ad Spend'), 'Overall']+added_production_cost
+        survey_campaign_profit=df.loc[('Survey', 'Ad Revenue'), 'Overall']-survey_campaign_spend
+        
+        df.loc[('Survey', 'Profit '+str(added_production_cost)), 'Overall']=survey_campaign_profit
+        df.loc[('Survey', 'Spend '+str(added_production_cost)), 'Overall']=survey_campaign_spend
+        df.loc[('Survey', 'ROI '+str(added_production_cost)), 'Overall']=survey_campaign_profit/survey_campaign_spend*100
+
+        
+        df.loc[('Model-Survey Difference', 'Profit '+str(added_production_cost)), 'Overall']=model_campaign_profit-survey_campaign_profit
+        df.loc[('Model-Survey Difference', 'Spend '+str(added_production_cost)), 'Overall']=model_campaign_spend-survey_campaign_spend
+        df.loc[('Model-Survey Difference', 'ROI '+str(added_production_cost)), 'Overall']=df.loc[('Model', 'ROI '+str(added_production_cost)), 'Overall']-df.loc[('Survey', 'ROI '+str(added_production_cost)), 'Overall']
+        
+        return df
+    
+    df=calculate_Profit_Spend_ROI_with_added_production_cost(df, added_production_cost=200)    
+    df=calculate_Profit_Spend_ROI_with_added_production_cost(df, added_production_cost=2000)
+    df=calculate_Profit_Spend_ROI_with_added_production_cost(df, added_production_cost=20000)
+
+    return df
+
+################################################################################################################################
+
+
+
+
+
+
+
+################################################################################################################################
+def get_campaign_roi_from_ad_revenue_ad_spend_additional_production_cost(ad_revenue, ad_spend, additional_production_cost):
+    '''Calculate roi from ad revenue, ad spend, and additional production cost values
+    
+    Args:
+        ad_revenue (float64): campaign ad revenue
+        ad_spend (float64): camapaign ad spend
+        additional_production_cost (ndarray): additional production cost
+    
+    Returns
+        ndarray: roi values
+    '''
+    return (ad_revenue-ad_spend-additional_production_cost)/(ad_spend+additional_production_cost)
+################################################################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+#################################################################################################################################
+
+def combine_model_metric_replicates_and_ad_revenue_ad_spend_roas_profit_spend_roi_replicates(model_type,
+                                                                                             number_metric,
+                                                                                             filename_version):
+    '''
+    Read in model name metric replicates and model name Ad Revenue, Ad Spend, ROAS, Profit, Spend, and ROI replicate files. 
+    Concatenate the DataFrame's, save the result, and return it.'''
+    
+    #get filename_list
+    filename_list=['df_'+str(model_type)+'_'+number_metric+'_estimated_feature_filter_number_bootstrap_replicates_metrics_collection_v'+str(filename_version)+'.pkl','df_test_'+str(model_type)+'_number_metric_estimated_10000_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_replicates_overall_v'+str(filename_version)+'.pkl','df_test_'+str(model_type)+'_number_metric_estimated_10000_metric_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_replicates_overall_v'+str(filename_version)+'.pkl']
+
+    #read in files
+    df_model_name_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics_overall=rpp(filename=filename_list[0])['Overall']
+    df_test_model_name_number_metric_estimated_10000_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_replicates_overall=rcp(filename=filename_list[1], index_col=[0,1])
+    
+    
+    #combine random forest metric replicates overall and Ad Revenue Ad Spend ROAS Profit Spend ROI replicates overall
+    df_test_model_name_number_metric_estimated_10000_metric_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_replicates_overall=pd.concat([df_model_name_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics_overall,df_test_model_name_number_metric_estimated_10000_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_replicates_overall], axis=0)
+    
+    #save it
+    df_test_model_name_number_metric_estimated_10000_metric_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_replicates_overall=save_and_return_data_frame_v2(df_test_model_name_number_metric_estimated_10000_metric_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_replicates_overall,filename=filename_list[2])
+    
+    return df_test_model_name_number_metric_estimated_10000_metric_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_replicates_overall
+
+#################################################################################################################################
+
+
+
+
+
+
+
+
+
