@@ -37,6 +37,8 @@ import pickle
 
 
 
+
+
 def initialize_custom_notebook_settings():
     """Initialize the jupyter notebook display width
     Args:
@@ -409,12 +411,13 @@ def return_processed_collection_if_it_exists(filename, parse_dates=False):
         return None
     
 def return_saved_model_if_it_exists(filename):
-    """
+    """Read the model object from the relative directory path ../models/
     
     Args:
-        
+        filename (str): The model filename.
     
     Returns:
+        The model object.
         
     """
     relative_directory_path = os.path.join('..', 'models')
@@ -435,29 +438,6 @@ def return_saved_model_if_it_exists(filename):
         return None
     
     
-    
-def return_figure_if_it_exists(filename):
-    """
-    
-    Args:
-        
-    
-    Returns:
-        
-    """
-    import glob
-    import imageio
-
-    image = None
-    for image_path in glob.glob(filename):
-        image = imageio.imread(image_path)
-        
-    return image
-
-#################################################################################################################################
-
-
-
 
 
 
@@ -465,38 +445,26 @@ def return_figure_if_it_exists(filename):
 #data wrangling
 #################################################################################################################################
 
-def merge_data_frame_list(data_frame_list):
+def column_name_value_sets_equal(df, column_name1, column_name2):
     """
     
     Args:
+        df (DataFrame): data frame selecting columns from
+        column_name1 (str): The first column name to take unique values of
+        column_name2 (str): The second column name to take unique values of
         
-    
     Returns:
-        
+        Returns 1 for column value uniques are equal, otherwise 0
     """
-    return reduce(lambda left, right : pd.merge(left,
-                                                right,
-                                                on=[column_name for column_name in left if column_name in right],
-                                                how='inner'), 
-                  data_frame_list)
-
-
-def concatenate_multiindex_objects(multiindex_list):
-    '''
     
-    Args:
-        multiindex_list (list): list of MultiIndex objects to be appended to each other
+    column_name_value_set1 = set(df.loc[:, column_name1].unique())
     
-    Returns: 
-        Single MultiIndex object
-    '''
+    column_name_value_set2 = set(df.loc[:, column_name2].unique())
     
-    tuple_list=[]
-    for multiindex in multiindex_list:
-        tuple_list+=list(multiindex)
-        
-    return pd.MultiIndex.from_tuples(tuple_list)
-
+    if column_name_value_set1 == column_name_value_set2:
+        return 1
+    elif column_name_value_set1 != column_name_value_set2:
+        return 0
 
 
 #################################################################################################################################
@@ -510,17 +478,14 @@ def concatenate_multiindex_objects(multiindex_list):
 #################################################################################################################################
 
 
-
-
-
 def reverse_key_value_of_dictionary(name_dictionary):
-    """
+    """Swap the key and value of each dictionary key-value pair.
     
     Args:
-        
+        name_dictionary (dict): The dictionary variable.
     
     Returns:
-        
+        key-value pair swapped dictionary.
     """
 
     return {name_dictionary[key]:key for key in name_dictionary.keys()}
@@ -529,13 +494,16 @@ def reverse_key_value_of_dictionary(name_dictionary):
 
 
 def get_feature_target_frequency_data_frame(df, feature_column_name='income', target_column_name='Y', append_percentage_true_false=False):
-    """
+    """Calculate the frequency of feature column per target variable and optionally the percentage of total and return it.
     
     Args:
+        df (DataFrame): The DataFrame with feature column name and values.
+        feature_column_name (str): The name of the feature column.
+        target_column_name (str): The name of the target column.
+        append_percentage_true_false (bool): Include percentage of total calculation in the output (True) or not (False).
         
-    
     Returns:
-        
+        df (DataFrame): The DataFrame with feature value frequencies per target variable (and percentage of total)
     """
 
     df = df.value_counts([target_column_name, feature_column_name]).reset_index().pivot(index=feature_column_name, columns=target_column_name).reset_index().droplevel(level=[None,], axis=1).rename(columns={'':feature_column_name, 0:'coupon refusal', 1:'coupon acceptance'}).loc[:, [feature_column_name, 'coupon acceptance', 'coupon refusal']]
@@ -550,12 +518,16 @@ def get_feature_target_frequency_data_frame(df, feature_column_name='income', ta
 
 
 def sort_data_frame(df, feature_column_name, feature_value_order_list, ascending_true_false=True):
-    """
+    """Row sort the DataFrame using the feature column name and value order list.
     
     Args:
-        
+        df (DataFrame): The DataFrame to be row sorted.
+        feature_column_name (str): The column name to sorted on.
+        feature_value_order_list (list): The ordered value list to sort by.
+        ascending_true_false (bool): The sort by the feature_value_order_list (True) or the reverse (False).
     
     Returns:
+        df (DataFrame): The row sorted DataFrame.
         
     """
     feature_column_name_rank = feature_column_name + '_rank'
@@ -566,114 +538,27 @@ def sort_data_frame(df, feature_column_name, feature_value_order_list, ascending
 
 
 
-def plot_vertical_bar_graph(df, feature_column_name, title, xlabel, color_list, figsize, ylabel='Frequency', multibar_column_name_list=['coupon acceptance', 'coupon refusal'], color_index_list=[3,0], figure_filename=None, dpi=100, xtick_rotation=90, feature_value_dictionary=None):
+def plot_vertical_stacked_bar_graph(df, figure_filename, colors, feature_column_name_label, ylabel, xlabel, xtick_dictionary=None, annotation_text_size=11, dpi=100, xtick_rotation=0, annotation_type='frequency', frequency_annotation_round_by_number=-2, y_upper_limit=None, rectangle_annotation_y_offset=None, figsize=None, feature_column_name=None):
     """
     
     Args:
-        
-    
-    Returns:
-        
-    """
-    feature_column_name_unique_value_count = df.loc[:, feature_column_name].drop_duplicates().shape[0]
-    
-    index_array = np.arange(feature_column_name_unique_value_count)
-    bar_width = 0.35
-    
-    y_upper_limit = df.loc[:, multibar_column_name_list].to_numpy().max() * 1.1
+        df (DataFrame): Frequency-percentage DataFrame with index as feature name and values and header as target variable and values
+        figure_filename (str): The figure filename.
+        colors (list): The two string color list.
+        feature_column_name_label (str): feature column name string to use in plot title. 
+        ylabel (str): The bar plot ylabel string
+        xlabel (str): The bar plot xlabel string
+        xtick_dictionary (dict): dictionary mapping x-axis feature values to desired display name string.
+        annotation_text_size (int): The annotation text size.
+        dpi (int): The dots per inch in saved figure.
+        xtick_rotation (int): The degrees of rotation of the xtick labels.
+        annotation_type (str): The "frequency" or "percentage" annotation in stacked bar.
+        frequency_annotation_round_by_number (int): The number to round the top of bar frequency annotation by.
+        y_upper_limit (int): The y-axis upper limit on the bar plot
+        rectangle_annotation_y_offset (int): The horizontal offset position for annotation in stacked bar plot.
+        figsize (tuple): The x and y dimensions of the figure. Otherwise, None.
+        feature_column_name (str): None
 
-    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=figsize)
-    rects1 = ax.bar(index_array - bar_width/2, df.loc[:, 'coupon acceptance'].to_list(), bar_width, label='Coupon acceptance', color=color_list[color_index_list[0]])
-    rects2 = ax.bar(index_array + bar_width/2, df.loc[:, 'coupon refusal'].to_list(), bar_width, label='Coupon refusal', color=color_list[color_index_list[1]])
-
-    
-    ax.set(xlabel=xlabel, xticks=index_array + bar_width, xlim=[2*bar_width - 1.25, feature_column_name_unique_value_count-0.5], ylim=[0, y_upper_limit],)
-
-
-    ax.set_xticks(index_array, df.loc[:, feature_column_name].replace(feature_value_dictionary), rotation=xtick_rotation)
-    ax.legend()
-    
-    ax.set_title(label=title, fontsize=18)
-    ax.set_ylabel(ylabel=ylabel, fontsize=17)
-    ax.set_xlabel(xlabel=xlabel, fontsize=17)
-    
-    plt.xticks(fontsize=15)
-    plt.yticks(fontsize=15)
-
-    ax.bar_label(rects1, padding=3, fontsize=13)
-    ax.bar_label(rects2, padding=3, fontsize=13)
-    
-    
-
-    fig.tight_layout()
-    
-    plt.savefig(figure_filename, bbox_inches='tight', dpi=dpi)
-
-    plt.show()
-    
-
-
-def plot_horizontal_bar_graph(df, feature_column_name, color_list, title, ylabel, multibar_column_name_list=['coupon acceptance', 'coupon refusal'], xlabel='Frequency', color_index_list=[3, 0], figure_filename=None, dpi=100, figsize=(8,6), x_upper_limit=None, feature_value_dictionary=None):
-    """
-    
-    Args:
-        
-    
-    Returns:
-        
-    """
-    #initialize variables
-    feature_column_name_unique_value_count = df.loc[:, feature_column_name].drop_duplicates().shape[0]
-    
-    if x_upper_limit == None:
-        x_upper_limit = df.loc[:, multibar_column_name_list].to_numpy().max() * 1.1
-    
-    index_array = np.arange(feature_column_name_unique_value_count)
-
-    bar_width = 0.4
-
-    #setup subplot
-    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=figsize)
-    
-    #setup horizontal bar plots
-    rects1 = ax.barh(index_array + bar_width, df.loc[:, multibar_column_name_list[0]], bar_width, color=color_list[color_index_list[0]], label='Coupon acceptance', )
-    rects2 = ax.barh(index_array, df.loc[:, multibar_column_name_list[1]], bar_width, color=color_list[color_index_list[1]], label='Coupon refusal', )
-
-    if feature_value_dictionary != None:
-    #setup x and y axis
-        ax.set(yticks=index_array + bar_width, yticklabels=df.loc[:, feature_column_name].replace(feature_value_dictionary), ylim=[2*bar_width - 1, feature_column_name_unique_value_count], xlim=[0, x_upper_limit],)
-    elif feature_value_dictionary == None:
-        ax.set(yticks=index_array + bar_width, yticklabels=df.loc[:, feature_column_name], ylim=[2*bar_width - 1, feature_column_name_unique_value_count], xlim=[0, x_upper_limit],)
-    
-    ax.legend()
-
-    ax.set_title(label=title, fontsize=18)
-    ax.set_ylabel(ylabel=ylabel, fontsize=17)
-    ax.set_xlabel(xlabel=xlabel, fontsize=17)
-    
-    plt.xticks(fontsize=15)
-    plt.yticks(fontsize=15)
-
-    ax.bar_label(rects1, padding=3, fontsize=14)
-    ax.bar_label(rects2, padding=3, fontsize=14)
-
-
-    fig.tight_layout()
-    
-    plt.savefig(figure_filename, bbox_inches='tight', dpi=dpi)
-
-    plt.show()
-
-
-
-def plot_vertical_stacked_bar_graph(df, feature_column_name, figure_filename, colors, feature_column_name_label, ylabel, xlabel, xtick_dictionary=None, annotation_text_size=11, dpi=100, xtick_rotation=0, annotation_type='frequency', frequency_annotation_round_by_number=-2, y_upper_limit=None, rectangle_annotation_y_offset=None, figsize=None):
-    """
-    
-    Args:
-        df (DataFrame): data frame with column frequency and column name as index.
-    
-    Returns:
-        
     """
 
     if y_upper_limit == None:
@@ -737,212 +622,27 @@ def plot_vertical_stacked_bar_graph(df, feature_column_name, figure_filename, co
     plt.savefig(figure_filename, bbox_inches='tight', dpi=dpi)
 
     plt.show()
-
-def plot_horizontal_stacked_bar_graph(df, title, figsize=None, rectangle_annotation_y_offset=None, annotation_text_size=None, x_upper_limit=None, color_list=None,):
-    """
-    
-    Args:
-        
-    
-    Returns:
-        
-    """
-    #initialize variables
-    if figsize == None: 
-        figsize=(11, 9)
-    if rectangle_annotation_y_offset == None:
-        rectangle_annotation_y_offset=-0.24
-    if annotation_text_size == None:
-        annotation_text_size=13
-    
-    #create figure and axes
-    figure, axes = plt.subplots(nrows=1, ncols=1, figsize=figsize)
-
-    #plot bars on figure axes
-    b1=axes.barh(df.index, df.loc[:, 'coupon acceptance'].to_list(), color=color_list[3])
-    b2=axes.barh(df.index, df.loc[:, 'coupon refusal'].to_list(), left=df.loc[:, 'coupon acceptance'].to_list(), color=color_list[0])
-    
-    #plot annotations
-    percentage_list = []
-    for column_name in df.loc[:, ['percentage acceptance', 'percentage refusal']].columns:
-        percentage_list += df.loc[:, column_name].to_list()
-    for rectangle, percentage in zip(axes.patches, percentage_list):
-        axes.text(rectangle.get_x() + rectangle.get_width() / 2, rectangle.get_height()/2 + rectangle.get_y() + rectangle_annotation_y_offset, '{:.0f}%'.format(round(percentage, 0)), ha='center', color='w', weight='bold', size=annotation_text_size)
-    
-
-    #plt.legend([b1, b2], ["Completed", "Pending"], title="Issues", loc="upper right")
-    axes.legend([b1, b2], ['Coupon acceptance', 'Coupon refusal'])
-    axes.set_title(title)
-    
-    if x_upper_limit != None:
-        axes.set_xlim([0, x_upper_limit])
-
-    plt.show()
-
-
-def plot_vertical_multibar_bar_graph(df, xlabel_column_name, title, color_list, figsize, xlabel=None, ylabel='Frequency', multibar_column_name_list=None, color_index_list=[3,0], figure_filename=None, dpi=100, xtick_rotation=90, xtick_dictionary=None, bar_label_list=None):
-    """
-    
-    Args:
-        
-    
-    Returns:
-        
-    """
-    feature_column_name_unique_value_count = df.loc[:, xlabel_column_name].drop_duplicates().shape[0]
-    
-    index_array = np.arange(feature_column_name_unique_value_count)
-    bar_width = 0.15
-    
-    
-    y_upper_limit = df.loc[:, multibar_column_name_list].to_numpy().max() * 1.1
-
-    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=figsize)
-    rectangle_dictionary={}
-    if bar_label_list == None:
-        for index, column_name in zip(range(len(multibar_column_name_list)), multibar_column_name_list):
-            rectangle_dictionary[index] = ax.bar(index_array + (index)*bar_width - .3, df.loc[:, column_name].to_list(), bar_width, label=column_name, color=color_list[color_index_list[index]])
-    elif bar_label_list != None:
-        for index, column_name in zip(range(len(multibar_column_name_list)), multibar_column_name_list):
-            rectangle_dictionary[index] = ax.bar(index_array + (index)*bar_width - .3, df.loc[:, column_name].to_list(), bar_width, label=bar_label_list[index], color=color_list[color_index_list[index]])
-
-
-    ax.set(xlabel=xlabel, xticks=index_array + bar_width, xlim=[2*bar_width - 1.25, feature_column_name_unique_value_count-0.5], ylim=[0, y_upper_limit],)
-
-
-    ax.set_xticks(index_array, df.loc[:, xlabel_column_name].replace(xtick_dictionary), rotation=xtick_rotation)
-    ax.legend()
-    
-    ax.set_title(label=title, fontsize=18)
-    ax.set_ylabel(ylabel=ylabel, fontsize=17)
-    ax.set_xlabel(xlabel=xlabel, fontsize=17)
-    
-    plt.xticks(fontsize=15)
-    plt.yticks(fontsize=15)
-
-    
-    for index in range(len(multibar_column_name_list)):
-        ax.bar_label(rectangle_dictionary[index], padding=3, fontsize=13, rotation=90)
     
     
 
-    fig.tight_layout()
-    
-    plt.savefig(figure_filename, bbox_inches='tight', dpi=dpi)
 
-    plt.show()
 
-##################################################################################################################################
+#################################################################################################################################
 #data preprocessing
-##################################################################################################################################
-
-#permissible data split test using Y_test
-
-#how does the Y_test coupon acceptance count of the 1000 runs compare to the stratified Y_test coupon acceptance count???
-def get_Y_test_distribution_from_train_test_split_iterations(df, number_of_iterations=1000):
-    """
-    
-    Args:
-        
-    
-    Returns:
-        
-    """
-    data_frame_collection = {}
-    #get Y_train_number and Y_test_number for 1000 train_test_split iterations 
-    for index in range(number_of_iterations):
-        _, _, data_frame_collection['Y_train' + str(index)], data_frame_collection['Y_test'+ str(index)] = \
-        train_test_split(df.drop(columns=['Y']), df.loc[:, 'Y'], test_size=.2)
-
-        
-    Y_test_coupon_acceptance_count_1000_iterations = [data_frame_collection['Y_test' + str(index)].value_counts()[1] for index in range(number_of_iterations)]
-    plt.hist(Y_test_coupon_acceptance_count_1000_iterations)
-    
-    #get Y_test coupon acceptance count
-    _, _, data_frame_collection['Y_train'], data_frame_collection['Y_test'] = \
-    train_test_split(df.drop(columns=['Y']), df.loc[:, 'Y'], test_size=.2, random_state=200, stratify=df.loc[:, 'Y'])
-    
-    print('stratified Y_test coupon acceptance count from train_test_split: ' + str(data_frame_collection['Y_test'].value_counts()[1]))
-    
+#################################################################################################################################
 
 
 
 
-##################################################################################################################################
-
-    
-    
-def column_name_value_sets_equal(df, column_name1, column_name2):
-    """
-    Parameters
-    ----------
-    df : DataFrame
-        data frame selecting columns from
-    column_name1 : str
-        first column name to take unique values of
-    column_name2 : str
-        second column name to take unique values of
-        
-    Returns
-    -------
-    returns 1 for column value uniques are equal, otherwise 0
-    """
-    
-    column_name_value_set1 = set(df.loc[:, column_name1].unique())
-    
-    column_name_value_set2 = set(df.loc[:, column_name2].unique())
-    
-    if column_name_value_set1 == column_name_value_set2:
-        return 1
-    elif column_name_value_set1 != column_name_value_set2:
-        return 0
-    
-    
-    
-    
-    
 ###############################################################################################################################
-#Modeling
+#Modeling Train Results
 ###############################################################################################################################
-
-
-
-
-def get_data_frame_from_collection(collection_name, column_name='Y_predicted'):
-    """
-    
-    Args:
-        
-    
-    Returns:
-        
-    """
-    data_frame_list = [pd.DataFrame(collection_name['fold ' + str(fold_number)]) for fold_number in range(5)]
-
-    data_frame = pd.concat(data_frame_list)
-
-    return data_frame.rename(columns={0:column_name})
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
 #Modeling Metrics
 def plot_learning_curve(estimator, title, X, y, filename, axes=None, ylim=None, cv=None, n_jobs=None, scoring=None, train_sizes=np.linspace(0.1, 1.0, 5)):
-    '''Plots learning curve using matplotlib axes
+    """Plots learning curve using matplotlib axes
     
     Args:
         estimator: random forest or gradient boosting estimator
@@ -955,7 +655,7 @@ def plot_learning_curve(estimator, title, X, y, filename, axes=None, ylim=None, 
         plt (module): matplotlib module
         learning_curve_model_name (dict): learning curve score, time, size data and statistics.
         
-    '''
+    """
     if axes is None:
         _, axes = plt.subplots(1, 3, figsize=(20, 5))
 
@@ -1044,105 +744,29 @@ def plot_learning_curve(estimator, title, X, y, filename, axes=None, ylim=None, 
 
 
 
-
-
-
-
-###############################################################################################################################
-#Model Train Results
-###############################################################################################################################
-
-def precision_recall_auc_plot(y_true=None, probas_pred=None, model_name_coupon_type=None, precision_lower_upper=None, recall_lower_upper=None):
-    """
-    
-    Args:
-        
-    
-    Returns:
-        
-    """
-
-    markersize=1
-    linewidth=1
-    
-    #calculate precision, recall, and decision threshold
-    precision_array, recall_array, decision_threshold_array = precision_recall_curve(y_true=y_true, probas_pred=probas_pred)
-    
-    #get precision, recall, decsion threshold data frame
-
-    #decision thresholds by precision .9
-    decision_threshold_array = np.append(0, decision_threshold_array)
-    df_decision_threshold_precision_recall = pd.DataFrame({'decision_threshold':decision_threshold_array, 'precision':precision_array, 'recall':recall_array})
-    df_decision_threshold_precision_recall_filtered_precision_dot9 = df_decision_threshold_precision_recall.loc[(df_decision_threshold_precision_recall.loc[:,'precision'] > precision_lower_upper[0]) & (df_decision_threshold_precision_recall.loc[:,'precision'] < precision_lower_upper[1]), :]
-    
-    print(str(model_name_coupon_type) + ' .9 precision \n' + 'decision thresholds ' + str(df_decision_threshold_precision_recall_filtered_precision_dot9.loc[:, 'decision_threshold'].to_list()) + '\n')
-    
-    
-    #decision thresholds by recall .8
-    df_decision_threshold_precision_recall_filtered_recall_dot8 = df_decision_threshold_precision_recall.loc[(df_decision_threshold_precision_recall.loc[:,'recall'] > recall_lower_upper[0]) & (df_decision_threshold_precision_recall.loc[:,'recall'] < recall_lower_upper[1]), :]
-    
-    print(str(model_name_coupon_type) + ' .8 recall \n' + 'decision thresholds ' + str(df_decision_threshold_precision_recall_filtered_recall_dot8.loc[:, 'decision_threshold'].to_list()) + '\n')
-    
-    
-    #calculate precision-recall auc
-    auc_score = auc(recall_array, precision_array)
-
-    #plot the precision-recall curve
-    plt.plot(recall_array, precision_array, marker='.', markersize=markersize, linewidth=linewidth, label=str(model_name_coupon_type) +' AUC=' + str(round(auc_score, 3)))
-
-    plt.xticks([.0, .1 ,.2, .3 ,.4, .5, .6 ,.7, .8, .9, 1 ])
-    plt.xlabel('Recall')
-    plt.ylabel('Precision')
-    plt.title('Precision vs. Recall')
-    plt.legend()
-    
-    
-    
-    
-def precision_recall_auc_plots(df_collection, coupon_venue_type=None, precision_lower_upper=None, recall_lower_upper=None):
-    """
-    
-    Args:
-        
-    
-    Returns:
-        
-    """
-    print('row count: ' + str(df_collection[coupon_venue_type].shape[0]))
-    
-    precision_recall_auc_plot(y_true=df_collection[coupon_venue_type].loc[:, 'Y'], 
-                              probas_pred=df_collection[coupon_venue_type].loc[:, 'Y_random_forest_prediction_probability'], 
-                              model_name_coupon_type='Random Forest ' + str(coupon_venue_type) + ' Coupon',
-                              precision_lower_upper=precision_lower_upper,
-                              recall_lower_upper=recall_lower_upper)
-
-    precision_recall_auc_plot(y_true=df_collection[coupon_venue_type].loc[:, 'Y'], 
-                              probas_pred=df_collection[coupon_venue_type].loc[:, 'Y_gradient_boosting_prediction_probability'], 
-                              model_name_coupon_type='Gradient Boosting ' + str(coupon_venue_type) + ' Coupon',
-                              precision_lower_upper=precision_lower_upper,
-                              recall_lower_upper=recall_lower_upper)
-
-    
-
-    
-    
     
 #################################################################################################################################
 #Model Train or Test Results
 #################################################################################################################################
 
+
+
 def get_model_predictions_from_prediction_probabilities_and_decision_threshold_proportion_metric_estimated(df, model_precision_column_name, model_recall_column_name, model_decision_threshold_column_name, df_Y_train_test_model_prediction_probability, filename_version, model_proportion_precision=None, model_proportion_recall=None, train_test='test'):
-    """
+    """From the ML model prediction probabilities, decision threshold, and selection of a desired precision or recall value, calculate the predictions. Following, save and return the predictions DataFrame.
     
     Args:
-        df: contains the model decision threshold per model precision and recall
-        model_proportion_precision: level of precision you want predictions to have
-        model_precision_column_name: name of the precision column in df
-        model_decision_threshold_column_name: name of the decision threshold column in df
-        df_Y_train_test_model_prediction_probability: prediction probabilities for some target data (e.g. Y_test) by the same model type (e.g. random forest classifier) that produced df
+        df (DataFrame): The DataFrame contains the ML model decision threshold per precision and recall
+        model_proportion_precision (float): The level of precision you want predictions to have. Otherwise, None
+        model_proportion_recall (float): The level of recall you want from the predictions overall. Otherwise, None.
+        model_precision_column_name (str): The name of the precision column in the DataFrame df.
+        model_recall_column_name (str): The name of the recall column in the DataFrame df.
+        model_decision_threshold_column_name (str): The name of the decision threshold column in df.
+        df_Y_train_test_model_prediction_probability (DataFrame): The ML model prediction probabilities DataFrame.
+        filename_version (str): The version of the filename.
+        train_test (str): The designation of "test" or "train" dataset predictions.
         
     Returns:
-        df_Y_train_test_predicted (DataFrame):
+        df_Y_train_test_predicted (DataFrame): ML model predictions.
     """
     
     if model_proportion_precision != None:
@@ -1183,17 +807,22 @@ def get_model_predictions_from_prediction_probabilities_and_decision_threshold_p
         
         return df_Y_train_test_predicted 
 
+    
+    
 
     
 
 def get_survey_coupon_recommendations_by_recall_estimate(number_of_predictions, recall_estimated, random_state=200, train_test='test'):
-    """
+    """Create a DataFrame that designates a coupon recommendation with a 1 and 0 otherwise.
     
     Args:
+        number_of_predictions (int): The number of coupon recommendations possible.
+        recall_estimated (float): The desired percentage of coupon recommendations captured.
+        random_state (int): The seed number before random coupon recommendation selection. 
+        train_test (str): assignment of the prediction column name as train or test.
         
-    
     Returns:
-        
+        df_Y_train_test_survey_number_recall_estimate_predicted (DataFrame): 
     """
     np.random.seed(random_state)
     class_1_probability=recall_estimated
@@ -1209,31 +838,14 @@ def get_survey_coupon_recommendations_by_recall_estimate(number_of_predictions, 
 
 
 
-
-
-
-
-
-
-
-##############################################################################################################################
-#Model Test Results
-##############################################################################################################################
-
-
-
-
-
-
-
 def get_metric_multiple_index(proportion_or_percentage):
-    """
+    """Get the metric MultiIndex object for labeling DataFrame metric values.
     
     Args:
+        proportion_or_percentage (str): Use "Percentage" or "Proportion" in metric column names.
         
-    
     Returns:
-        
+        multiple_index (MultiIndex): the metric MultiIndex object.     
     """
     metric_index_value_list=['Conversion Rate', 'Recall', proportion_or_percentage.capitalize()+' of Conversions', 'Conversions', proportion_or_percentage.capitalize()+' of Coupons Recommended', 'Coupons Recommended', 
                                'Conversions to Base Survey Coupons Recommended Ratio',
@@ -1256,26 +868,408 @@ def get_metric_multiple_index(proportion_or_percentage):
 
 
 
+def get_metrics_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI(df):
+    """Calculate ML model and recall-random model Ad Revenue, Ad Spend, ROAS, and ROI for each coupon venue type and the Overall.
+
+    Args:
+        df (DataFrame): The DataFrame with ML Model and recall-random model metrics, Average Sale Estimated, and Average Coupon Recommendation Cost.
+        
+    Returns:
+        df (DataFrame): The DataFrame with ML model, recall-random model, and ML-recall-random model difference Profit, Spend, and ROI with additional production cost metrics.
+    """
+    
+    venue_type_list=['Coffee House', 'Bar', 'Takeout', 'Low-Cost Restaurant', 'Mid-Range Restaurant']
+
+    coupon_recommendation_cost_model_survey_list=['Model', 'Model']
+    
+    #Model Revenue, Ad Spend Metrics
+    #per venue type
+    df.loc[('Model', 'Ad Revenue'), :]=df.loc[('Model', 'Conversions'), :]*df.loc[('Model', 'Average Sale Estimated'), :]
+
+    #overall
+    df.loc[('Model', 'Ad Revenue'), 'Overall']=df.loc[('Model', 'Ad Revenue'), venue_type_list].sum()
+
+    
+    #per venue type
+    df.loc[('Model', 'Ad Spend'), :]=df.loc[(coupon_recommendation_cost_model_survey_list[0], 'Average Coupon Recommendation Cost Estimated'), :]*df.loc[('Model', 'Coupons Recommended'), :]
+
+    #overall
+    df.loc[('Model', 'Ad Spend'), 'Overall']=df.loc[('Model', 'Ad Spend'), venue_type_list].sum()
+
+
+
+    #Survey Revenue, Ad Spend Metrics
+    #per venue type
+    df.loc[('Survey', 'Ad Revenue'), :]=df.loc[('Survey', 'Conversions'), :]*df.loc[('Survey', 'Average Sale Estimated'), :]
+
+    #overall
+    df.loc[('Survey', 'Ad Revenue'), 'Overall']=df.loc[('Survey', 'Ad Revenue'), venue_type_list].sum()
+    
+    
+    #per venue type
+    df.loc[('Survey', 'Ad Spend'), :]=df.loc[(coupon_recommendation_cost_model_survey_list[1], 'Average Coupon Recommendation Cost Estimated'), :]*df.loc[('Survey', 'Coupons Recommended'), :]
+
+    #overall
+    df.loc[('Survey', 'Ad Spend'), 'Overall']=df.loc[('Survey', 'Ad Spend'), venue_type_list].sum()
 
 
 
 
 
+    #model-survey difference metrics
+    df.loc[('Model-Survey Difference', 'Ad Revenue'), :]=df.loc[('Model', 'Ad Revenue'), :]-df.loc[('Survey', 'Ad Revenue'), :]
+    df.loc[('Model-Survey Difference', 'Ad Spend'), :]=df.loc[('Model', 'Ad Spend'), :]-df.loc[('Survey', 'Ad Spend'), :]
+    
+    
+    #model, survey, model-survey difference ROAS metrics
+    df.loc[('Model', 'ROAS'), :]=df.loc[('Model', 'Ad Revenue'), :]/df.loc[('Model', 'Ad Spend'), :]*100
 
-#################################################################################################################################
-#Get Survey or Model Average Coupon Recommendation Cost Estimated
+
+    df.loc[('Survey', 'ROAS'), :]=df.loc[('Survey', 'Ad Revenue'), :]/df.loc[('Survey', 'Ad Spend'), :]*100
+
+
+    df.loc[('Model-Survey Difference', 'ROAS'), :]=df.loc[('Model', 'ROAS'), :]-df.loc[('Survey', 'ROAS'), :]
+    
+    
+    def calculate_Profit_Spend_ROI_with_added_production_cost(df, added_production_cost=2000):
+        """Calculate the Profit, Spend, and ROI with additional production cost.
+
+        Args:
+            df (DataFrame): DataFrame with Ad Spend and Ad Revenue per coupon venue type and overall.
+            added_production_cost (int): The campaig integer amount of additional production cost.
+            
+        Returns:
+            df (DataFrame): The DataFrame with ML model, recall-random model, and ML-recall random model difference Profit, Spend, and ROI with additional production cost metrics.
+        """
+        model_campaign_spend=df.loc[('Model', 'Ad Spend'), 'Overall']+added_production_cost
+        model_campaign_profit=df.loc[('Model', 'Ad Revenue'), 'Overall']-model_campaign_spend
+        
+        df.loc[('Model', 'Profit '+str(added_production_cost)), 'Overall']=model_campaign_profit
+        df.loc[('Model', 'Spend '+str(added_production_cost)), 'Overall']=model_campaign_spend
+        df.loc[('Model', 'ROI '+str(added_production_cost)), 'Overall']=model_campaign_profit/model_campaign_spend*100
+
+        
+        
+        survey_campaign_spend=df.loc[('Survey', 'Ad Spend'), 'Overall']+added_production_cost
+        survey_campaign_profit=df.loc[('Survey', 'Ad Revenue'), 'Overall']-survey_campaign_spend
+        
+        df.loc[('Survey', 'Profit '+str(added_production_cost)), 'Overall']=survey_campaign_profit
+        df.loc[('Survey', 'Spend '+str(added_production_cost)), 'Overall']=survey_campaign_spend
+        df.loc[('Survey', 'ROI '+str(added_production_cost)), 'Overall']=survey_campaign_profit/survey_campaign_spend*100
+
+        
+        df.loc[('Model-Survey Difference', 'Profit '+str(added_production_cost)), 'Overall']=model_campaign_profit-survey_campaign_profit
+        df.loc[('Model-Survey Difference', 'Spend '+str(added_production_cost)), 'Overall']=model_campaign_spend-survey_campaign_spend
+        df.loc[('Model-Survey Difference', 'ROI '+str(added_production_cost)), 'Overall']=df.loc[('Model', 'ROI '+str(added_production_cost)), 'Overall']-df.loc[('Survey', 'ROI '+str(added_production_cost)), 'Overall']
+        
+        return df
+    
+    df=calculate_Profit_Spend_ROI_with_added_production_cost(df, added_production_cost=200)    
+    df=calculate_Profit_Spend_ROI_with_added_production_cost(df, added_production_cost=2000)
+    df=calculate_Profit_Spend_ROI_with_added_production_cost(df, added_production_cost=20000)
+
+    return df
+
+
+
+
+
+def convert_collection_to_data_frame_and_drop_top_column_level(df_collection):
+    """Convert and return the DataFrame collection to a single DataFrame with header top level index dropped.
+
+    Args:
+        df_collection (dict): The DataFrame collection.
+
+    Returns:
+        df (DataFrame): The concatenated DataFrame.
+    """
+    #convert to data frame from collection
+    df=pd.concat(df_collection, axis=1)
+
+    #drop column name top level index (from collection key)
+    df.columns=df.columns.droplevel(level=0)
+    
+    return df
+
+
+
+
+
+###############################################################################################################################
+#Calculate Overall and Coupon Venue Type Ad Revenue, Ad Spend, ROAS, Profit, Spend, and ROI 95% Confidence Intervals from metric replicates and append to metric confidence interval table
+
+
+
+def get_Ad_Revenue_Ad_Spend_ROAS_replicate_metrics_from_venue_type_replicate_metrics(df, Ad_Revenue_Ad_Spend_ROAS_list=[True, True]):
+    """Calculates Ad Revenue, Ad Spend, and ROAS replicates from metric replicates (Overall or coupon venue type) DataFrame.
+    
+    Args:
+        df (DataFrame): The metric replicates DataFrame.
+        Ad_Revenue_Ad_Spend_ROAS_list (list): The boolean list for calculation of model, survey, model-survey difference ad revenue and ad spend; And model, survey, model-survey difference ROAS.
+        
+    Returns:
+        df (DataFrame): Metric replicates and Ad Revenue, Ad Spend, ROAS replicates DataFrame.
+    """
+    coupon_recommendation_cost_model_survey_list=['Model', 'Model']    
+    if Ad_Revenue_Ad_Spend_ROAS_list[0]==True:
+        #Model Total Revenue, Total Ad Spend Metrics
+        df.loc[('Model', 'Ad Revenue'), :]=df.loc[('Model', 'Conversions'), :]*df.loc[('Model', 'Average Sale Estimated'), :]
+        df.loc[('Model', 'Ad Spend'), :]=df.loc[(coupon_recommendation_cost_model_survey_list[0], 'Average Coupon Recommendation Cost Estimated'), :]*df.loc[('Model', 'Coupons Recommended'), :]
+
+        #Survey Total Revenue, Total Ad Spend Metrics    
+        df.loc[('Survey', 'Ad Revenue'), :]=df.loc[('Survey', 'Conversions'), :]*df.loc[('Survey', 'Average Sale Estimated'), :]
+        df.loc[('Survey', 'Ad Spend'), :]=df.loc[(coupon_recommendation_cost_model_survey_list[1], 'Average Coupon Recommendation Cost Estimated'), :]*df.loc[('Survey', 'Coupons Recommended'), :]
+        
+        #Model-Survey Total Revenue, Total Ad Spend Metrics
+        df.loc[('Model-Survey Difference', 'Ad Revenue'), :]=df.loc[('Model', 'Ad Revenue'), :]-df.loc[('Survey', 'Ad Revenue'), :]
+        df.loc[('Model-Survey Difference', 'Ad Spend'), :]=df.loc[('Model', 'Ad Spend'), :]-df.loc[('Survey', 'Ad Spend'), :]
+
+    if Ad_Revenue_Ad_Spend_ROAS_list[1]==True:
+        df.loc[('Model', 'ROAS'), :]=df.loc[('Model', 'Ad Revenue'), :]/df.loc[('Model', 'Ad Spend'), :]*100
+        df.loc[('Survey', 'ROAS'), :]=df.loc[('Survey', 'Ad Revenue'), :]/df.loc[('Survey', 'Ad Spend'), :]*100
+        df.loc[('Model-Survey Difference', 'ROAS'), :]=df.loc[('Model', 'ROAS'), :]-df.loc[('Survey', 'ROAS'), :]
+        
+    return df
+
+
+
+def get_Overall_ROAS_Profit_Spend_ROI_per_Survey_Model_Survey_Difference(df, ROAS_Profit_Spend_ROI_list=[True, True, True, True]):
+    """Calculate and append result of Model, Survey, and Model-Survey Difference of ROAS, Profit, Spend, and ROI with 200, 2000, and 20000 additional spend to metric replicates. 
+    Args:
+        df (DataFrame): DataFrame with the Overall metric replicates.
+    Returns:
+        df (DataFrame): DataFrame with appended calculation result of Model, Survey, and Model-Survey Difference of ROAS, Profit, Spend, and ROI.
+    """
+
+    df.loc[('Model', 'ROAS'), :]=df.loc[('Model', 'Ad Revenue'), :]/df.loc[('Model', 'Ad Spend'), :]*100
+    df.loc[('Survey', 'ROAS'), :]=df.loc[('Survey', 'Ad Revenue'), :]/df.loc[('Survey', 'Ad Spend'), :]*100
+    df.loc[('Model-Survey Difference', 'ROAS'), :]=df.loc[('Model', 'ROAS'), :]-df.loc[('Survey', 'ROAS'), :]
+
+    
+    def get_Profit_Spend_ROI_with_additional_spend(df, additional_spend=None):
+        """Calculate and append result of Model, Survey, and Model-Survey Difference of ROAS, Profit, Spend, and ROI with additional spend to metric replicates. 
+        
+        Args:
+            df (DataFrame): DataFrame with the Overall metric replicates.
+            additional_spend (int): None.
+            
+        Returns:
+            df (DataFrame): DataFrame with appended calculation result of Model, Survey, and Model-Survey Difference of ROAS, Profit, Spend, and ROI number.
+        """
+
+        if additional_spend==None:
+            additional_spend=200
+
+        #Model ROI Metrics
+        model_campaign_spend=df.loc[('Model', 'Ad Spend'), :]+additional_spend
+        model_campaign_profit=df.loc[('Model', 'Ad Revenue'), :]-model_campaign_spend
+        df.loc[('Model', 'Profit '+str(additional_spend)), :]=model_campaign_profit
+        df.loc[('Model', 'Spend '+str(additional_spend)), :]=model_campaign_spend
+        df.loc[('Model', 'ROI '+str(additional_spend)), :]=model_campaign_profit/model_campaign_spend*100
+
+        #Survey ROI Metrics
+        survey_campaign_spend=df.loc[('Survey', 'Ad Spend'), :]+additional_spend
+        survey_campaign_profit=df.loc[('Survey', 'Ad Revenue'), :]-survey_campaign_spend
+        df.loc[('Survey', 'Profit '+str(additional_spend)), :]=survey_campaign_profit
+        df.loc[('Survey', 'Spend '+str(additional_spend)), :]=survey_campaign_spend
+        df.loc[('Survey', 'ROI '+str(additional_spend)), :]=survey_campaign_profit/survey_campaign_spend*100
+
+        #Survey-Model Difference ROI Metrics
+        df.loc[('Model-Survey Difference', 'Profit '+str(additional_spend)), :]=df.loc[('Model', 'Profit '+str(additional_spend)), :]-df.loc[('Survey', 'Profit '+str(additional_spend)), :]
+        df.loc[('Model-Survey Difference', 'Spend '+str(additional_spend)), :]=df.loc[('Model', 'Spend '+str(additional_spend)), :]-df.loc[('Survey', 'Spend '+str(additional_spend)), :]
+        df.loc[('Model-Survey Difference', 'ROI '+str(additional_spend)), :]=df.loc[('Model', 'ROI '+str(additional_spend)), :]-df.loc[('Survey', 'ROI '+str(additional_spend)), :]
+        
+        return df
+    
+    df=get_Profit_Spend_ROI_with_additional_spend(df, additional_spend=200)
+    df=get_Profit_Spend_ROI_with_additional_spend(df, additional_spend=2000)
+    df=get_Profit_Spend_ROI_with_additional_spend(df, additional_spend=20000)
+
+    return df
+
+
+def calculate_Overall_and_Coupon_Venue_Type_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_95_Confidence_Intervals_from_metric_replicates_and_append_to_metric_confidence_interval_table(
+    df_model_name_model_survey_coupon_recommendation_cost_estimated_sale_estimated_replicate_collection,
+    df_test_model_name_model_survey_95_confidence_interval_metric_feature_column_name_filter_value,
+    test_model_name_metric_replicate_filename_collection,
+    model_type,
+    filename_version,
+    number_of_replicates=1000,):
+    """Calculate the 95% Confidence Interval DataFrame for Ad Revenue, Ad Spend, ROAS, Profit, Spend, and ROI.
+    
+    Args:
+        df_model_name_model_survey_coupon_recommendation_cost_estimated_sale_estimated_replicate_collection (dict):
+        df_test_model_name_model_survey_95_confidence_interval_metric_feature_column_name_filter_value (DataFrame): Model, Survey, Model-Survey Difference Metric 95% Confidence Interval DataFrame
+        test_model_name_metric_replicate_filename_collection (dict): collection of Metric replicates
+        model_type (str): 'random_forst' or 'gradient_boosting'
+        filename_version (str): file version number
+        number_of_replicates (int): replicates per metric (per feature column name filter value, e.g. Coffee House, Bar, Takeout, Low-Cost Restaurant, Mid-Range Restaurant)
+        
+    Returns:
+        df_model_name_95_confidence_interval_metrics_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI (DataFrame): Metric and Ad Revenue, Ad Spend, ROAS, Profit, Spend, ROI replicate 95% confidence interval DataFrame
+    """
+    
+    #get Ad Revenue, Ad Spend, and ROAS (for Model, Survey, and Model-Survey Difference) by reading in the five (5) Coupon Venue Type Metric Replicates files
+    column_name_list=['Coffee House', 'Bar', 'Takeout', 'Low-Cost Restaurant', 'Mid-Range Restaurant']
+    df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type={}
+
+    for column_name in column_name_list:
+        #read in model name and survey coupon venue type metric replicates
+        df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name]=rcp(test_model_name_metric_replicate_filename_collection[column_name], index_col=[0,1])
+
+        #add (Random Forest or Gradient Boosting) Model and Survey Coupon Recommendation Cost Estimated and Sale Estimated Replicates
+        df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name]=pd.concat([df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name], df_model_name_model_survey_coupon_recommendation_cost_estimated_sale_estimated_replicate_collection[column_name]], axis=0)
+
+        #get and add Ad Spend, Ad Revenue, ROAS per coupon venue type
+        df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name]=get_Ad_Revenue_Ad_Spend_ROAS_replicate_metrics_from_venue_type_replicate_metrics(df=df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name], Ad_Revenue_Ad_Spend_ROAS_list=[True, True])
+    
+    #save it 
+    _=save_and_return_collection(df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type, 
+                                     filename='df_test_'+model_type+'_'+str(number_of_replicates)+'_metric_replicates_Ad_Revenue_Ad_Spend_ROAS_replicates_collection_coupon_venue_type_v'+str(filename_version)+'.pkl')
+    del _
+
+    
+    
+    #get 95% confidence interval quantile collection per Coupon Venue Type from Ad Revenue, Ad Spend, and ROAS replicate metrics
+    column_name_list=['Coffee House', 'Bar', 'Takeout', 'Low-Cost Restaurant', 'Mid-Range Restaurant']
+    tuple_index_name_list=[('Model', 'Average Coupon Recommendation Cost Estimated'), ('Model', 'Average Sale Estimated'), ('Survey', 'Average Coupon Recommendation Cost Estimated'), ('Survey', 'Average Sale Estimated'), ('Model', 'Ad Revenue'), ('Model', 'Ad Spend'), ('Survey', 'Ad Revenue'), ('Survey', 'Ad Spend'), ('Model-Survey Difference', 'Ad Revenue'), ('Model-Survey Difference', 'Ad Spend'), ('Model', 'ROAS'), ('Survey', 'ROAS'), ('Model-Survey Difference', 'ROAS'),]
+    df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection={}
+
+    for column_name in column_name_list:
+        df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection[column_name]=get_metric_quantiles_from_number_subsample_replicates_metrics(df=df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name], quantile_lower_upper_list=[.025, .975]).loc[tuple_index_name_list,:]
+
+
+        
+    #get and add confidence interval column from two quantile columns
+    multiple_index_tuple_list_usd=[('Model', 'Average Coupon Recommendation Cost Estimated'), ('Model', 'Average Sale Estimated'), ('Survey', 'Average Coupon Recommendation Cost Estimated'), ('Survey', 'Average Sale Estimated'), ('Model', 'Ad Revenue'), ('Model', 'Ad Spend'), ('Survey', 'Ad Revenue'), ('Survey', 'Ad Spend'), ('Model-Survey Difference', 'Ad Revenue'), ('Model-Survey Difference', 'Ad Spend'), ('Model', 'Profit 200'), ('Model', 'Spend 200'), ('Survey', 'Profit 200'), ('Survey', 'Spend 200'), ('Model-Survey Difference', 'Profit 200'), ('Model-Survey Difference', 'Spend 200'), ('Model', 'Profit 2000'), ('Model', 'Spend 2000'), ('Survey', 'Profit 2000'), ('Survey', 'Spend 2000'), ('Model-Survey Difference', 'Profit 2000'), ('Model-Survey Difference', 'Spend 2000'), ('Model', 'Profit 20000'), ('Model', 'Spend 20000'), ('Survey', 'Profit 20000'), ('Survey', 'Spend 20000'), ('Model-Survey Difference', 'Profit 20000'), ('Model-Survey Difference', 'Spend 20000'),]
+    multiple_index_tuple_list_percent=[('Model', 'ROAS'), ('Survey', 'ROAS'), ('Model-Survey Difference', 'ROAS'), ('Model', 'ROI 200'), ('Survey', 'ROI 200'), ('Model-Survey Difference', 'ROI 200'), ('Model', 'ROI 2000'),('Survey', 'ROI 2000'), ('Model-Survey Difference', 'ROI 2000'),('Model', 'ROI 20000'), ('Survey', 'ROI 20000'), ('Model-Survey Difference', 'ROI 20000')]
+
+    column_name_list=df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection['Coffee House'].columns.to_list()
+    multiple_index_tuple_list=df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection['Coffee House'].index.to_list()
+    venue_type_list=['Coffee House', 'Bar', 'Takeout', 'Low-Cost Restaurant', 'Mid-Range Restaurant']
+
+
+    for venue_type in venue_type_list:
+
+        for multiple_index_tuple in multiple_index_tuple_list:
+
+            if multiple_index_tuple in multiple_index_tuple_list_usd:
+
+                df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection[venue_type].loc[multiple_index_tuple, venue_type]='(\$'+str(round(df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection[venue_type].loc[multiple_index_tuple,column_name_list[0]], 2))+', \$'+str(round(df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection[venue_type].loc[multiple_index_tuple,column_name_list[1]], 2))+')'
+
+            elif multiple_index_tuple in multiple_index_tuple_list_percent:
+                df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection[venue_type].loc[multiple_index_tuple, venue_type]='('+str(round(df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection[venue_type].loc[multiple_index_tuple,column_name_list[0]], 2))+'%, '+str(round(df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection[venue_type].loc[multiple_index_tuple,column_name_list[1]], 2))+'%)'
+
+
+
+
+    #get Ad Revenue, Ad Spend, ROAS 95% Confidence Interval per Coupon Venue Type DataFrame from 95% Confidence Interval and Quantile Collection (by Coupon Venue TYpe)
+    venue_type_list=['Coffee House', 'Bar', 'Takeout', 'Low-Cost Restaurant', 'Mid-Range Restaurant']
+
+    data_frame_list=[df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection[venue_type].loc[:, [venue_type]] for venue_type in venue_type_list]
+    df_Ad_Revenue_Ad_Spend_ROAS_coupon_venue_type_confidence_interval=pd.concat(data_frame_list, axis=1)
+    del data_frame_list
+
+
+    
+
+    #get Overall Ad Revenue, Ad Spend, ROAS, Profit, Spend, and ROI Metric Replicates from Coupon Venue Type Ad Revenue and Ad Spend Replicates Collection
+
+
+    #Get Overall Ad Revenue and Ad Spend per Model, Survey, and Model-Survey Difference
+    #Initialize variables
+    column_name_list=['Coffee House', 'Bar', 'Takeout', 'Low-Cost Restaurant', 'Mid-Range Restaurant',]
+    tuple_index_name_list=[('Model', 'Ad Revenue'), ('Model', 'Ad Spend'), ('Survey', 'Ad Revenue'), ('Survey', 'Ad Spend'), ('Model-Survey Difference', 'Ad Revenue'), ('Model-Survey Difference', 'Ad Spend'),]
+    #Calculate Overall Ad Revenue and Ad Spend per Model, Survey, and Model-Survey Difference (via a sum up of Ad Revenue and Ad Spend per Coupon Venue Type)
+    df_test_model_name_number_metric_estimated_10000_metric_replicates_overall=df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name_list[0]].loc[tuple_index_name_list,:]+df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name_list[1]].loc[tuple_index_name_list,:]+df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name_list[2]].loc[tuple_index_name_list,:]+df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name_list[3]].loc[tuple_index_name_list,:]+df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name_list[4]].loc[tuple_index_name_list,:]
+
+
+    #Calculate and add Overall ROAS, Profit, Spend, ROI 200, ROI 2000, ROI 20000 from  Ad Revenue and Ad Spend of Model and Survey 
+    df_test_model_name_number_metric_estimated_10000_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_replicates_overall=get_Overall_ROAS_Profit_Spend_ROI_per_Survey_Model_Survey_Difference(df_test_model_name_number_metric_estimated_10000_metric_replicates_overall)
+
+
+
+    #save it
+    filename='df_test_'+str(model_type)+'_number_metric_estimated_10000_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_replicates_overall_v'+str(filename_version)+'.pkl'
+    _=save_and_return_data_frame_v2(df_test_model_name_number_metric_estimated_10000_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_replicates_overall, filename=filename)
+
+
+    
+
+    #get 95% Confidence Interval Quantile columns of Overall Ad Revenue, Ad Spend, ROAS, Profit, Spend, and ROI replicates
+    df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles=get_metric_quantiles_from_number_subsample_replicates_metrics(df=df_test_model_name_number_metric_estimated_10000_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_replicates_overall,quantile_lower_upper_list=[.025, .975])
+
+    
+
+    #convert to 95% Confidence Interval column from two Quantile columns
+
+
+    #get multiple index tuple list
+    multiple_index_tuple_list=df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles.index.to_list()
+
+    multiple_index_tuple_list_usd=[('Model', 'Average Coupon Recommendation Cost Estimated'), ('Model', 'Average Sale Estimated'), ('Survey', 'Average Coupon Recommendation Cost Estimated'), ('Survey', 'Average Sale Estimated'), ('Model', 'Ad Revenue'), ('Model', 'Ad Spend'), ('Survey', 'Ad Revenue'), ('Survey', 'Ad Spend'), ('Model-Survey Difference', 'Ad Revenue'), ('Model-Survey Difference', 'Ad Spend'), ('Model', 'Profit 200'), ('Model', 'Spend 200'), ('Survey', 'Profit 200'), ('Survey', 'Spend 200'), ('Model-Survey Difference', 'Profit 200'), ('Model-Survey Difference', 'Spend 200'), ('Model', 'Profit 2000'), ('Model', 'Spend 2000'), ('Survey', 'Profit 2000'), ('Survey', 'Spend 2000'), ('Model-Survey Difference', 'Profit 2000'), ('Model-Survey Difference', 'Spend 2000'), ('Model', 'Profit 20000'), ('Model', 'Spend 20000'), ('Survey', 'Profit 20000'), ('Survey', 'Spend 20000'), ('Model-Survey Difference', 'Profit 20000'), ('Model-Survey Difference', 'Spend 20000'),]
+
+    multiple_index_tuple_list_percent=[('Model', 'ROAS'), ('Survey', 'ROAS'), ('Model-Survey Difference', 'ROAS'), ('Model', 'ROI 200'), ('Survey', 'ROI 200'), ('Model-Survey Difference', 'ROI 200'), ('Model', 'ROI 2000'),('Survey', 'ROI 2000'), ('Model-Survey Difference', 'ROI 2000'),('Model', 'ROI 20000'), ('Survey', 'ROI 20000'), ('Model-Survey Difference', 'ROI 20000')]
+
+    #get lower and upper quantile column names
+    column_name_list=df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles.columns.to_list()
+
+
+    #combine two columns into one based on multiple index name
+    for multiple_index_tuple in multiple_index_tuple_list:
+
+        if multiple_index_tuple in multiple_index_tuple_list_usd:
+            df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles.loc[multiple_index_tuple, 'Overall']='(\$'+str(round(df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles.loc[multiple_index_tuple, column_name_list[0]], 2))+', \$'+str(round(df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles.loc[multiple_index_tuple, column_name_list[1]], 2))+')'
+
+        elif multiple_index_tuple in multiple_index_tuple_list_percent:
+            df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles.loc[multiple_index_tuple, 'Overall']='('+str(round(df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles.loc[multiple_index_tuple, column_name_list[0]], 2))+'%, '+str(round(df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles.loc[multiple_index_tuple, column_name_list[1]],2))+'%)'
+
+    df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_confidence_interval_and_quantiles=df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles
+    del df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles
+
+
+
+    
+
+    #combine Overall and Coupon Venue Type Ad Revenue, Ad Spend, ROAS, Profit, Spend, ROI 95% Confidence Interval metrics
+    df_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_confidence_interval_overall_and_coupon_venue_type=pd.concat([df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_confidence_interval_and_quantiles.loc[:, ['Overall']], df_Ad_Revenue_Ad_Spend_ROAS_coupon_venue_type_confidence_interval], axis=1)
+
+    del df_Ad_Revenue_Ad_Spend_ROAS_coupon_venue_type_confidence_interval, df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_confidence_interval_and_quantiles
+    df_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_confidence_interval_overall_and_coupon_venue_type
+
+
+    
+    
+    #add '95% Confidence Interval' as column index to Overall and Coupon Venue Type columns
+    overall_and_coupon_venue_type_list=['Overall']+venue_type_list
+    column_name_tuple_list=[('95% Confidence Interval', coupon_venue_type) for coupon_venue_type in overall_and_coupon_venue_type_list]
+    multiple_index_overall_and_coupon_venue_type=pd.MultiIndex.from_tuples(column_name_tuple_list)
+
+    df_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_confidence_interval_overall_and_coupon_venue_type.columns=multiple_index_overall_and_coupon_venue_type
+
+    
+
+    #get all metrics for Overall and Coupon Venue Type 95% Confidence Interval Table by adding Confidence Interval Metrics and Ad Revenue, Ad Spend, ROAS, Profit, Spend, ROI 95% Confidence Intervals
+    df_model_name_95_confidence_interval_metrics_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI=\
+    pd.concat([df_test_model_name_model_survey_95_confidence_interval_metric_feature_column_name_filter_value, 
+               df_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_confidence_interval_overall_and_coupon_venue_type], axis=0)
+
+    return df_model_name_95_confidence_interval_metrics_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI
+######################################################################################################################
+
+
 
 
 def get_survey_or_model_metrics_conversions_conversion_rate_recall_coupons_recommended(df, column_name_y_actual, column_name_y_predicted, feature_column_name_filter, feature_column_name_filter_value_two_dimensional_list):
     """Calculate metrics (i.e. Conversions, Conversion Rate, Recall, and Coupons Recommended) for each rows filter Data Frame.
 
     Args:
-        df: Input DataFrame.
-        column_name_y_actual: Column name of true target values.
-        column_name_y_predicted: Column name of predicted target values.
-        feature_column_name_filter: Feature column name to filter on.
-        feature_column_name_filter_value_two_dimensional_list: Two-dimensional list of feature values to filter on.
-
+        df: The input DataFrame.
+        column_name_y_actual: The column name of the true target values.
+        column_name_y_predicted: The column name of predicted target values.
+        feature_column_name_filter: The feature column name to filter on.
+        feature_column_name_filter_value_two_dimensional_list: The two-dimensional list of feature values to filter on, e.g. 'Restaurant(<20)' for Low-Cost Restaurant and 'Coffee House', 'Bar', 'Carry out & Take away', 'Restaurant(<20)', 'Restaurant(20-50)' for Overall, before metric calculation.
+        
     Returns:
         metric_value_two_dimensional_list.
     """
@@ -1312,22 +1306,23 @@ def get_survey_or_model_metrics_conversions_conversion_rate_recall_coupons_recom
 
 
 def get_average_sale_and_survey_100_recall_metrics_per_coupon_venue_type(df_y_train_model_name_predicted_y_train_survey_recall_estimate_predicted_y_actual_coupon_venue_type, column_name_y_predicted, column_name_y_actual, feature_column_name_filter, feature_column_name_filter_value_two_dimensional_list, feature_column_name_filter_value_list_dictionary_key_list, venue_type_average_sale_dictionary={'Coffee House':[5.50], 'Bar':[15], 'Takeout':[15], 'Low-Cost Restaurant':[12], 'Mid-Range Restaurant':[35],}):
-    """
+    """Get the per coupon venue type and overall 100% recall model metrics and average sale.
     
     Args:
-        
+        df_y_train_model_name_predicted_y_train_survey_recall_estimate_predicted_y_actual_coupon_venue_type (DataFrame): ...
+        column_name_y_predicted (str): The column name of the recall-random y predicted.
+        column_name_y_actual (str): The column name of the true target values.
+        feature_column_name_filter (str): The column name to filter on for metric calculations.
+        feature_column_name_filter_value_two_dimensional_list (list): The list of value lists to filter on for metric calculations.
+        feature_column_name_filter_value_list_dictionary_key_list (list): The coupon venue type values to use in index.
+        venue_type_average_sale_dictionary (dict): The coupon venue (key) and average sale estimate (value) dictionary.
     
     Returns:
-        
+        df_train_survey_100_recall_metrics_venue_type_average_sale (DataFrame): The DataFrame with recall-random y predicted metrics and average sale each per the coupon venue type and overall.
     """
 
 
-    metric_value_two_dimensional_list=\
-    get_survey_or_model_metrics_conversions_conversion_rate_recall_coupons_recommended(df=df_y_train_model_name_predicted_y_train_survey_recall_estimate_predicted_y_actual_coupon_venue_type,
-                                                                                       column_name_y_predicted=column_name_y_predicted, 
-                                                                                       column_name_y_actual=column_name_y_actual, 
-                                                                                       feature_column_name_filter=feature_column_name_filter,
-                                                                                       feature_column_name_filter_value_two_dimensional_list=feature_column_name_filter_value_two_dimensional_list,)
+    metric_value_two_dimensional_list=get_survey_or_model_metrics_conversions_conversion_rate_recall_coupons_recommended(df=df_y_train_model_name_predicted_y_train_survey_recall_estimate_predicted_y_actual_coupon_venue_type, column_name_y_predicted=column_name_y_predicted, column_name_y_actual=column_name_y_actual, feature_column_name_filter=feature_column_name_filter, feature_column_name_filter_value_two_dimensional_list=feature_column_name_filter_value_two_dimensional_list,)
 
     #convert to Data Frame from metric values two dimensional list
     metric_name_list=['Conversions', 'Conversion Rate', 'Percentage of Conversions Captured', 'Coupons Recommended']
@@ -1341,22 +1336,21 @@ def get_average_sale_and_survey_100_recall_metrics_per_coupon_venue_type(df_y_tr
 
 
     #Combine Survey 100 Percent Recall Estimated Metrics and Venue Type Average Sale
-    df_train_survey_100_recall_metrics_venue_type_average_sale=pd.merge(df_train_survey_100_recall_metrics.reset_index(), 
-                                                                        df_venue_type_average_sale.T.reset_index(),
-                                                                        how='outer').rename(columns={'index':'Venue Type',0:'Average Sale Estimated'})
+    df_train_survey_100_recall_metrics_venue_type_average_sale=pd.merge(df_train_survey_100_recall_metrics.reset_index(), df_venue_type_average_sale.T.reset_index(), how='outer').rename(columns={'index':'Venue Type',0:'Average Sale Estimated'})
     
     return df_train_survey_100_recall_metrics_venue_type_average_sale
 
 
 
     
-def extract_and_add_revenue_estimated_ad_spend_estimated_average_coupon_recommendation_cost_estimated(df):
-    """
+def extract_and_add_ad_revenue_estimated_ad_spend_estimated_average_coupon_recommendation_cost_estimated(df):
+    """Extract, append, and return the metrics Revenue Estimated, Ad Spend Estimated, and Average Coupon Recommendation Cost Estimated
     
     Args:
+        df (DataFrame): The DataFrame with Conversions and Average Sale Estimated
         
-    
     Returns:
+        df (DataFrame): The DataFrame with appended Revenue Estimated, Ad Spend Estimated, and Average Coupon Recommendation Cost Estimated.
         
     """
     #get Revenue Estimated
@@ -1371,13 +1365,17 @@ def extract_and_add_revenue_estimated_ad_spend_estimated_average_coupon_recommen
     return df
 
 
-def get_metric_multiple_index_ROAS(model_survey_index_value_list, metric_index_value_list):
-    """
+
+
+def get_MultiIndex_object_from_two_lists(model_survey_index_value_list, metric_index_value_list):
+    """Get the MultiIndex from two index values lists.
     
     Args:
-        
+        model_survey_index_value_list (list): The list of ML model or recall-random model index values.
+        metric_index_value_list (list): The list of metric name index values.
     
     Returns:
+        multiple_index (MultiIndex): The MultiIndex object with model and metric index values.
         
     """
     tuple_list = list(zip(model_survey_index_value_list, metric_index_value_list))
@@ -1386,35 +1384,30 @@ def get_metric_multiple_index_ROAS(model_survey_index_value_list, metric_index_v
 
 
 
-
-
-
-
-
 def get_survey_or_model_average_coupon_recommendation_cost_estimated(df_y_train_model_name_predicted_y_train_survey_recall_estimate_predicted_y_actual_coupon_venue_type, column_name_y_predicted, column_name_y_actual, feature_column_name_filter, feature_column_name_filter_value_two_dimensional_list, feature_column_name_filter_value_list_dictionary_key_list, venue_type_average_sale_dictionary, model_survey='Survey'):
-    """
+    """Calculate the average coupon recommendation cost estimated from ML model coupon venue type conversions and average sale estimated.
     
     Args:
-        
-    
+        df_y_train_model_name_predicted_y_train_survey_recall_estimate_predicted_y_actual_coupon_venue_type (DataFrame): The DataFrame with ML model y predicted, recall-random y predicted,  y actual, and coupon venue type.
+        column_name_y_predicted (str): The column name of y predicted
+        column_name_y_actual (str): The column name of the true target values.
+        feature_column_name_filter (str): The colum name to filter on.
+        feature_column_name_filter_value_two_dimensional_list (list): The list of feature list values to filter on.
+        feature_column_name_filter_value_list_dictionary_key_list (list): The list of coupon venue type values to display. 
+        venue_type_average_sale_dictionary (dict): The coupon venue type (key) and average sale estimate (value) dictionary.
+        model_survey (str): The selection of ML model (i.e. treatment group) or recall-random (i.e. control group) predictions.
+
     Returns:
+        df_survey_model_coupon_recommendation_cost_estimated_sale_estimated (DataFrame): The DataFrame of average coupon recommendation cost estimated and average sale estimated
         
     """
 
     #get average sale and survey/model number metric estimated metrics
-    df_train_survey_model_number_metric_estimate_metrics_conversions_conversion_rate_recall_coupons_recommended_venue_type_average_sale=\
-    get_average_sale_and_survey_100_recall_metrics_per_coupon_venue_type(df_y_train_model_name_predicted_y_train_survey_recall_estimate_predicted_y_actual_coupon_venue_type=df_y_train_model_name_predicted_y_train_survey_recall_estimate_predicted_y_actual_coupon_venue_type,
-                                                                         column_name_y_predicted=column_name_y_predicted,
-                                                                         column_name_y_actual=column_name_y_actual,
-                                                                         feature_column_name_filter=feature_column_name_filter,
-                                                                         feature_column_name_filter_value_two_dimensional_list=feature_column_name_filter_value_two_dimensional_list,
-                                                                         feature_column_name_filter_value_list_dictionary_key_list=feature_column_name_filter_value_list_dictionary_key_list,
-                                                                         venue_type_average_sale_dictionary=venue_type_average_sale_dictionary)
+    df_train_survey_model_number_metric_estimate_metrics_conversions_conversion_rate_recall_coupons_recommended_venue_type_average_sale=get_average_sale_and_survey_100_recall_metrics_per_coupon_venue_type(df_y_train_model_name_predicted_y_train_survey_recall_estimate_predicted_y_actual_coupon_venue_type=df_y_train_model_name_predicted_y_train_survey_recall_estimate_predicted_y_actual_coupon_venue_type, column_name_y_predicted=column_name_y_predicted, column_name_y_actual=column_name_y_actual, feature_column_name_filter=feature_column_name_filter, feature_column_name_filter_value_two_dimensional_list=feature_column_name_filter_value_two_dimensional_list, feature_column_name_filter_value_list_dictionary_key_list=feature_column_name_filter_value_list_dictionary_key_list, venue_type_average_sale_dictionary=venue_type_average_sale_dictionary)
 
     #Get (by Venue Type) Average Coupon Recommendation Cost Estimated and Average Sale Estimated DataFrame
 
-    df_train_survey_model_number_metric_estimate_metrics_venue_type_average_sale_revenue_estimated_ad_spend_estimated_average_coupon_recommendation_cost_estimated=\
-    extract_and_add_revenue_estimated_ad_spend_estimated_average_coupon_recommendation_cost_estimated(df=df_train_survey_model_number_metric_estimate_metrics_conversions_conversion_rate_recall_coupons_recommended_venue_type_average_sale)
+    df_train_survey_model_number_metric_estimate_metrics_venue_type_average_sale_revenue_estimated_ad_spend_estimated_average_coupon_recommendation_cost_estimated=extract_and_add_ad_revenue_estimated_ad_spend_estimated_average_coupon_recommendation_cost_estimated(df=df_train_survey_model_number_metric_estimate_metrics_conversions_conversion_rate_recall_coupons_recommended_venue_type_average_sale)
 
     #filter for Venue Type, Average Coupon Recommendation Cost, and Average Sale DataFrame
     column_name_list=['Venue Type', 'Average Coupon Recommendation Cost Estimated', 'Average Sale Estimated']
@@ -1422,46 +1415,35 @@ def get_survey_or_model_average_coupon_recommendation_cost_estimated(df_y_train_
 
 
     #get value list from average coupon recommendation cost, average sale estimated data frame
-    venue_type_average_coupon_recommendation_cost_estimated_venue_type_sale_estimated_two_dimensional_list=[list(df_train_survey_model_number_metric_estimate_average_coupon_recommendation_cost_estimated_venue_type.set_index('Venue Type').T.reset_index(drop=True).values[0])]+\
-                                                                                                          [list(df_train_survey_model_number_metric_estimate_average_coupon_recommendation_cost_estimated_venue_type.set_index('Venue Type').T.reset_index(drop=True).values[1])]
+    venue_type_average_coupon_recommendation_cost_estimated_venue_type_sale_estimated_two_dimensional_list=[list(df_train_survey_model_number_metric_estimate_average_coupon_recommendation_cost_estimated_venue_type.set_index('Venue Type').T.reset_index(drop=True).values[0])]+[list(df_train_survey_model_number_metric_estimate_average_coupon_recommendation_cost_estimated_venue_type.set_index('Venue Type').T.reset_index(drop=True).values[1])]
 
+    #get metric MultiIndex object ML model or recall-random model coupon recommendation cost estimated and average sale estimated
+    multiple_index_coupon_recommendation_cost_average_sale=get_MultiIndex_object_from_two_lists(model_survey_index_value_list=[model_survey, model_survey], metric_index_value_list=['Average Coupon Recommendation Cost Estimated', 'Average Sale Estimated'])
 
-    multiple_index_ROAS=get_metric_multiple_index_ROAS(model_survey_index_value_list=[model_survey, model_survey], metric_index_value_list=['Average Coupon Recommendation Cost Estimated', 'Average Sale Estimated'])
-
-
-    df_survey_model_coupon_recommendation_cost_estimated_sale_estimated=\
-    pd.DataFrame(data=venue_type_average_coupon_recommendation_cost_estimated_venue_type_sale_estimated_two_dimensional_list, 
-                 index=multiple_index_ROAS,
-                 columns=feature_column_name_filter_value_list_dictionary_key_list)
+    df_survey_model_coupon_recommendation_cost_estimated_sale_estimated=pd.DataFrame(data=venue_type_average_coupon_recommendation_cost_estimated_venue_type_sale_estimated_two_dimensional_list, index=multiple_index_coupon_recommendation_cost_average_sale, columns=feature_column_name_filter_value_list_dictionary_key_list)
 
     return df_survey_model_coupon_recommendation_cost_estimated_sale_estimated
 
 
-#################################################################################################################################
 
 
-
-  
-
-
-    
-    
-    
-    
-
-
-
-
-
-
+##############################################################################################################################
 
 def get_model_and_survey_metrics(df, model_y_predicted_column_name, survey_number_recall_estimated_y_predicted_column_name, y_predicted_column_name_base_survey, y_actual_column_name, feature_column_name_filter, feature_column_name_filter_value_list, metrics_column_name_list=None,):
-    """
+    """Get the ML model and recall-random model metrics.
+    
     Args:
-        df_feature_column_name_unfiltered: data frame that contains model y predicted, y actual, and feature for filtering
-        model_y_predicted_column_name: name of the column containing model y predicted
-    Returns:
+        df (DataFrame): The DataFrame of ML model and recall-random model y predicted and coupon venue type column and values.
+        model_y_predicted_column_name (str): The name of the ML model y predicted column.
+        survey_number_recall_estimated_y_predicted_column_name (str): The column name of the recall-random model y predicted.
+        y_predicted_column_name_base_survey (str): The 100% recall model y predicted column name.
+        y_actual_column_name (str): The true target value column name.
+        feature_column_name_filter (str): The column name of the feature to filter on.
+        feature_column_name_filter_value_list (list): The list of values to filter on.
+        metrics_column_name_list: None.
         
+    Returns:
+        metric_list (list): ML model and recall-random model metric list.
     """
 
     metric_list=[]
@@ -1471,13 +1453,18 @@ def get_model_and_survey_metrics(df, model_y_predicted_column_name, survey_numbe
 
     
     def get_model_or_survey_metric_list_by_y_predicted_column_name(df_feature_column_name_unfiltered, df_feature_column_name_filtered, y_predicted_column_name, y_predicted_column_name_baseline, y_predicted_column_name_base_survey, y_actual_column_name):
-        """
+        """Calculate the ML model and recall-random model metrics per a coupon venue type value(s) list filter.
     
         Args:
-            y_predicted_column_name_baseline: y_predicted from the survey number metric estimated
-
+            df_feature_column_name_unfiltered (DataFrame): The DataFrame with ML model y predicted, recall-random model y predicted, and 100% recall model y predicted column name and values.
+            df_feature_column_name_filtered (DataFrame): The DataFrame with ML model y predicted filtered by feature and value(s).
+            y_predicted_column_name (str): The ML model or recall-random model prediction column name.
+            y_predicted_column_name_baseline (str): y_predicted from the survey number metric estimated.
+            y_predicted_column_name_base_survey (str): The 100% recall model y predicted column name.
+            y_actual_column_name (str): The true target value column name.
+            
         Returns:
-
+            metric_list (list): The list of metric values.
         """
         
         metric_list=[]
@@ -1538,20 +1525,14 @@ def get_model_and_survey_metrics(df, model_y_predicted_column_name, survey_numbe
         metric_list += [tp_feature_column_name_filtered/(base_survey_coupons_recommended)]
 
         #get conversions to survey conversions ratio
-        metric_list += [(tp_feature_column_name_filtered)/(tp_feature_column_name_filtered_baseline)]
-        
-        #get conversions to base survey conversions ratio
-        #metric_list += [(tp_feature_column_name_filtered)/(tp_feature_column_name_filtered_base_survey)]
-        
+        metric_list += [(tp_feature_column_name_filtered)/(tp_feature_column_name_filtered_baseline)] 
         
         #get coupons recommended to survey coupons recommended ratio
         metric_list += [(tp_feature_column_name_filtered+fp_feature_column_name_filtered)/(tp_feature_column_name_filtered_baseline+fp_feature_column_name_filtered_baseline)]
         
         #get coupons recommended to base survey coupons recommended ratio
         metric_list += [(tp_feature_column_name_filtered+fp_feature_column_name_filtered)/(base_survey_coupons_recommended)]
-        
 
-        
         return metric_list
     
     
@@ -1567,14 +1548,17 @@ def get_model_and_survey_metrics(df, model_y_predicted_column_name, survey_numbe
     return metric_list
 
 
+
+
 def calculate_and_add_model_survey_difference(df_model_survey_metrics, multiple_index):
-    """
+    """Calculate the ML model metric and recall-random model metric difference and append it to the returned DataFrame.
 
     Args:
-
+        df_model_survey_metrics (DataFrame): The DataFrame of ML model and recall-random model metrics per coupon venue type and overall.
+        multiple_index (MultiIndex): The MultiIndex object with ML-recall-random model metric difference. 
 
     Returns:
-
+        The DataFrame with appended ML-recall-random model metric difference.
     """
     
     column_name_list=df_model_survey_metrics.columns.to_list()
@@ -1585,7 +1569,7 @@ def calculate_and_add_model_survey_difference(df_model_survey_metrics, multiple_
     df_model_survey_difference_metrics.index=multiple_index[20:30]
 
     #combine model survey difference metrics to model and survey metrics
-    return pd.concat([df_model_survey_metrics, df_model_survey_difference_metrics], axis=0)    
+    return pd.concat([df_model_survey_metrics, df_model_survey_difference_metrics], axis=0)
 
 
 
@@ -1593,38 +1577,58 @@ def calculate_and_add_model_survey_difference(df_model_survey_metrics, multiple_
 
 
 
-def get_metric_quatiles_from_number_subsample_replicates_metrics(df, quantile_lower_upper_list):
-    """
+def get_metric_quantiles_from_number_subsample_replicates_metrics(df, quantile_lower_upper_list):
+    """Select the upper and lower quantile from teh metric replicates DataFrame and return the result as a DataFrame.
 
     Args:
-
+        df (DataFrame): The DataFrame with metric replicates.
+        quantile_lower_upper_list (list): The upper and lower quantile list.
 
     Returns:
-
+        A DataFrame with metric lower quantile and upper quantile column and values.
     """
-
     return df.quantile(q=quantile_lower_upper_list, axis=1, numeric_only=True, interpolation='linear').T
 
 
 
 def get_metric_confidence_interval_table_by_feature_column_name_filter_value_list_dictionary_key(df_y_train_test_model_name_predicted_y_train_test_survey_recall_estimate_predicted_y_actual_feature_column_name_filter, feature_column_name_filter, feature_column_name_filter_value_list_dictionary_key, feature_column_name_filter_value_list_dictionary, multiple_index, number_of_replicates, quantile_lower_upper_list, model_type, survey_number_recall_estimated_y_predicted_column_name, filename_version, save_metric_replicates_feature_column_name_filter_value_list_dictionary_key_list=[], train_test='test', sample_size=None):
-    """
+    """Calculate and return the metric confidence interval table per coupon venue type or Overall.
 
     Args:
-
+        df_y_train_test_model_name_predicted_y_train_test_survey_recall_estimate_predicted_y_actual_feature_column_name_filter (DataFrame): The DataFrame with ML model and recall-random model y predicted and feature column name values.
+        feature_column_name_filter (str): The name of the feature column to filter on.
+        feature_column_name_filter_value_list_dictionary_key (list): The list of feature value list dictionary keys.
+        feature_column_name_filter_value_list_dictionary (dict): The feature value label (key) and feature value(s) list (value) dictionary.
+        multiple_index (MultiIindex): The MultiIndex object with ML model and recall-random model index values.
+        number_of_replicates (int): The number of replicates to calculate.
+        quantile_lower_upper_list (list): The lower and upper quantile value list.
+        model_type (str): The ML model type, e.g. 'random_forest' or 'gradient_boosting'
+        survey_number_recall_estimated_y_predicted_column_name (): The recall-random model y predicted column name.
+        filename_version (str): The filename version.
+        save_metric_replicates_feature_column_name_filter_value_list_dictionary_key_list (list): The list of metric replicates to save by feature column name value label.
+        train_test (str): 'train' or 'test' dataset y predicted values
+        sample_size (int): The number of the subsamples to take for calculation of metric replicates.
 
     Returns:
-
+        model_survey_number_confidence_interval_of_subsample_replicates_metrics (DataFrame): The DataFrame of 95% confidence interval values by metric coupon venue type or overall.
+        df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics (DataFrame): The DataFrame of metric bootstrap replicates by coupon venue type or overall.
     """
 
     
     def get_number_model_and_survey_metric_replicates_from_number_subsamples(df, number_of_replicates, model_type, survey_number_recall_estimated_y_predicted_column_name, feature_column_name_filter, feature_column_name_filter_value_list, sample_size=None,):
-        """
+        """Subsample the DataFrame ML model and recall-random model y predicted and get the metrics per coupon venue type. Do this 10,000 times and return these metric replicates.
         
         Args:
+            df (DataFrame): The DataFrame with ML model and recall-random model y predicted and coupon venue type values.
+            number_of_replicates (int): The number of replicates to calculate.
+            model_type (str): the ML model type, e.g. 'random_forest' or 'gradient_boosting'
+            survey_number_recall_estimated_y_predicted_column_name (str): The recall-random model y predicted column name.
+            feature_column_name_filter (str): The feature column name to filter on.
+            feature_column_name_filter_value_list (list): The list of values to filter on.
+            sample_size (int): None
             
         Returns:
-            
+            df_model_number_metric_estimate_metrics_feature_filter_number_bootstrap_replicates_metric (DataFrame): The DataFrame bootstrap replicate metrics for this coupon value list.
         """
         metric_list_collection = {}
 
@@ -1642,12 +1646,15 @@ def get_metric_confidence_interval_table_by_feature_column_name_filter_value_lis
 
         return df_model_number_metric_estimate_metrics_feature_filter_number_bootstrap_replicates_metric
 
+    
+    
+    
 
     #get model and survey metric replicates from the 10,000 nonparametric or parametric subsamples
     if sample_size==None:
-        df_filename='df_'+train_test+'_'+model_type+'_number_metric_estimated_'+str(number_of_replicates)+'_metric_replicates_from_'+str(number_of_replicates)+'_nonparametric_subsamples_'+ feature_column_name_filter_value_list_dictionary_key.lower().replace(" ", "_") +'_'+filename_version + '.csv'
+        df_filename='df_'+train_test+'_'+model_type+'_number_metric_estimated_'+str(number_of_replicates)+'_metric_replicates_from_'+str(number_of_replicates)+'_nonparametric_subsamples_'+ feature_column_name_filter_value_list_dictionary_key.lower().replace(" ", "_") +'_v'+filename_version + '.csv'
     elif sample_size!=None:
-        df_filename='df_'+train_test+'_'+model_type+'_number_metric_estimated_'+str(number_of_replicates)+'_metric_replicates_from_'+str(number_of_replicates)+'_parametric_subsamples_n_'+str(sample_size)+'_'+feature_column_name_filter_value_list_dictionary_key.lower().replace(" ", "_") +'_'+filename_version + '.csv'
+        df_filename='df_'+train_test+'_'+model_type+'_number_metric_estimated_'+str(number_of_replicates)+'_metric_replicates_from_'+str(number_of_replicates)+'_parametric_subsamples_n_'+str(sample_size)+'_'+feature_column_name_filter_value_list_dictionary_key.lower().replace(" ", "_") +'_v'+filename_version + '.csv'
     
     df_readback=return_processed_data_file_if_it_exists_v2(filename=df_filename, column_name_row_integer_location_list=[0,], index_column_integer_location_list=[0,1])
     if df_readback.empty != True:
@@ -1667,7 +1674,7 @@ def get_metric_confidence_interval_table_by_feature_column_name_filter_value_lis
 
     
     #get 95% confidence interval upper and lower quantiles
-    model_survey_quantiles_of_subsample_replicates_metrics=get_metric_quatiles_from_number_subsample_replicates_metrics(df=df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics, quantile_lower_upper_list=quantile_lower_upper_list)
+    model_survey_quantiles_of_subsample_replicates_metrics=get_metric_quantiles_from_number_subsample_replicates_metrics(df=df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics, quantile_lower_upper_list=quantile_lower_upper_list)
 
     #rename columns to multi index
     column_name_number_confidence_interval=str((round((quantile_lower_upper_list[1] - quantile_lower_upper_list[0])*100)))+'%'+' Confidence Interval'
@@ -1679,49 +1686,35 @@ def get_metric_confidence_interval_table_by_feature_column_name_filter_value_lis
 
 
     def convert_quantile_columns_to_confidence_interval_column(model_survey_quantiles_of_subsample_replicates_metrics, feature_column_name_filter_value_list_dictionary_key):
-        """
+        """Take the two quantile DataFrame columns and return a single confidence interval column.
         
         Args:
+            model_survey_quantiles_of_subsample_replicates_metrics (DataFrame): The DataFrame ML model or recall-random model metric quantile values.
+            feature_column_name_filter_value_list_dictionary_key (list): The list of feature value list dictionary keys.
             
         Returns:
-            
+            The DataFrame with metric quantiles, metric confidence interval, or both.
         """
         #transpose to wide
         model_survey_quantiles_of_subsample_replicates_metrics=model_survey_quantiles_of_subsample_replicates_metrics.T
 
         #convert positive counts to int64
-        model_survey_quantiles_of_subsample_replicates_metrics\
-        .loc[:, model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>1]=\
-        model_survey_quantiles_of_subsample_replicates_metrics\
-        .loc[:, model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>1].astype('int64')
-        model_survey_quantiles_of_subsample_replicates_metrics
+        model_survey_quantiles_of_subsample_replicates_metrics.loc[:, model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>1]=model_survey_quantiles_of_subsample_replicates_metrics.loc[:, model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>1].astype('int64')
+        
         
         #convert negative counts to int64
-        model_survey_quantiles_of_subsample_replicates_metrics\
-        .loc[:, model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<-1]=\
-        model_survey_quantiles_of_subsample_replicates_metrics\
-        .loc[:, model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<-1].astype('int64')
-        model_survey_quantiles_of_subsample_replicates_metrics
+        model_survey_quantiles_of_subsample_replicates_metrics.loc[:, model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<-1]=model_survey_quantiles_of_subsample_replicates_metrics.loc[:, model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<-1].astype('int64')
+        
 
 
         if convert_proportions_to_percentages=='yes':
             
             #convert to percentages from proportions in [0,1) and round to number of signficant digits
-            model_survey_quantiles_of_subsample_replicates_metrics\
-            .loc[:,(model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>=0) &
-                 (model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<1)]=\
-            round(model_survey_quantiles_of_subsample_replicates_metrics\
-            .loc[:,(model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>=0) &
-                 (model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<1)]*100, rate_number_of_significant_digits-2)
+            model_survey_quantiles_of_subsample_replicates_metrics.loc[:,(model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>=0) & (model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<1)]=round(model_survey_quantiles_of_subsample_replicates_metrics.loc[:,(model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>=0) & (model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<1)]*100, rate_number_of_significant_digits-2)
             
             
             #convert to percentages from proportions in (-1,0] and round to number of signficant digits
-            model_survey_quantiles_of_subsample_replicates_metrics\
-            .loc[:,(model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<=0) &
-                 (model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>-1)]=\
-            round(model_survey_quantiles_of_subsample_replicates_metrics\
-            .loc[:,(model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<=0) &
-                 (model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>-1)]*100, rate_number_of_significant_digits-2)
+            model_survey_quantiles_of_subsample_replicates_metrics.loc[:,(model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<=0) & (model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>-1)]=round(model_survey_quantiles_of_subsample_replicates_metrics.loc[:,(model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]<=0) &(model_survey_quantiles_of_subsample_replicates_metrics.loc[(column_name_number_confidence_interval, quantile_lower_upper_list[0]),:]>-1)]*100, rate_number_of_significant_digits-2)
 
 
             #convert to 100 percent from proportions 1
@@ -1736,8 +1729,7 @@ def get_metric_confidence_interval_table_by_feature_column_name_filter_value_lis
             column_name_count_list=[('Model', 'Conversions'), ('Model', 'Coupons Recommended'), ('Survey', 'Conversions'), ('Survey', 'Coupons Recommended'), ('Model-Survey Difference', 'Conversions'), ('Model-Survey Difference', 'Coupons Recommended')]
             column_name_list_metric_not_count=[column_name for column_name in model_survey_quantiles_of_subsample_replicates_metrics.columns.to_list() if not column_name in column_name_count_list]
 
-            model_survey_quantiles_of_subsample_replicates_metrics.loc[:,column_name_list_metric_not_count]=\
-            model_survey_quantiles_of_subsample_replicates_metrics.loc[:,column_name_list_metric_not_count]+'%'
+            model_survey_quantiles_of_subsample_replicates_metrics.loc[:,column_name_list_metric_not_count]=model_survey_quantiles_of_subsample_replicates_metrics.loc[:,column_name_list_metric_not_count]+'%'
 
 
             #transpose to tall
@@ -1785,15 +1777,9 @@ def get_metric_confidence_interval_table_by_feature_column_name_filter_value_lis
 
 
     keep_quantiles_confidence_interval_both='confidence_interval'
-
     convert_proportions_to_percentages='yes'
-
     rate_number_of_significant_digits=3
-
-
     model_survey_number_confidence_interval_of_subsample_replicates_metrics=convert_quantile_columns_to_confidence_interval_column(model_survey_quantiles_of_subsample_replicates_metrics=model_survey_quantiles_of_subsample_replicates_metrics, feature_column_name_filter_value_list_dictionary_key=feature_column_name_filter_value_list_dictionary_key)
-
-
     
     return model_survey_number_confidence_interval_of_subsample_replicates_metrics, df_model_number_metric_estimated_feature_filter_number_bootstrap_replicates_metrics
 
@@ -1803,22 +1789,22 @@ def get_metric_confidence_interval_table_by_feature_column_name_filter_value_lis
 
 
 
+##############################################################################################################################
+#Model Test Results
+##############################################################################################################################
 
-
-
-
-###############################################################################################################################
-#Calculate Overall and Coupon Venue Type Ad Revenue, Ad Spend, ROAS, Profit, Spend, and ROI 95% Confidence Intervals from metric replicates and append to metric confidence interval table
 
 def get_model_survey_coupon_recommendation_cost_estimated_and_sale_estimated_replicate_collection_venue_type(df, column_name_list=None, column_name_drop_list=None, number_of_replicates=10000):
-    """
+    """Build the coupon recommendation cost estimate and sale estimate replicate collection by column name.
+    
     Args:
-        df: DataFrame with columns containing feature values and indexes model-survey description and metric
-        column_name_list: column names to use in creating colum name metric replicates collection
-        column_name_drop_list: column names not to use
+        df (DataFrame): The DataFrame with columns containing feature values and indexes model-survey description and metric.
+        column_name_list: The column names to use in creating column name metric replicates collection.
+        column_name_drop_list (list): The list of column names not to use.
+        number_of_replicates (int): The number of replicates.
     
     Returns:
-        df_model_survey_coupon_recommendation_cost_estimated_sale_estimated_replicate_collection (dict):
+        df_model_survey_coupon_recommendation_cost_estimated_sale_estimated_replicate_collection (dict): The DataFrame collection of coupon recommendation cost and average sale by coupon venue type.
     """
     df_model_survey_coupon_recommendation_cost_estimated_sale_estimated_replicate_collection={}
     if column_name_list==None:
@@ -1843,591 +1829,32 @@ def get_model_survey_coupon_recommendation_cost_estimated_and_sale_estimated_rep
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-def get_Ad_Revenue_Ad_Spend_ROAS_replicate_metrics_from_venue_type_replicate_metrics(df, Ad_Revenue_Ad_Spend_ROAS_list=[True, True]):
-    """Calculates Ad Revenue, Ad Spend, and ROAS replicates from metric replicates (Overall or coupon venue type) DataFrame.
-    Args:
-        df (DataFrame): Metric replicates DataFrame
-        Ad_Revenue_Ad_Spend_ROAS_list (list): Boolean list for calculation of model, survey, model-survey difference ad revenue and ad spend; And model, survey, model-survey difference ROAS.
-        
-    Returns:
-        df (DataFrame): Metric replicates and Ad Revenue, Ad Spend, ROAS replicates DataFrame.
-    """
-    coupon_recommendation_cost_model_survey_list=['Model', 'Model']    
-    if Ad_Revenue_Ad_Spend_ROAS_list[0]==True:
-        #Model Total Revenue, Total Ad Spend Metrics
-        df.loc[('Model', 'Ad Revenue'), :]=df.loc[('Model', 'Conversions'), :]*df.loc[('Model', 'Average Sale Estimated'), :]
-        df.loc[('Model', 'Ad Spend'), :]=df.loc[(coupon_recommendation_cost_model_survey_list[0], 'Average Coupon Recommendation Cost Estimated'), :]*df.loc[('Model', 'Coupons Recommended'), :]
-
-        #Survey Total Revenue, Total Ad Spend Metrics    
-        df.loc[('Survey', 'Ad Revenue'), :]=df.loc[('Survey', 'Conversions'), :]*df.loc[('Survey', 'Average Sale Estimated'), :]
-        df.loc[('Survey', 'Ad Spend'), :]=df.loc[(coupon_recommendation_cost_model_survey_list[1], 'Average Coupon Recommendation Cost Estimated'), :]*df.loc[('Survey', 'Coupons Recommended'), :]
-        
-        #Model-Survey Total Revenue, Total Ad Spend Metrics
-        df.loc[('Model-Survey Difference', 'Ad Revenue'), :]=df.loc[('Model', 'Ad Revenue'), :]-df.loc[('Survey', 'Ad Revenue'), :]
-        df.loc[('Model-Survey Difference', 'Ad Spend'), :]=df.loc[('Model', 'Ad Spend'), :]-df.loc[('Survey', 'Ad Spend'), :]
-
-    if Ad_Revenue_Ad_Spend_ROAS_list[1]==True:
-        df.loc[('Model', 'ROAS'), :]=df.loc[('Model', 'Ad Revenue'), :]/df.loc[('Model', 'Ad Spend'), :]*100
-        df.loc[('Survey', 'ROAS'), :]=df.loc[('Survey', 'Ad Revenue'), :]/df.loc[('Survey', 'Ad Spend'), :]*100
-        df.loc[('Model-Survey Difference', 'ROAS'), :]=df.loc[('Model', 'ROAS'), :]-df.loc[('Survey', 'ROAS'), :]
-        
-    return df
-
-
-
-
-
-
-
-
-
-def get_Overall_ROAS_Profit_Spend_ROI_per_Survey_Model_Survey_Difference(df, ROAS_Profit_Spend_ROI_list=[True, True, True, True]):
-    """Calculate and append result of Model, Survey, and Model-Survey Difference of ROAS, Profit, Spend, and ROI with 200, 2000, and 20000 additional spend to metric replicates. 
-    Args:
-        df (DataFrame): DataFrame with the Overall metric replicates.
-    Returns:
-        df (DataFrame): DataFrame with appended calculation result of Model, Survey, and Model-Survey Difference of ROAS, Profit, Spend, and ROI.
-    """
-
-    df.loc[('Model', 'ROAS'), :]=df.loc[('Model', 'Ad Revenue'), :]/df.loc[('Model', 'Ad Spend'), :]*100
-    df.loc[('Survey', 'ROAS'), :]=df.loc[('Survey', 'Ad Revenue'), :]/df.loc[('Survey', 'Ad Spend'), :]*100
-    df.loc[('Model-Survey Difference', 'ROAS'), :]=df.loc[('Model', 'ROAS'), :]-df.loc[('Survey', 'ROAS'), :]
-
-    
-    def get_Profit_Spend_ROI_with_additional_spend(df, additional_spend=None):
-        """Calculate and append result of Model, Survey, and Model-Survey Difference of ROAS, Profit, Spend, and ROI with additional spend to metric replicates. 
-        Args:
-            df (DataFrame): DataFrame with the Overall metric replicates.
-        Returns:
-            df (DataFrame): DataFrame with appended calculation result of Model, Survey, and Model-Survey Difference of ROAS, Profit, Spend, and ROI number.
-        """
-
-        if additional_spend==None:
-            additional_spend=200
-
-        #Model ROI Metrics
-        model_campaign_spend=df.loc[('Model', 'Ad Spend'), :]+additional_spend
-        model_campaign_profit=df.loc[('Model', 'Ad Revenue'), :]-model_campaign_spend
-        df.loc[('Model', 'Profit '+str(additional_spend)), :]=model_campaign_profit
-        df.loc[('Model', 'Spend '+str(additional_spend)), :]=model_campaign_spend
-        df.loc[('Model', 'ROI '+str(additional_spend)), :]=model_campaign_profit/model_campaign_spend*100
-
-        #Survey ROI Metrics
-        survey_campaign_spend=df.loc[('Survey', 'Ad Spend'), :]+additional_spend
-        survey_campaign_profit=df.loc[('Survey', 'Ad Revenue'), :]-survey_campaign_spend
-        df.loc[('Survey', 'Profit '+str(additional_spend)), :]=survey_campaign_profit
-        df.loc[('Survey', 'Spend '+str(additional_spend)), :]=survey_campaign_spend
-        df.loc[('Survey', 'ROI '+str(additional_spend)), :]=survey_campaign_profit/survey_campaign_spend*100
-
-        #Survey-Model Difference ROI Metrics
-        df.loc[('Model-Survey Difference', 'Profit '+str(additional_spend)), :]=df.loc[('Model', 'Profit '+str(additional_spend)), :]-df.loc[('Survey', 'Profit '+str(additional_spend)), :]
-        df.loc[('Model-Survey Difference', 'Spend '+str(additional_spend)), :]=df.loc[('Model', 'Spend '+str(additional_spend)), :]-df.loc[('Survey', 'Spend '+str(additional_spend)), :]
-        df.loc[('Model-Survey Difference', 'ROI '+str(additional_spend)), :]=df.loc[('Model', 'ROI '+str(additional_spend)), :]-df.loc[('Survey', 'ROI '+str(additional_spend)), :]
-        
-        return df
-    
-    df=get_Profit_Spend_ROI_with_additional_spend(df, additional_spend=200)
-    df=get_Profit_Spend_ROI_with_additional_spend(df, additional_spend=2000)
-    df=get_Profit_Spend_ROI_with_additional_spend(df, additional_spend=20000)
-
-    return df
-
-
-
-
-
-
-
-
-
-def calculate_Overall_and_Coupon_Venue_Type_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_95_Confidence_Intervals_from_metric_replicates_and_append_to_metric_confidence_interval_table(
-    df_model_name_model_survey_coupon_recommendation_cost_estimated_sale_estimated_replicate_collection,
-    df_test_model_name_model_survey_95_confidence_interval_metric_feature_column_name_filter_value,
-    test_model_name_metric_replicate_filename_collection,
-    model_type,
-    filename_version,
-    number_of_replicates=1000,):
-    """
-    Args:
-        df_model_name_model_survey_coupon_recommendation_cost_estimated_sale_estimated_replicate_collection (dict):
-        df_test_model_name_model_survey_95_confidence_interval_metric_feature_column_name_filter_value (DataFrame): Model, Survey, Model-Survey Difference Metric 95% Confidence Interval DataFrame
-        test_model_name_metric_replicate_filename_collection (dict): collection of Metric replicates
-        model_type (str): 'random_forst' or 'gradient_boosting'
-        filename_version (str): file version number
-        number_of_replicates (int): replicates per metric (per feature column name filter value, e.g. Coffee House, Bar, Takeout, Low-Cost Restaurant, Mid-Range Restaurant)
-        
-    Returns:
-        df_model_name_95_confidence_interval_metrics_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI (DataFrame): Metric and Ad Revenue, Ad Spend, ROAS, Profit, Spend, ROI replicate 95% confidence interval DataFrame
-    """
-    
-    #get Ad Revenue, Ad Spend, and ROAS (for Model, Survey, and Model-Survey Difference) by reading in the five (5) Coupon Venue Type Metric Replicates files
-    column_name_list=['Coffee House', 'Bar', 'Takeout', 'Low-Cost Restaurant', 'Mid-Range Restaurant']
-    df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type={}
-
-    for column_name in column_name_list:
-        #read in model name and survey coupon venue type metric replicates
-        df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name]=rcp(test_model_name_metric_replicate_filename_collection[column_name], index_col=[0,1])
-
-        #add (Random Forest or Gradient Boosting) Model and Survey Coupon Recommendation Cost Estimated and Sale Estimated Replicates
-        df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name]=pd.concat([df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name], df_model_name_model_survey_coupon_recommendation_cost_estimated_sale_estimated_replicate_collection[column_name]], axis=0)
-
-        #get and add Ad Spend, Ad Revenue, ROAS per coupon venue type
-        df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name]=get_Ad_Revenue_Ad_Spend_ROAS_replicate_metrics_from_venue_type_replicate_metrics(df=df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name], Ad_Revenue_Ad_Spend_ROAS_list=[True, True])
-    
-    #save it 
-    _=save_and_return_collection(df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type, 
-                                     filename='df_test_'+model_type+'_'+str(number_of_replicates)+'_metric_replicates_Ad_Revenue_Ad_Spend_ROAS_replicates_collection_coupon_venue_type_v'+str(filename_version)+'.pkl')
-    del _
-    
-
-    
-    
-    #get 95% confidence interval quantile collection per Coupon Venue Type from Ad Revenue, Ad Spend, and ROAS replicate metrics
-    column_name_list=['Coffee House', 'Bar', 'Takeout', 'Low-Cost Restaurant', 'Mid-Range Restaurant']
-    tuple_index_name_list=[('Model', 'Average Coupon Recommendation Cost Estimated'), ('Model', 'Average Sale Estimated'), ('Survey', 'Average Coupon Recommendation Cost Estimated'), ('Survey', 'Average Sale Estimated'), ('Model', 'Ad Revenue'), ('Model', 'Ad Spend'), ('Survey', 'Ad Revenue'), ('Survey', 'Ad Spend'), ('Model-Survey Difference', 'Ad Revenue'), ('Model-Survey Difference', 'Ad Spend'), ('Model', 'ROAS'), ('Survey', 'ROAS'), ('Model-Survey Difference', 'ROAS'),]
-    df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection={}
-
-    for column_name in column_name_list:
-        df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection[column_name]=\
-        get_metric_quatiles_from_number_subsample_replicates_metrics(df=df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name],
-                                                                         quantile_lower_upper_list=[.025, .975]).loc[tuple_index_name_list,:]
-
-
-        
-    #get and add confidence interval column from two quantile columns
-    multiple_index_tuple_list_usd=[('Model', 'Average Coupon Recommendation Cost Estimated'), ('Model', 'Average Sale Estimated'), ('Survey', 'Average Coupon Recommendation Cost Estimated'), ('Survey', 'Average Sale Estimated'), ('Model', 'Ad Revenue'), ('Model', 'Ad Spend'), ('Survey', 'Ad Revenue'), ('Survey', 'Ad Spend'), ('Model-Survey Difference', 'Ad Revenue'), ('Model-Survey Difference', 'Ad Spend'), ('Model', 'Profit 200'), ('Model', 'Spend 200'), ('Survey', 'Profit 200'), ('Survey', 'Spend 200'), ('Model-Survey Difference', 'Profit 200'), ('Model-Survey Difference', 'Spend 200'), ('Model', 'Profit 2000'), ('Model', 'Spend 2000'), ('Survey', 'Profit 2000'), ('Survey', 'Spend 2000'), ('Model-Survey Difference', 'Profit 2000'), ('Model-Survey Difference', 'Spend 2000'), ('Model', 'Profit 20000'), ('Model', 'Spend 20000'), ('Survey', 'Profit 20000'), ('Survey', 'Spend 20000'), ('Model-Survey Difference', 'Profit 20000'), ('Model-Survey Difference', 'Spend 20000'),]
-    multiple_index_tuple_list_percent=[('Model', 'ROAS'), ('Survey', 'ROAS'), ('Model-Survey Difference', 'ROAS'), ('Model', 'ROI 200'), ('Survey', 'ROI 200'), ('Model-Survey Difference', 'ROI 200'), ('Model', 'ROI 2000'),('Survey', 'ROI 2000'), ('Model-Survey Difference', 'ROI 2000'),('Model', 'ROI 20000'), ('Survey', 'ROI 20000'), ('Model-Survey Difference', 'ROI 20000')]
-
-    column_name_list=df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection['Coffee House'].columns.to_list()
-    multiple_index_tuple_list=df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection['Coffee House'].index.to_list()
-    venue_type_list=['Coffee House', 'Bar', 'Takeout', 'Low-Cost Restaurant', 'Mid-Range Restaurant']
-
-
-    for venue_type in venue_type_list:
-
-        for multiple_index_tuple in multiple_index_tuple_list:
-
-            if multiple_index_tuple in multiple_index_tuple_list_usd:
-
-                df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection[venue_type].loc[multiple_index_tuple, venue_type]=\
-                '(\$'+str(round(df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection[venue_type].loc[multiple_index_tuple,column_name_list[0]], 2))+\
-                ', \$'+str(round(df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection[venue_type].loc[multiple_index_tuple,column_name_list[1]], 2))+\
-                ')'
-
-            elif multiple_index_tuple in multiple_index_tuple_list_percent:
-                df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection[venue_type].loc[multiple_index_tuple, venue_type]=\
-                '('+str(round(df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection[venue_type].loc[multiple_index_tuple,column_name_list[0]], 2))+\
-                '%, '+str(round(df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection[venue_type].loc[multiple_index_tuple,column_name_list[1]], 2))+\
-                '%)'
-
-
-
-
-    #get Ad Revenue, Ad Spend, ROAS 95% Confidence Interval per Coupon Venue Type DataFrame from 95% Confidence Interval and Quantile Collection (by Coupon Venue TYpe)
-    venue_type_list=['Coffee House', 'Bar', 'Takeout', 'Low-Cost Restaurant', 'Mid-Range Restaurant']
-
-    data_frame_list=[df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection[venue_type].loc[:, [venue_type]] for venue_type in venue_type_list]
-    df_Ad_Revenue_Ad_Spend_ROAS_coupon_venue_type_confidence_interval=pd.concat(data_frame_list, axis=1)
-    del data_frame_list
-
-
-
-
-
-
-
-
-
-
-
-
-
-    #get Overall Ad Revenue, Ad Spend, ROAS, Profit, Spend, and ROI Metric Replicates from Coupon Venue Type Ad Revenue and Ad Spend Replicates Collection
-
-
-    #Get Overall Ad Revenue and Ad Spend per Model, Survey, and Model-Survey Difference
-    #Initialize variables
-    column_name_list=['Coffee House', 'Bar', 'Takeout', 'Low-Cost Restaurant', 'Mid-Range Restaurant',]
-    tuple_index_name_list=[('Model', 'Ad Revenue'), ('Model', 'Ad Spend'), ('Survey', 'Ad Revenue'), ('Survey', 'Ad Spend'), ('Model-Survey Difference', 'Ad Revenue'), ('Model-Survey Difference', 'Ad Spend'),]
-    #Calculate Overall Ad Revenue and Ad Spend per Model, Survey, and Model-Survey Difference (via a sum up of Ad Revenue and Ad Spend per Coupon Venue Type)
-    df_test_model_name_number_metric_estimated_10000_metric_replicates_overall=\
-    df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name_list[0]].loc[tuple_index_name_list,:]+\
-    df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name_list[1]].loc[tuple_index_name_list,:]+\
-    df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name_list[2]].loc[tuple_index_name_list,:]+\
-    df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name_list[3]].loc[tuple_index_name_list,:]+\
-    df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name_list[4]].loc[tuple_index_name_list,:]
-
-
-    #Calculate and add Overall ROAS, Profit, Spend, ROI 200, ROI 2000, ROI 20000 from  Ad Revenue and Ad Spend of Model and Survey 
-    df_test_model_name_number_metric_estimated_10000_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_replicates_overall=\
-    get_Overall_ROAS_Profit_Spend_ROI_per_Survey_Model_Survey_Difference(df_test_model_name_number_metric_estimated_10000_metric_replicates_overall)
-
-
-
-    #save it
-    filename='df_test_'+str(model_type)+'_number_metric_estimated_10000_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_replicates_overall_v'+str(filename_version)+'.pkl'
-    _=save_and_return_data_frame_v2(df_test_model_name_number_metric_estimated_10000_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_replicates_overall, filename=filename)
-
-
-
-
-
-
-
-
-    #get 95% Confidence Interval Quantile columns of Overall Ad Revenue, Ad Spend, ROAS, Profit, Spend, and ROI replicates
-    df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles=\
-    get_metric_quatiles_from_number_subsample_replicates_metrics(df=df_test_model_name_number_metric_estimated_10000_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_replicates_overall,
-                                                                     quantile_lower_upper_list=[.025, .975])
-
-
-
-
-
-
-
-
-
-
-    #convert to 95% Confidence Interval column from two Quantile columns
-
-
-    #get multiple index tuple list
-    multiple_index_tuple_list=df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles.index.to_list()
-
-    multiple_index_tuple_list_usd=[('Model', 'Average Coupon Recommendation Cost Estimated'), ('Model', 'Average Sale Estimated'), ('Survey', 'Average Coupon Recommendation Cost Estimated'), ('Survey', 'Average Sale Estimated'), ('Model', 'Ad Revenue'), ('Model', 'Ad Spend'), ('Survey', 'Ad Revenue'), ('Survey', 'Ad Spend'), ('Model-Survey Difference', 'Ad Revenue'), ('Model-Survey Difference', 'Ad Spend'), ('Model', 'Profit 200'), ('Model', 'Spend 200'), ('Survey', 'Profit 200'), ('Survey', 'Spend 200'), ('Model-Survey Difference', 'Profit 200'), ('Model-Survey Difference', 'Spend 200'), ('Model', 'Profit 2000'), ('Model', 'Spend 2000'), ('Survey', 'Profit 2000'), ('Survey', 'Spend 2000'), ('Model-Survey Difference', 'Profit 2000'), ('Model-Survey Difference', 'Spend 2000'), ('Model', 'Profit 20000'), ('Model', 'Spend 20000'), ('Survey', 'Profit 20000'), ('Survey', 'Spend 20000'), ('Model-Survey Difference', 'Profit 20000'), ('Model-Survey Difference', 'Spend 20000'),]
-
-    multiple_index_tuple_list_percent=[('Model', 'ROAS'), ('Survey', 'ROAS'), ('Model-Survey Difference', 'ROAS'), ('Model', 'ROI 200'), ('Survey', 'ROI 200'), ('Model-Survey Difference', 'ROI 200'), ('Model', 'ROI 2000'),('Survey', 'ROI 2000'), ('Model-Survey Difference', 'ROI 2000'),('Model', 'ROI 20000'), ('Survey', 'ROI 20000'), ('Model-Survey Difference', 'ROI 20000')]
-
-    #get lower and upper quantile column names
-    column_name_list=df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles.columns.to_list()
-
-
-    #combine two columns into one based on multiple index name
-    for multiple_index_tuple in multiple_index_tuple_list:
-
-        if multiple_index_tuple in multiple_index_tuple_list_usd:
-            df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles.loc[multiple_index_tuple, 'Overall']=\
-            '(\$'+str(round(df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles.loc[multiple_index_tuple, column_name_list[0]], 2))+', \$'+\
-            str(round(df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles.loc[multiple_index_tuple, column_name_list[1]], 2))+')'
-
-        elif multiple_index_tuple in multiple_index_tuple_list_percent:
-            df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles.loc[multiple_index_tuple, 'Overall']=\
-            '('+str(round(df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles.loc[multiple_index_tuple, column_name_list[0]], 2))+'%, '+\
-            str(round(df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles.loc[multiple_index_tuple, column_name_list[1]],2))+'%)'
-
-    df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_confidence_interval_and_quantiles=df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles
-    del df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles
-
-
-
-
-
-
-
-
-    #combine Overall and Coupon Venue Type Ad Revenue, Ad Spend, ROAS, Profit, Spend, ROI 95% Confidence Interval metrics
-    df_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_confidence_interval_overall_and_coupon_venue_type=\
-    pd.concat([df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_confidence_interval_and_quantiles.loc[:, ['Overall']], df_Ad_Revenue_Ad_Spend_ROAS_coupon_venue_type_confidence_interval], axis=1)
-
-    del df_Ad_Revenue_Ad_Spend_ROAS_coupon_venue_type_confidence_interval, df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_confidence_interval_and_quantiles
-    df_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_confidence_interval_overall_and_coupon_venue_type
-
-
-
-
-
-
-
-
-    #add '95% Confidence Interval' as column index to Overall and Coupon Venue Type columns
-    overall_and_coupon_venue_type_list=['Overall']+venue_type_list
-    column_name_tuple_list=[('95% Confidence Interval', coupon_venue_type) for coupon_venue_type in overall_and_coupon_venue_type_list]
-    multiple_index_overall_and_coupon_venue_type=pd.MultiIndex.from_tuples(column_name_tuple_list)
-
-    df_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_confidence_interval_overall_and_coupon_venue_type.columns=multiple_index_overall_and_coupon_venue_type
-
-
-
-
-
-
-
-
-
-    #get all metrics for Overall and Coupon Venue Type 95% Confidence Interval Table by adding Confidence Interval Metrics and Ad Revenue, Ad Spend, ROAS, Profit, Spend, ROI 95% Confidence Intervals
-    df_model_name_95_confidence_interval_metrics_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI=\
-    pd.concat([df_test_model_name_model_survey_95_confidence_interval_metric_feature_column_name_filter_value, 
-               df_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_confidence_interval_overall_and_coupon_venue_type], axis=0)
-
-    return df_model_name_95_confidence_interval_metrics_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI
-
-
-###########################################################################################################################
-
-
-
-
-
-
-
-def convert_collection_to_data_frame_and_drop_top_column_level(df_collection):
-    """
-
-    Args:
-
-
-    Returns:
-
-    """
-    #convert to data frame from collection
-    df=pd.concat(df_collection, axis=1)
-
-    #drop column name top level (from collection key)
-    df.columns=df.columns.droplevel(level=0)
-    
-    return df
-
-
-
-
-
-
-
-
-
-############################################################
-#############################################################
-
-def get_model_predictions_decision_threshold_metric_aim_coupon_venue_type(model_name, metric_name, metric_quantity, coupon_name, coupon_name_short, Y_test_model_prediction_data_frame_collection, df_y_test_model_name_prediction_probability_y_actual_coupon_venue_type, decision_threshold_collection):
-    """
-
-    Args:
-
-
-    Returns:
-
-    """
-    Y_test_model_prediction_list_collection = {}
-    
-    key = model_name + '_' + metric_name + '_' + metric_quantity + '_' + coupon_name_short + '_coupon'
-    column_name = model_name + '_prediction_' + metric_name + '_' + metric_quantity + '_' + coupon_name_short + '_coupon'
-    model_name_metric_name = model_name + '_' + metric_name
-
-    Y_test_model_prediction_list_collection[key] = \
-    [1 if prediction_probability > decision_threshold_collection[coupon_name][model_name_metric_name] else 0 \
-     for prediction_probability in df_y_test_model_name_prediction_probability_y_actual_coupon_venue_type.loc[:, 'Y_test_' + model_name + '_prediction_probability'].to_list()]
-
-    Y_test_model_prediction_data_frame_collection[key] = \
-    pd.DataFrame(Y_test_model_prediction_list_collection[key], columns=[column_name])
-    
-    return Y_test_model_prediction_data_frame_collection, key
-
-
-
-
-
-
-
-def donut_plot(name_list, size_list, title, title_fontsize, figure_filename, dpi, color_list, circle_color='white'):
-    """
-
-    Args:
-
-
-    Returns:
-
-    """
-    figure_filename_exists = os.path.isfile(figure_filename)
-    if figure_filename_exists == True:
-        img = mpimg.imread(figure_filename)
-        plt.figure(figsize=(10, 8))
-        plt.grid(False)
-        plt.axis('off')
-        plt.imshow(img)
-    else:
-        white_circle = plt.Circle((0,0), 0.7, color=circle_color)
-        plt.title(title, fontsize=title_fontsize)
-        plt.pie(size_list, labels=name_list, colors=color_list)
-        p = plt.gcf()
-        p.gca().add_artist(white_circle)
-        
-        #save it
-        plt.savefig(figure_filename, bbox_inches='tight', dpi=dpi)
-
-        plt.show()
-
-
-
-
-
-
-
-
-
-
-
-
-###############################################################################################################################
-#Get Ad Revenue, Ad Spend, ROAS, Profit, Spend, and ROI
-
-
-
-def get_metrics_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI(df):
-    """
-
-    Args:
-        
-    Returns:
-        
-    """
-    venue_type_list=['Coffee House', 'Bar', 'Takeout', 'Low-Cost Restaurant', 'Mid-Range Restaurant']
-
-    coupon_recommendation_cost_model_survey_list=['Model', 'Model']
-    
-    #Model Revenue, Ad Spend Metrics
-    #per venue type
-    df.loc[('Model', 'Ad Revenue'), :]=df.loc[('Model', 'Conversions'), :]*df.loc[('Model', 'Average Sale Estimated'), :]
-
-    #overall
-    df.loc[('Model', 'Ad Revenue'), 'Overall']=df.loc[('Model', 'Ad Revenue'), venue_type_list].sum()
-
-    
-    #per venue type
-    df.loc[('Model', 'Ad Spend'), :]=df.loc[(coupon_recommendation_cost_model_survey_list[0], 'Average Coupon Recommendation Cost Estimated'), :]*df.loc[('Model', 'Coupons Recommended'), :]
-
-    #overall
-    df.loc[('Model', 'Ad Spend'), 'Overall']=df.loc[('Model', 'Ad Spend'), venue_type_list].sum()
-
-
-
-    #Survey Revenue, Ad Spend Metrics
-    #per venue type
-    df.loc[('Survey', 'Ad Revenue'), :]=df.loc[('Survey', 'Conversions'), :]*df.loc[('Survey', 'Average Sale Estimated'), :]
-
-    #overall
-    df.loc[('Survey', 'Ad Revenue'), 'Overall']=df.loc[('Survey', 'Ad Revenue'), venue_type_list].sum()
-    
-    
-    #per venue type
-    df.loc[('Survey', 'Ad Spend'), :]=df.loc[(coupon_recommendation_cost_model_survey_list[1], 'Average Coupon Recommendation Cost Estimated'), :]*df.loc[('Survey', 'Coupons Recommended'), :]
-
-    #overall
-    df.loc[('Survey', 'Ad Spend'), 'Overall']=df.loc[('Survey', 'Ad Spend'), venue_type_list].sum()
-
-
-
-
-
-    #model-survey difference metrics
-    df.loc[('Model-Survey Difference', 'Ad Revenue'), :]=df.loc[('Model', 'Ad Revenue'), :]-df.loc[('Survey', 'Ad Revenue'), :]
-    df.loc[('Model-Survey Difference', 'Ad Spend'), :]=df.loc[('Model', 'Ad Spend'), :]-df.loc[('Survey', 'Ad Spend'), :]
-    
-    
-    #model, survey, model-survey difference ROAS metrics
-    df.loc[('Model', 'ROAS'), :]=df.loc[('Model', 'Ad Revenue'), :]/df.loc[('Model', 'Ad Spend'), :]*100
-
-
-    df.loc[('Survey', 'ROAS'), :]=df.loc[('Survey', 'Ad Revenue'), :]/df.loc[('Survey', 'Ad Spend'), :]*100
-
-
-    df.loc[('Model-Survey Difference', 'ROAS'), :]=df.loc[('Model', 'ROAS'), :]-df.loc[('Survey', 'ROAS'), :]
-    
-    
-    def calculate_Profit_Spend_ROI_with_added_production_cost(df, added_production_cost=2000):
-        """
-
-        Args:
-            
-        Returns:
-            
-        """
-        model_campaign_spend=df.loc[('Model', 'Ad Spend'), 'Overall']+added_production_cost
-        model_campaign_profit=df.loc[('Model', 'Ad Revenue'), 'Overall']-model_campaign_spend
-        
-        df.loc[('Model', 'Profit '+str(added_production_cost)), 'Overall']=model_campaign_profit
-        df.loc[('Model', 'Spend '+str(added_production_cost)), 'Overall']=model_campaign_spend
-        df.loc[('Model', 'ROI '+str(added_production_cost)), 'Overall']=model_campaign_profit/model_campaign_spend*100
-
-        
-        
-        survey_campaign_spend=df.loc[('Survey', 'Ad Spend'), 'Overall']+added_production_cost
-        survey_campaign_profit=df.loc[('Survey', 'Ad Revenue'), 'Overall']-survey_campaign_spend
-        
-        df.loc[('Survey', 'Profit '+str(added_production_cost)), 'Overall']=survey_campaign_profit
-        df.loc[('Survey', 'Spend '+str(added_production_cost)), 'Overall']=survey_campaign_spend
-        df.loc[('Survey', 'ROI '+str(added_production_cost)), 'Overall']=survey_campaign_profit/survey_campaign_spend*100
-
-        
-        df.loc[('Model-Survey Difference', 'Profit '+str(added_production_cost)), 'Overall']=model_campaign_profit-survey_campaign_profit
-        df.loc[('Model-Survey Difference', 'Spend '+str(added_production_cost)), 'Overall']=model_campaign_spend-survey_campaign_spend
-        df.loc[('Model-Survey Difference', 'ROI '+str(added_production_cost)), 'Overall']=df.loc[('Model', 'ROI '+str(added_production_cost)), 'Overall']-df.loc[('Survey', 'ROI '+str(added_production_cost)), 'Overall']
-        
-        return df
-    
-    df=calculate_Profit_Spend_ROI_with_added_production_cost(df, added_production_cost=200)    
-    df=calculate_Profit_Spend_ROI_with_added_production_cost(df, added_production_cost=2000)
-    df=calculate_Profit_Spend_ROI_with_added_production_cost(df, added_production_cost=20000)
-
-    return df
-
-################################################################################################################################
-
-
-
-
-
-
-
-################################################################################################################################
 def get_campaign_roi_from_ad_revenue_ad_spend_additional_production_cost(ad_revenue, ad_spend, additional_production_cost):
     """Calculate roi from ad revenue, ad spend, and additional production cost values
     
     Args:
-        ad_revenue (float64): campaign ad revenue
-        ad_spend (float64): camapaign ad spend
-        additional_production_cost (ndarray): additional production cost
+        ad_revenue (float64): The campaign ad revenue.
+        ad_spend (float64): The camapaign ad spend.
+        additional_production_cost (ndarray): The additional production cost.
     
     Returns
-        ndarray: roi values
+        ndarray: The roi values.
     """
     return (ad_revenue-ad_spend-additional_production_cost)/(ad_spend+additional_production_cost)
-################################################################################################################################
 
 
 
-
-
-
-
-
-
-
-
-
-###############################################################################################################################
-
-def combine_model_metric_replicates_and_ad_revenue_ad_spend_roas_profit_spend_roi_replicates(model_type,
-                                                                                             number_metric,
-                                                                                             filename_version):
+def combine_model_metric_replicates_and_ad_revenue_ad_spend_roas_profit_spend_roi_replicates(model_type, number_metric, filename_version):
     """Read in model name metric replicates and model name Ad Revenue, Ad Spend, ROAS, Profit, Spend, and ROI replicate files. 
     Concatenate the DataFrame's, save the result, and return it.
     
     Args:
+        model_type (str): The model type, e.g. 'random_forest' or 'gradient boosting'
+        number_metric (int): The number and metric estimated.
+        filename_version (str): The filename version.
         
     Returns:
-        
+        df_test_model_name_number_metric_estimated_10000_metric_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_replicates_overall (DataFrame): The ML model, recall-random model, and difference model overall metric replicates DataFrame.       
     """
     
     #get filename_list
@@ -2445,8 +1872,6 @@ def combine_model_metric_replicates_and_ad_revenue_ad_spend_roas_profit_spend_ro
     df_test_model_name_number_metric_estimated_10000_metric_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_replicates_overall=save_and_return_data_frame_v2(df_test_model_name_number_metric_estimated_10000_metric_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_replicates_overall,filename=filename_list[2])
     
     return df_test_model_name_number_metric_estimated_10000_metric_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_replicates_overall
-
-###############################################################################################################################
 
 
 
