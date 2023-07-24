@@ -847,15 +847,15 @@ def get_metric_multiple_index(proportion_or_percentage):
     Returns:
         multiple_index (MultiIndex): the metric MultiIndex object.     
     """
-    metric_index_value_list=['Conversion Rate', 'Recall', proportion_or_percentage.capitalize()+' of Conversions', 'Conversions', proportion_or_percentage.capitalize()+' of Coupons Recommended', 'Coupons Recommended', 
-                               'Conversions to Base Survey Coupons Recommended Ratio',
-                               'Conversions to Survey Conversions Ratio',
-                               'Coupons Recommended to Survey Coupons Recommended Ratio', 
-                               'Coupons Recommended to Base Survey Coupons Recommended Ratio',]
+    metric_index_value_list=['Coupon Acceptance Rate', 'Recall', proportion_or_percentage.capitalize()+' of Coupon Acceptances', 'Coupon Acceptances', proportion_or_percentage.capitalize()+' of Coupon Recommendations', 'Coupon Recommendations', 
+                               'Coupon Acceptances to Base Survey Coupon Recommendations Ratio',
+                               'Coupon Acceptances to Survey Coupon Acceptances Ratio',
+                               'Coupon Recommendations to Survey Coupon Recommendations Ratio', 
+                               'Coupon Recommendations to Base Survey Coupon Recommendations Ratio',]
 
-    model_survey_index_value_list=['Model' for index in range(len(metric_index_value_list))]+\
-                                  ['Survey' for index in range(len(metric_index_value_list))]+\
-                                  ['Model-Survey Difference' for index in range(len(metric_index_value_list))]
+    model_survey_index_value_list=['Treatment' for index in range(len(metric_index_value_list))]+\
+                                  ['Control' for index in range(len(metric_index_value_list))]+\
+                                  ['Treatment-Control Difference' for index in range(len(metric_index_value_list))]
 
     metric_index_value_list_tripled=metric_index_value_list+metric_index_value_list+metric_index_value_list
 
@@ -880,55 +880,55 @@ def get_metrics_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI(df):
     
     venue_type_list=['Coffee House', 'Bar', 'Takeout', 'Low-Cost Restaurant', 'Mid-Range Restaurant']
 
-    coupon_recommendation_cost_model_survey_list=['Model', 'Model']
+    coupon_recommendation_cost_model_survey_list=['Treatment', 'Treatment']
     
     #Model Revenue, Ad Spend Metrics
     #per venue type
-    df.loc[('Model', 'Ad Revenue'), :]=df.loc[('Model', 'Conversions'), :]*df.loc[('Model', 'Average Sale Estimated'), :]
+    df.loc[('Treatment', 'Ad Revenue'), :]=df.loc[('Treatment', 'Coupon Acceptances'), :]*df.loc[('Treatment', 'Average Sale Estimated'), :]
 
     #overall
-    df.loc[('Model', 'Ad Revenue'), 'Overall']=df.loc[('Model', 'Ad Revenue'), venue_type_list].sum()
+    df.loc[('Treatment', 'Ad Revenue'), 'Overall']=df.loc[('Treatment', 'Ad Revenue'), venue_type_list].sum()
 
     
     #per venue type
-    df.loc[('Model', 'Ad Spend'), :]=df.loc[(coupon_recommendation_cost_model_survey_list[0], 'Average Coupon Recommendation Cost Estimated'), :]*df.loc[('Model', 'Coupons Recommended'), :]
+    df.loc[('Treatment', 'Ad Spend'), :]=df.loc[(coupon_recommendation_cost_model_survey_list[0], 'Average Coupon Recommendation Cost Estimated'), :]*df.loc[('Treatment', 'Coupon Recommendations'), :]
 
     #overall
-    df.loc[('Model', 'Ad Spend'), 'Overall']=df.loc[('Model', 'Ad Spend'), venue_type_list].sum()
+    df.loc[('Treatment', 'Ad Spend'), 'Overall']=df.loc[('Treatment', 'Ad Spend'), venue_type_list].sum()
 
 
 
     #Survey Revenue, Ad Spend Metrics
     #per venue type
-    df.loc[('Survey', 'Ad Revenue'), :]=df.loc[('Survey', 'Conversions'), :]*df.loc[('Survey', 'Average Sale Estimated'), :]
+    df.loc[('Control', 'Ad Revenue'), :]=df.loc[('Control', 'Coupon Acceptances'), :]*df.loc[('Control', 'Average Sale Estimated'), :]
 
     #overall
-    df.loc[('Survey', 'Ad Revenue'), 'Overall']=df.loc[('Survey', 'Ad Revenue'), venue_type_list].sum()
+    df.loc[('Control', 'Ad Revenue'), 'Overall']=df.loc[('Control', 'Ad Revenue'), venue_type_list].sum()
     
     
     #per venue type
-    df.loc[('Survey', 'Ad Spend'), :]=df.loc[(coupon_recommendation_cost_model_survey_list[1], 'Average Coupon Recommendation Cost Estimated'), :]*df.loc[('Survey', 'Coupons Recommended'), :]
+    df.loc[('Control', 'Ad Spend'), :]=df.loc[(coupon_recommendation_cost_model_survey_list[1], 'Average Coupon Recommendation Cost Estimated'), :]*df.loc[('Control', 'Coupon Recommendations'), :]
 
     #overall
-    df.loc[('Survey', 'Ad Spend'), 'Overall']=df.loc[('Survey', 'Ad Spend'), venue_type_list].sum()
+    df.loc[('Control', 'Ad Spend'), 'Overall']=df.loc[('Control', 'Ad Spend'), venue_type_list].sum()
 
 
 
 
 
-    #model-survey difference metrics
-    df.loc[('Model-Survey Difference', 'Ad Revenue'), :]=df.loc[('Model', 'Ad Revenue'), :]-df.loc[('Survey', 'Ad Revenue'), :]
-    df.loc[('Model-Survey Difference', 'Ad Spend'), :]=df.loc[('Model', 'Ad Spend'), :]-df.loc[('Survey', 'Ad Spend'), :]
+    #Treatment-Control Difference metrics
+    df.loc[('Treatment-Control Difference', 'Ad Revenue'), :]=df.loc[('Treatment', 'Ad Revenue'), :]-df.loc[('Control', 'Ad Revenue'), :]
+    df.loc[('Treatment-Control Difference', 'Ad Spend'), :]=df.loc[('Treatment', 'Ad Spend'), :]-df.loc[('Control', 'Ad Spend'), :]
     
     
-    #model, survey, model-survey difference ROAS metrics
-    df.loc[('Model', 'ROAS'), :]=df.loc[('Model', 'Ad Revenue'), :]/df.loc[('Model', 'Ad Spend'), :]*100
+    #model, survey, Treatment-Control Difference ROAS metrics
+    df.loc[('Treatment', 'ROAS'), :]=df.loc[('Treatment', 'Ad Revenue'), :]/df.loc[('Treatment', 'Ad Spend'), :]*100
 
 
-    df.loc[('Survey', 'ROAS'), :]=df.loc[('Survey', 'Ad Revenue'), :]/df.loc[('Survey', 'Ad Spend'), :]*100
+    df.loc[('Control', 'ROAS'), :]=df.loc[('Control', 'Ad Revenue'), :]/df.loc[('Control', 'Ad Spend'), :]*100
 
 
-    df.loc[('Model-Survey Difference', 'ROAS'), :]=df.loc[('Model', 'ROAS'), :]-df.loc[('Survey', 'ROAS'), :]
+    df.loc[('Treatment-Control Difference', 'ROAS'), :]=df.loc[('Treatment', 'ROAS'), :]-df.loc[('Control', 'ROAS'), :]
     
     
     def calculate_Profit_Spend_ROI_with_added_production_cost(df, added_production_cost=2000):
@@ -941,26 +941,26 @@ def get_metrics_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI(df):
         Returns:
             df (DataFrame): The DataFrame with ML model, recall-random model, and ML-recall random model difference Profit, Spend, and ROI with additional production cost metrics.
         """
-        model_campaign_spend=df.loc[('Model', 'Ad Spend'), 'Overall']+added_production_cost
-        model_campaign_profit=df.loc[('Model', 'Ad Revenue'), 'Overall']-model_campaign_spend
+        model_campaign_spend=df.loc[('Treatment', 'Ad Spend'), 'Overall']+added_production_cost
+        model_campaign_profit=df.loc[('Treatment', 'Ad Revenue'), 'Overall']-model_campaign_spend
         
-        df.loc[('Model', 'Profit '+str(added_production_cost)), 'Overall']=model_campaign_profit
-        df.loc[('Model', 'Spend '+str(added_production_cost)), 'Overall']=model_campaign_spend
-        df.loc[('Model', 'ROI '+str(added_production_cost)), 'Overall']=model_campaign_profit/model_campaign_spend*100
+        df.loc[('Treatment', 'Profit '+str(added_production_cost)), 'Overall']=model_campaign_profit
+        df.loc[('Treatment', 'Spend '+str(added_production_cost)), 'Overall']=model_campaign_spend
+        df.loc[('Treatment', 'ROI '+str(added_production_cost)), 'Overall']=model_campaign_profit/model_campaign_spend*100
 
         
         
-        survey_campaign_spend=df.loc[('Survey', 'Ad Spend'), 'Overall']+added_production_cost
-        survey_campaign_profit=df.loc[('Survey', 'Ad Revenue'), 'Overall']-survey_campaign_spend
+        survey_campaign_spend=df.loc[('Control', 'Ad Spend'), 'Overall']+added_production_cost
+        survey_campaign_profit=df.loc[('Control', 'Ad Revenue'), 'Overall']-survey_campaign_spend
         
-        df.loc[('Survey', 'Profit '+str(added_production_cost)), 'Overall']=survey_campaign_profit
-        df.loc[('Survey', 'Spend '+str(added_production_cost)), 'Overall']=survey_campaign_spend
-        df.loc[('Survey', 'ROI '+str(added_production_cost)), 'Overall']=survey_campaign_profit/survey_campaign_spend*100
+        df.loc[('Control', 'Profit '+str(added_production_cost)), 'Overall']=survey_campaign_profit
+        df.loc[('Control', 'Spend '+str(added_production_cost)), 'Overall']=survey_campaign_spend
+        df.loc[('Control', 'ROI '+str(added_production_cost)), 'Overall']=survey_campaign_profit/survey_campaign_spend*100
 
         
-        df.loc[('Model-Survey Difference', 'Profit '+str(added_production_cost)), 'Overall']=model_campaign_profit-survey_campaign_profit
-        df.loc[('Model-Survey Difference', 'Spend '+str(added_production_cost)), 'Overall']=model_campaign_spend-survey_campaign_spend
-        df.loc[('Model-Survey Difference', 'ROI '+str(added_production_cost)), 'Overall']=df.loc[('Model', 'ROI '+str(added_production_cost)), 'Overall']-df.loc[('Survey', 'ROI '+str(added_production_cost)), 'Overall']
+        df.loc[('Treatment-Control Difference', 'Profit '+str(added_production_cost)), 'Overall']=model_campaign_profit-survey_campaign_profit
+        df.loc[('Treatment-Control Difference', 'Spend '+str(added_production_cost)), 'Overall']=model_campaign_spend-survey_campaign_spend
+        df.loc[('Treatment-Control Difference', 'ROI '+str(added_production_cost)), 'Overall']=df.loc[('Treatment', 'ROI '+str(added_production_cost)), 'Overall']-df.loc[('Control', 'ROI '+str(added_production_cost)), 'Overall']
         
         return df
     
@@ -1005,79 +1005,79 @@ def get_Ad_Revenue_Ad_Spend_ROAS_replicate_metrics_from_venue_type_replicate_met
     
     Args:
         df (DataFrame): The metric replicates DataFrame.
-        Ad_Revenue_Ad_Spend_ROAS_list (list): The boolean list for calculation of model, survey, model-survey difference ad revenue and ad spend; And model, survey, model-survey difference ROAS.
+        Ad_Revenue_Ad_Spend_ROAS_list (list): The boolean list for calculation of model, survey, Treatment-Control Difference ad revenue and ad spend; And model, survey, Treatment-Control Difference ROAS.
         
     Returns:
         df (DataFrame): Metric replicates and Ad Revenue, Ad Spend, ROAS replicates DataFrame.
     """
-    coupon_recommendation_cost_model_survey_list=['Model', 'Model']    
+    coupon_recommendation_cost_model_survey_list=['Treatment', 'Treatment']    
     if Ad_Revenue_Ad_Spend_ROAS_list[0]==True:
         #Model Total Revenue, Total Ad Spend Metrics
-        df.loc[('Model', 'Ad Revenue'), :]=df.loc[('Model', 'Conversions'), :]*df.loc[('Model', 'Average Sale Estimated'), :]
-        df.loc[('Model', 'Ad Spend'), :]=df.loc[(coupon_recommendation_cost_model_survey_list[0], 'Average Coupon Recommendation Cost Estimated'), :]*df.loc[('Model', 'Coupons Recommended'), :]
+        df.loc[('Treatment', 'Ad Revenue'), :]=df.loc[('Treatment', 'Coupon Acceptances'), :]*df.loc[('Treatment', 'Average Sale Estimated'), :]
+        df.loc[('Treatment', 'Ad Spend'), :]=df.loc[(coupon_recommendation_cost_model_survey_list[0], 'Average Coupon Recommendation Cost Estimated'), :]*df.loc[('Treatment', 'Coupon Recommendations'), :]
 
         #Survey Total Revenue, Total Ad Spend Metrics    
-        df.loc[('Survey', 'Ad Revenue'), :]=df.loc[('Survey', 'Conversions'), :]*df.loc[('Survey', 'Average Sale Estimated'), :]
-        df.loc[('Survey', 'Ad Spend'), :]=df.loc[(coupon_recommendation_cost_model_survey_list[1], 'Average Coupon Recommendation Cost Estimated'), :]*df.loc[('Survey', 'Coupons Recommended'), :]
+        df.loc[('Control', 'Ad Revenue'), :]=df.loc[('Control', 'Coupon Acceptances'), :]*df.loc[('Control', 'Average Sale Estimated'), :]
+        df.loc[('Control', 'Ad Spend'), :]=df.loc[(coupon_recommendation_cost_model_survey_list[1], 'Average Coupon Recommendation Cost Estimated'), :]*df.loc[('Control', 'Coupon Recommendations'), :]
         
         #Model-Survey Total Revenue, Total Ad Spend Metrics
-        df.loc[('Model-Survey Difference', 'Ad Revenue'), :]=df.loc[('Model', 'Ad Revenue'), :]-df.loc[('Survey', 'Ad Revenue'), :]
-        df.loc[('Model-Survey Difference', 'Ad Spend'), :]=df.loc[('Model', 'Ad Spend'), :]-df.loc[('Survey', 'Ad Spend'), :]
+        df.loc[('Treatment-Control Difference', 'Ad Revenue'), :]=df.loc[('Treatment', 'Ad Revenue'), :]-df.loc[('Control', 'Ad Revenue'), :]
+        df.loc[('Treatment-Control Difference', 'Ad Spend'), :]=df.loc[('Treatment', 'Ad Spend'), :]-df.loc[('Control', 'Ad Spend'), :]
 
     if Ad_Revenue_Ad_Spend_ROAS_list[1]==True:
-        df.loc[('Model', 'ROAS'), :]=df.loc[('Model', 'Ad Revenue'), :]/df.loc[('Model', 'Ad Spend'), :]*100
-        df.loc[('Survey', 'ROAS'), :]=df.loc[('Survey', 'Ad Revenue'), :]/df.loc[('Survey', 'Ad Spend'), :]*100
-        df.loc[('Model-Survey Difference', 'ROAS'), :]=df.loc[('Model', 'ROAS'), :]-df.loc[('Survey', 'ROAS'), :]
+        df.loc[('Treatment', 'ROAS'), :]=df.loc[('Treatment', 'Ad Revenue'), :]/df.loc[('Treatment', 'Ad Spend'), :]*100
+        df.loc[('Control', 'ROAS'), :]=df.loc[('Control', 'Ad Revenue'), :]/df.loc[('Control', 'Ad Spend'), :]*100
+        df.loc[('Treatment-Control Difference', 'ROAS'), :]=df.loc[('Treatment', 'ROAS'), :]-df.loc[('Control', 'ROAS'), :]
         
     return df
 
 
 
 def get_Overall_ROAS_Profit_Spend_ROI_per_Survey_Model_Survey_Difference(df, ROAS_Profit_Spend_ROI_list=[True, True, True, True]):
-    """Calculate and append result of Model, Survey, and Model-Survey Difference of ROAS, Profit, Spend, and ROI with 200, 2000, and 20000 additional spend to metric replicates. 
+    """Calculate and append result of Model, Survey, and Treatment-Control Difference of ROAS, Profit, Spend, and ROI with 200, 2000, and 20000 additional spend to metric replicates. 
     Args:
         df (DataFrame): DataFrame with the Overall metric replicates.
     Returns:
-        df (DataFrame): DataFrame with appended calculation result of Model, Survey, and Model-Survey Difference of ROAS, Profit, Spend, and ROI.
+        df (DataFrame): DataFrame with appended calculation result of Model, Survey, and Treatment-Control Difference of ROAS, Profit, Spend, and ROI.
     """
 
-    df.loc[('Model', 'ROAS'), :]=df.loc[('Model', 'Ad Revenue'), :]/df.loc[('Model', 'Ad Spend'), :]*100
-    df.loc[('Survey', 'ROAS'), :]=df.loc[('Survey', 'Ad Revenue'), :]/df.loc[('Survey', 'Ad Spend'), :]*100
-    df.loc[('Model-Survey Difference', 'ROAS'), :]=df.loc[('Model', 'ROAS'), :]-df.loc[('Survey', 'ROAS'), :]
+    df.loc[('Treatment', 'ROAS'), :]=df.loc[('Treatment', 'Ad Revenue'), :]/df.loc[('Treatment', 'Ad Spend'), :]*100
+    df.loc[('Control', 'ROAS'), :]=df.loc[('Control', 'Ad Revenue'), :]/df.loc[('Control', 'Ad Spend'), :]*100
+    df.loc[('Treatment-Control Difference', 'ROAS'), :]=df.loc[('Treatment', 'ROAS'), :]-df.loc[('Control', 'ROAS'), :]
 
     
     def get_Profit_Spend_ROI_with_additional_spend(df, additional_spend=None):
-        """Calculate and append result of Model, Survey, and Model-Survey Difference of ROAS, Profit, Spend, and ROI with additional spend to metric replicates. 
+        """Calculate and append result of Model, Survey, and Treatment-Control Difference of ROAS, Profit, Spend, and ROI with additional spend to metric replicates. 
         
         Args:
             df (DataFrame): DataFrame with the Overall metric replicates.
             additional_spend (int): None.
             
         Returns:
-            df (DataFrame): DataFrame with appended calculation result of Model, Survey, and Model-Survey Difference of ROAS, Profit, Spend, and ROI number.
+            df (DataFrame): DataFrame with appended calculation result of Model, Survey, and Treatment-Control Difference of ROAS, Profit, Spend, and ROI number.
         """
 
         if additional_spend==None:
             additional_spend=200
 
         #Model ROI Metrics
-        model_campaign_spend=df.loc[('Model', 'Ad Spend'), :]+additional_spend
-        model_campaign_profit=df.loc[('Model', 'Ad Revenue'), :]-model_campaign_spend
-        df.loc[('Model', 'Profit '+str(additional_spend)), :]=model_campaign_profit
-        df.loc[('Model', 'Spend '+str(additional_spend)), :]=model_campaign_spend
-        df.loc[('Model', 'ROI '+str(additional_spend)), :]=model_campaign_profit/model_campaign_spend*100
+        model_campaign_spend=df.loc[('Treatment', 'Ad Spend'), :]+additional_spend
+        model_campaign_profit=df.loc[('Treatment', 'Ad Revenue'), :]-model_campaign_spend
+        df.loc[('Treatment', 'Profit '+str(additional_spend)), :]=model_campaign_profit
+        df.loc[('Treatment', 'Spend '+str(additional_spend)), :]=model_campaign_spend
+        df.loc[('Treatment', 'ROI '+str(additional_spend)), :]=model_campaign_profit/model_campaign_spend*100
 
         #Survey ROI Metrics
-        survey_campaign_spend=df.loc[('Survey', 'Ad Spend'), :]+additional_spend
-        survey_campaign_profit=df.loc[('Survey', 'Ad Revenue'), :]-survey_campaign_spend
-        df.loc[('Survey', 'Profit '+str(additional_spend)), :]=survey_campaign_profit
-        df.loc[('Survey', 'Spend '+str(additional_spend)), :]=survey_campaign_spend
-        df.loc[('Survey', 'ROI '+str(additional_spend)), :]=survey_campaign_profit/survey_campaign_spend*100
+        survey_campaign_spend=df.loc[('Control', 'Ad Spend'), :]+additional_spend
+        survey_campaign_profit=df.loc[('Control', 'Ad Revenue'), :]-survey_campaign_spend
+        df.loc[('Control', 'Profit '+str(additional_spend)), :]=survey_campaign_profit
+        df.loc[('Control', 'Spend '+str(additional_spend)), :]=survey_campaign_spend
+        df.loc[('Control', 'ROI '+str(additional_spend)), :]=survey_campaign_profit/survey_campaign_spend*100
 
         #Survey-Model Difference ROI Metrics
-        df.loc[('Model-Survey Difference', 'Profit '+str(additional_spend)), :]=df.loc[('Model', 'Profit '+str(additional_spend)), :]-df.loc[('Survey', 'Profit '+str(additional_spend)), :]
-        df.loc[('Model-Survey Difference', 'Spend '+str(additional_spend)), :]=df.loc[('Model', 'Spend '+str(additional_spend)), :]-df.loc[('Survey', 'Spend '+str(additional_spend)), :]
-        df.loc[('Model-Survey Difference', 'ROI '+str(additional_spend)), :]=df.loc[('Model', 'ROI '+str(additional_spend)), :]-df.loc[('Survey', 'ROI '+str(additional_spend)), :]
+        df.loc[('Treatment-Control Difference', 'Profit '+str(additional_spend)), :]=df.loc[('Treatment', 'Profit '+str(additional_spend)), :]-df.loc[('Control', 'Profit '+str(additional_spend)), :]
+        df.loc[('Treatment-Control Difference', 'Spend '+str(additional_spend)), :]=df.loc[('Treatment', 'Spend '+str(additional_spend)), :]-df.loc[('Control', 'Spend '+str(additional_spend)), :]
+        df.loc[('Treatment-Control Difference', 'ROI '+str(additional_spend)), :]=df.loc[('Treatment', 'ROI '+str(additional_spend)), :]-df.loc[('Control', 'ROI '+str(additional_spend)), :]
         
         return df
     
@@ -1099,7 +1099,7 @@ def calculate_Overall_and_Coupon_Venue_Type_Ad_Revenue_Ad_Spend_ROAS_Profit_Spen
     
     Args:
         df_model_name_model_survey_coupon_recommendation_cost_estimated_sale_estimated_replicate_collection (dict):
-        df_test_model_name_model_survey_95_confidence_interval_metric_feature_column_name_filter_value (DataFrame): Model, Survey, Model-Survey Difference Metric 95% Confidence Interval DataFrame
+        df_test_model_name_model_survey_95_confidence_interval_metric_feature_column_name_filter_value (DataFrame): Model, Survey, Treatment-Control Difference Metric 95% Confidence Interval DataFrame
         test_model_name_metric_replicate_filename_collection (dict): collection of Metric replicates
         model_type (str): 'random_forst' or 'gradient_boosting'
         filename_version (str): file version number
@@ -1109,7 +1109,7 @@ def calculate_Overall_and_Coupon_Venue_Type_Ad_Revenue_Ad_Spend_ROAS_Profit_Spen
         df_model_name_95_confidence_interval_metrics_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI (DataFrame): Metric and Ad Revenue, Ad Spend, ROAS, Profit, Spend, ROI replicate 95% confidence interval DataFrame
     """
     
-    #get Ad Revenue, Ad Spend, and ROAS (for Model, Survey, and Model-Survey Difference) by reading in the five (5) Coupon Venue Type Metric Replicates files
+    #get Ad Revenue, Ad Spend, and ROAS (for Model, Survey, and Treatment-Control Difference) by reading in the five (5) Coupon Venue Type Metric Replicates files
     column_name_list=['Coffee House', 'Bar', 'Takeout', 'Low-Cost Restaurant', 'Mid-Range Restaurant']
     df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type={}
 
@@ -1132,7 +1132,7 @@ def calculate_Overall_and_Coupon_Venue_Type_Ad_Revenue_Ad_Spend_ROAS_Profit_Spen
     
     #get 95% confidence interval quantile collection per Coupon Venue Type from Ad Revenue, Ad Spend, and ROAS replicate metrics
     column_name_list=['Coffee House', 'Bar', 'Takeout', 'Low-Cost Restaurant', 'Mid-Range Restaurant']
-    tuple_index_name_list=[('Model', 'Average Coupon Recommendation Cost Estimated'), ('Model', 'Average Sale Estimated'), ('Survey', 'Average Coupon Recommendation Cost Estimated'), ('Survey', 'Average Sale Estimated'), ('Model', 'Ad Revenue'), ('Model', 'Ad Spend'), ('Survey', 'Ad Revenue'), ('Survey', 'Ad Spend'), ('Model-Survey Difference', 'Ad Revenue'), ('Model-Survey Difference', 'Ad Spend'), ('Model', 'ROAS'), ('Survey', 'ROAS'), ('Model-Survey Difference', 'ROAS'),]
+    tuple_index_name_list=[('Treatment', 'Average Coupon Recommendation Cost Estimated'), ('Treatment', 'Average Sale Estimated'), ('Control', 'Average Coupon Recommendation Cost Estimated'), ('Control', 'Average Sale Estimated'), ('Treatment', 'Ad Revenue'), ('Treatment', 'Ad Spend'), ('Control', 'Ad Revenue'), ('Control', 'Ad Spend'), ('Treatment-Control Difference', 'Ad Revenue'), ('Treatment-Control Difference', 'Ad Spend'), ('Treatment', 'ROAS'), ('Control', 'ROAS'), ('Treatment-Control Difference', 'ROAS'),]
     df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection={}
 
     for column_name in column_name_list:
@@ -1141,8 +1141,8 @@ def calculate_Overall_and_Coupon_Venue_Type_Ad_Revenue_Ad_Spend_ROAS_Profit_Spen
 
         
     #get and add confidence interval column from two quantile columns
-    multiple_index_tuple_list_usd=[('Model', 'Average Coupon Recommendation Cost Estimated'), ('Model', 'Average Sale Estimated'), ('Survey', 'Average Coupon Recommendation Cost Estimated'), ('Survey', 'Average Sale Estimated'), ('Model', 'Ad Revenue'), ('Model', 'Ad Spend'), ('Survey', 'Ad Revenue'), ('Survey', 'Ad Spend'), ('Model-Survey Difference', 'Ad Revenue'), ('Model-Survey Difference', 'Ad Spend'), ('Model', 'Profit 200'), ('Model', 'Spend 200'), ('Survey', 'Profit 200'), ('Survey', 'Spend 200'), ('Model-Survey Difference', 'Profit 200'), ('Model-Survey Difference', 'Spend 200'), ('Model', 'Profit 2000'), ('Model', 'Spend 2000'), ('Survey', 'Profit 2000'), ('Survey', 'Spend 2000'), ('Model-Survey Difference', 'Profit 2000'), ('Model-Survey Difference', 'Spend 2000'), ('Model', 'Profit 20000'), ('Model', 'Spend 20000'), ('Survey', 'Profit 20000'), ('Survey', 'Spend 20000'), ('Model-Survey Difference', 'Profit 20000'), ('Model-Survey Difference', 'Spend 20000'),]
-    multiple_index_tuple_list_percent=[('Model', 'ROAS'), ('Survey', 'ROAS'), ('Model-Survey Difference', 'ROAS'), ('Model', 'ROI 200'), ('Survey', 'ROI 200'), ('Model-Survey Difference', 'ROI 200'), ('Model', 'ROI 2000'),('Survey', 'ROI 2000'), ('Model-Survey Difference', 'ROI 2000'),('Model', 'ROI 20000'), ('Survey', 'ROI 20000'), ('Model-Survey Difference', 'ROI 20000')]
+    multiple_index_tuple_list_usd=[('Treatment', 'Average Coupon Recommendation Cost Estimated'), ('Treatment', 'Average Sale Estimated'), ('Control', 'Average Coupon Recommendation Cost Estimated'), ('Control', 'Average Sale Estimated'), ('Treatment', 'Ad Revenue'), ('Treatment', 'Ad Spend'), ('Control', 'Ad Revenue'), ('Control', 'Ad Spend'), ('Treatment-Control Difference', 'Ad Revenue'), ('Treatment-Control Difference', 'Ad Spend'), ('Treatment', 'Profit 200'), ('Treatment', 'Spend 200'), ('Control', 'Profit 200'), ('Control', 'Spend 200'), ('Treatment-Control Difference', 'Profit 200'), ('Treatment-Control Difference', 'Spend 200'), ('Treatment', 'Profit 2000'), ('Treatment', 'Spend 2000'), ('Control', 'Profit 2000'), ('Control', 'Spend 2000'), ('Treatment-Control Difference', 'Profit 2000'), ('Treatment-Control Difference', 'Spend 2000'), ('Treatment', 'Profit 20000'), ('Treatment', 'Spend 20000'), ('Control', 'Profit 20000'), ('Control', 'Spend 20000'), ('Treatment-Control Difference', 'Profit 20000'), ('Treatment-Control Difference', 'Spend 20000'),]
+    multiple_index_tuple_list_percent=[('Treatment', 'ROAS'), ('Control', 'ROAS'), ('Treatment-Control Difference', 'ROAS'), ('Treatment', 'ROI 200'), ('Control', 'ROI 200'), ('Treatment-Control Difference', 'ROI 200'), ('Treatment', 'ROI 2000'),('Control', 'ROI 2000'), ('Treatment-Control Difference', 'ROI 2000'),('Treatment', 'ROI 20000'), ('Control', 'ROI 20000'), ('Treatment-Control Difference', 'ROI 20000')]
 
     column_name_list=df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection['Coffee House'].columns.to_list()
     multiple_index_tuple_list=df_Ad_Revenue_Ad_Spend_ROAS_per_model_survey_model_survey_difference_quantile_collection['Coffee House'].index.to_list()
@@ -1176,11 +1176,11 @@ def calculate_Overall_and_Coupon_Venue_Type_Ad_Revenue_Ad_Spend_ROAS_Profit_Spen
     #get Overall Ad Revenue, Ad Spend, ROAS, Profit, Spend, and ROI Metric Replicates from Coupon Venue Type Ad Revenue and Ad Spend Replicates Collection
 
 
-    #Get Overall Ad Revenue and Ad Spend per Model, Survey, and Model-Survey Difference
+    #Get Overall Ad Revenue and Ad Spend per Model, Survey, and Treatment-Control Difference
     #Initialize variables
     column_name_list=['Coffee House', 'Bar', 'Takeout', 'Low-Cost Restaurant', 'Mid-Range Restaurant',]
-    tuple_index_name_list=[('Model', 'Ad Revenue'), ('Model', 'Ad Spend'), ('Survey', 'Ad Revenue'), ('Survey', 'Ad Spend'), ('Model-Survey Difference', 'Ad Revenue'), ('Model-Survey Difference', 'Ad Spend'),]
-    #Calculate Overall Ad Revenue and Ad Spend per Model, Survey, and Model-Survey Difference (via a sum up of Ad Revenue and Ad Spend per Coupon Venue Type)
+    tuple_index_name_list=[('Treatment', 'Ad Revenue'), ('Treatment', 'Ad Spend'), ('Control', 'Ad Revenue'), ('Control', 'Ad Spend'), ('Treatment-Control Difference', 'Ad Revenue'), ('Treatment-Control Difference', 'Ad Spend'),]
+    #Calculate Overall Ad Revenue and Ad Spend per Model, Survey, and Treatment-Control Difference (via a sum up of Ad Revenue and Ad Spend per Coupon Venue Type)
     df_test_model_name_number_metric_estimated_10000_metric_replicates_overall=df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name_list[0]].loc[tuple_index_name_list,:]+df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name_list[1]].loc[tuple_index_name_list,:]+df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name_list[2]].loc[tuple_index_name_list,:]+df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name_list[3]].loc[tuple_index_name_list,:]+df_test_model_name_number_metric_estimated_10000_metric_replicates_collection_coupon_venue_type[column_name_list[4]].loc[tuple_index_name_list,:]
 
 
@@ -1207,9 +1207,9 @@ def calculate_Overall_and_Coupon_Venue_Type_Ad_Revenue_Ad_Spend_ROAS_Profit_Spen
     #get multiple index tuple list
     multiple_index_tuple_list=df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles.index.to_list()
 
-    multiple_index_tuple_list_usd=[('Model', 'Average Coupon Recommendation Cost Estimated'), ('Model', 'Average Sale Estimated'), ('Survey', 'Average Coupon Recommendation Cost Estimated'), ('Survey', 'Average Sale Estimated'), ('Model', 'Ad Revenue'), ('Model', 'Ad Spend'), ('Survey', 'Ad Revenue'), ('Survey', 'Ad Spend'), ('Model-Survey Difference', 'Ad Revenue'), ('Model-Survey Difference', 'Ad Spend'), ('Model', 'Profit 200'), ('Model', 'Spend 200'), ('Survey', 'Profit 200'), ('Survey', 'Spend 200'), ('Model-Survey Difference', 'Profit 200'), ('Model-Survey Difference', 'Spend 200'), ('Model', 'Profit 2000'), ('Model', 'Spend 2000'), ('Survey', 'Profit 2000'), ('Survey', 'Spend 2000'), ('Model-Survey Difference', 'Profit 2000'), ('Model-Survey Difference', 'Spend 2000'), ('Model', 'Profit 20000'), ('Model', 'Spend 20000'), ('Survey', 'Profit 20000'), ('Survey', 'Spend 20000'), ('Model-Survey Difference', 'Profit 20000'), ('Model-Survey Difference', 'Spend 20000'),]
+    multiple_index_tuple_list_usd=[('Treatment', 'Average Coupon Recommendation Cost Estimated'), ('Treatment', 'Average Sale Estimated'), ('Control', 'Average Coupon Recommendation Cost Estimated'), ('Control', 'Average Sale Estimated'), ('Treatment', 'Ad Revenue'), ('Treatment', 'Ad Spend'), ('Control', 'Ad Revenue'), ('Control', 'Ad Spend'), ('Treatment-Control Difference', 'Ad Revenue'), ('Treatment-Control Difference', 'Ad Spend'), ('Treatment', 'Profit 200'), ('Treatment', 'Spend 200'), ('Control', 'Profit 200'), ('Control', 'Spend 200'), ('Treatment-Control Difference', 'Profit 200'), ('Treatment-Control Difference', 'Spend 200'), ('Treatment', 'Profit 2000'), ('Treatment', 'Spend 2000'), ('Control', 'Profit 2000'), ('Control', 'Spend 2000'), ('Treatment-Control Difference', 'Profit 2000'), ('Treatment-Control Difference', 'Spend 2000'), ('Treatment', 'Profit 20000'), ('Treatment', 'Spend 20000'), ('Control', 'Profit 20000'), ('Control', 'Spend 20000'), ('Treatment-Control Difference', 'Profit 20000'), ('Treatment-Control Difference', 'Spend 20000'),]
 
-    multiple_index_tuple_list_percent=[('Model', 'ROAS'), ('Survey', 'ROAS'), ('Model-Survey Difference', 'ROAS'), ('Model', 'ROI 200'), ('Survey', 'ROI 200'), ('Model-Survey Difference', 'ROI 200'), ('Model', 'ROI 2000'),('Survey', 'ROI 2000'), ('Model-Survey Difference', 'ROI 2000'),('Model', 'ROI 20000'), ('Survey', 'ROI 20000'), ('Model-Survey Difference', 'ROI 20000')]
+    multiple_index_tuple_list_percent=[('Treatment', 'ROAS'), ('Control', 'ROAS'), ('Treatment-Control Difference', 'ROAS'), ('Treatment', 'ROI 200'), ('Control', 'ROI 200'), ('Treatment-Control Difference', 'ROI 200'), ('Treatment', 'ROI 2000'),('Control', 'ROI 2000'), ('Treatment-Control Difference', 'ROI 2000'),('Treatment', 'ROI 20000'), ('Control', 'ROI 20000'), ('Treatment-Control Difference', 'ROI 20000')]
 
     #get lower and upper quantile column names
     column_name_list=df_Overall_Ad_Revenue_Ad_Spend_ROAS_Profit_Spend_ROI_model_survey_model_survey_difference_metric_quantiles.columns.to_list()
@@ -1260,8 +1260,8 @@ def calculate_Overall_and_Coupon_Venue_Type_Ad_Revenue_Ad_Spend_ROAS_Profit_Spen
 
 
 
-def get_survey_or_model_metrics_conversions_conversion_rate_recall_coupons_recommended(df, column_name_y_actual, column_name_y_predicted, feature_column_name_filter, feature_column_name_filter_value_two_dimensional_list):
-    """Calculate metrics (i.e. Conversions, Conversion Rate, Recall, and Coupons Recommended) for each rows filter Data Frame.
+def get_survey_or_model_metrics_coupon_acceptances_coupon_acceptance_rate_recall_coupons_recommended(df, column_name_y_actual, column_name_y_predicted, feature_column_name_filter, feature_column_name_filter_value_two_dimensional_list):
+    """Calculate metrics (i.e. Coupon Acceptances, Coupon Acceptance Rate, Recall, and Coupon Recommendations) for each rows filter Data Frame.
 
     Args:
         df: The input DataFrame.
@@ -1287,16 +1287,16 @@ def get_survey_or_model_metrics_conversions_conversion_rate_recall_coupons_recom
         
         true_negatives, false_positives, false_negatives, true_positives=confusion_matrix(y_true=y_true, y_pred=y_predicted, labels=None, sample_weight=None, normalize=None).ravel()
                 
-        #get number of conversions
+        #get number of Coupon Acceptances
         metric_value_list+=[true_positives]
         
-        #get conversion rate
+        #get Coupon Acceptance Rate
         metric_value_list+=[true_positives/(true_positives+false_positives)*100]
         
         #get recall
         metric_value_list+=[true_positives/(true_positives+false_negatives)*100]
         
-        #get coupons recommended
+        #get Coupon Recommendations
         metric_value_list+=[true_positives+false_positives]
         
         
@@ -1322,10 +1322,10 @@ def get_average_sale_and_survey_100_recall_metrics_per_coupon_venue_type(df_y_tr
     """
 
 
-    metric_value_two_dimensional_list=get_survey_or_model_metrics_conversions_conversion_rate_recall_coupons_recommended(df=df_y_train_model_name_predicted_y_train_survey_recall_estimate_predicted_y_actual_coupon_venue_type, column_name_y_predicted=column_name_y_predicted, column_name_y_actual=column_name_y_actual, feature_column_name_filter=feature_column_name_filter, feature_column_name_filter_value_two_dimensional_list=feature_column_name_filter_value_two_dimensional_list,)
+    metric_value_two_dimensional_list=get_survey_or_model_metrics_coupon_acceptances_coupon_acceptance_rate_recall_coupons_recommended(df=df_y_train_model_name_predicted_y_train_survey_recall_estimate_predicted_y_actual_coupon_venue_type, column_name_y_predicted=column_name_y_predicted, column_name_y_actual=column_name_y_actual, feature_column_name_filter=feature_column_name_filter, feature_column_name_filter_value_two_dimensional_list=feature_column_name_filter_value_two_dimensional_list,)
 
     #convert to Data Frame from metric values two dimensional list
-    metric_name_list=['Conversions', 'Conversion Rate', 'Percentage of Conversions Captured', 'Coupons Recommended']
+    metric_name_list=['Coupon Acceptances', 'Coupon Acceptance Rate', 'Percentage of Coupon Acceptances Captured', 'Coupon Recommendations']
     df_train_survey_100_recall_metrics=pd.DataFrame(metric_value_two_dimensional_list, index=feature_column_name_filter_value_list_dictionary_key_list, columns=metric_name_list)
 
     
@@ -1347,20 +1347,20 @@ def extract_and_add_ad_revenue_estimated_ad_spend_estimated_average_coupon_recom
     """Extract, append, and return the metrics Revenue Estimated, Ad Spend Estimated, and Average Coupon Recommendation Cost Estimated
     
     Args:
-        df (DataFrame): The DataFrame with Conversions and Average Sale Estimated
+        df (DataFrame): The DataFrame with Coupon Acceptances and Average Sale Estimated
         
     Returns:
         df (DataFrame): The DataFrame with appended Revenue Estimated, Ad Spend Estimated, and Average Coupon Recommendation Cost Estimated.
         
     """
     #get Revenue Estimated
-    df.loc[:, 'Revenue Estimated']=df.loc[:, 'Average Sale Estimated']* df.loc[:, 'Conversions']
+    df.loc[:, 'Revenue Estimated']=df.loc[:, 'Average Sale Estimated']* df.loc[:, 'Coupon Acceptances']
 
     #get Ad Spend Estimated
     df.loc[:, 'Ad Spend Estimated']=df.loc[:, 'Revenue Estimated']*.2
 
     #get Average Coupon Recommendation Cost Estimated
-    df.loc[:, 'Average Coupon Recommendation Cost Estimated']=df.loc[:, 'Ad Spend Estimated']/df.loc[:, 'Coupons Recommended']
+    df.loc[:, 'Average Coupon Recommendation Cost Estimated']=df.loc[:, 'Ad Spend Estimated']/df.loc[:, 'Coupon Recommendations']
     
     return df
 
@@ -1384,8 +1384,8 @@ def get_MultiIndex_object_from_two_lists(model_survey_index_value_list, metric_i
 
 
 
-def get_survey_or_model_average_coupon_recommendation_cost_estimated(df_y_train_model_name_predicted_y_train_survey_recall_estimate_predicted_y_actual_coupon_venue_type, column_name_y_predicted, column_name_y_actual, feature_column_name_filter, feature_column_name_filter_value_two_dimensional_list, feature_column_name_filter_value_list_dictionary_key_list, venue_type_average_sale_dictionary, model_survey='Survey'):
-    """Calculate the average coupon recommendation cost estimated from ML model coupon venue type conversions and average sale estimated.
+def get_survey_or_model_average_coupon_recommendation_cost_estimated(df_y_train_model_name_predicted_y_train_survey_recall_estimate_predicted_y_actual_coupon_venue_type, column_name_y_predicted, column_name_y_actual, feature_column_name_filter, feature_column_name_filter_value_two_dimensional_list, feature_column_name_filter_value_list_dictionary_key_list, venue_type_average_sale_dictionary, model_survey='Control'):
+    """Calculate the average coupon recommendation cost estimated from ML model coupon venue type Coupon Acceptances and average sale estimated.
     
     Args:
         df_y_train_model_name_predicted_y_train_survey_recall_estimate_predicted_y_actual_coupon_venue_type (DataFrame): The DataFrame with ML model y predicted, recall-random y predicted,  y actual, and coupon venue type.
@@ -1403,11 +1403,11 @@ def get_survey_or_model_average_coupon_recommendation_cost_estimated(df_y_train_
     """
 
     #get average sale and survey/model number metric estimated metrics
-    df_train_survey_model_number_metric_estimate_metrics_conversions_conversion_rate_recall_coupons_recommended_venue_type_average_sale=get_average_sale_and_survey_100_recall_metrics_per_coupon_venue_type(df_y_train_model_name_predicted_y_train_survey_recall_estimate_predicted_y_actual_coupon_venue_type=df_y_train_model_name_predicted_y_train_survey_recall_estimate_predicted_y_actual_coupon_venue_type, column_name_y_predicted=column_name_y_predicted, column_name_y_actual=column_name_y_actual, feature_column_name_filter=feature_column_name_filter, feature_column_name_filter_value_two_dimensional_list=feature_column_name_filter_value_two_dimensional_list, feature_column_name_filter_value_list_dictionary_key_list=feature_column_name_filter_value_list_dictionary_key_list, venue_type_average_sale_dictionary=venue_type_average_sale_dictionary)
+    df_train_survey_model_number_metric_estimate_metrics_coupon_acceptances_coupon_acceptance_rate_recall_coupons_recommended_venue_type_average_sale=get_average_sale_and_survey_100_recall_metrics_per_coupon_venue_type(df_y_train_model_name_predicted_y_train_survey_recall_estimate_predicted_y_actual_coupon_venue_type=df_y_train_model_name_predicted_y_train_survey_recall_estimate_predicted_y_actual_coupon_venue_type, column_name_y_predicted=column_name_y_predicted, column_name_y_actual=column_name_y_actual, feature_column_name_filter=feature_column_name_filter, feature_column_name_filter_value_two_dimensional_list=feature_column_name_filter_value_two_dimensional_list, feature_column_name_filter_value_list_dictionary_key_list=feature_column_name_filter_value_list_dictionary_key_list, venue_type_average_sale_dictionary=venue_type_average_sale_dictionary)
 
     #Get (by Venue Type) Average Coupon Recommendation Cost Estimated and Average Sale Estimated DataFrame
 
-    df_train_survey_model_number_metric_estimate_metrics_venue_type_average_sale_revenue_estimated_ad_spend_estimated_average_coupon_recommendation_cost_estimated=extract_and_add_ad_revenue_estimated_ad_spend_estimated_average_coupon_recommendation_cost_estimated(df=df_train_survey_model_number_metric_estimate_metrics_conversions_conversion_rate_recall_coupons_recommended_venue_type_average_sale)
+    df_train_survey_model_number_metric_estimate_metrics_venue_type_average_sale_revenue_estimated_ad_spend_estimated_average_coupon_recommendation_cost_estimated=extract_and_add_ad_revenue_estimated_ad_spend_estimated_average_coupon_recommendation_cost_estimated(df=df_train_survey_model_number_metric_estimate_metrics_coupon_acceptances_coupon_acceptance_rate_recall_coupons_recommended_venue_type_average_sale)
 
     #filter for Venue Type, Average Coupon Recommendation Cost, and Average Sale DataFrame
     column_name_list=['Venue Type', 'Average Coupon Recommendation Cost Estimated', 'Average Sale Estimated']
@@ -1508,29 +1508,29 @@ def get_model_and_survey_metrics(df, model_y_predicted_column_name, survey_numbe
         tn_feature_column_name_filtered_base_survey, fp_feature_column_name_filtered_base_survey, fn_feature_column_name_filtered_base_survey, tp_feature_column_name_filtered_base_survey = confusion_matrix_ndarray_feature_column_name_filtered_base_survey.ravel()
         
 
-        #get conversions proportion
+        #get Coupon Acceptances proportion
         metric_list += [tp_feature_column_name_filtered/tp_feature_column_name_unfiltered]
         
-        #get conversions
+        #get Coupon Acceptances
         metric_list += [tp_feature_column_name_filtered]
         
-        #get coupons recommended proportion
+        #get Coupon Recommendations proportion
         metric_list += [(tp_feature_column_name_filtered+fp_feature_column_name_filtered)/(tp_feature_column_name_unfiltered+fp_feature_column_name_unfiltered)]
         
-        #get coupons recommended
+        #get Coupon Recommendations
         metric_list += [tp_feature_column_name_filtered+fp_feature_column_name_filtered]
         
-        #get conversions to base survey coupons recommended ratio
+        #get Coupon Acceptances to base survey Coupon Recommendations ratio
         base_survey_coupons_recommended=tp_feature_column_name_filtered_base_survey+fp_feature_column_name_filtered_base_survey
         metric_list += [tp_feature_column_name_filtered/(base_survey_coupons_recommended)]
 
-        #get conversions to survey conversions ratio
+        #get Coupon Acceptances to survey Coupon Acceptances ratio
         metric_list += [(tp_feature_column_name_filtered)/(tp_feature_column_name_filtered_baseline)] 
         
-        #get coupons recommended to survey coupons recommended ratio
+        #get Coupon Recommendations to survey Coupon Recommendations ratio
         metric_list += [(tp_feature_column_name_filtered+fp_feature_column_name_filtered)/(tp_feature_column_name_filtered_baseline+fp_feature_column_name_filtered_baseline)]
         
-        #get coupons recommended to base survey coupons recommended ratio
+        #get Coupon Recommendations to base survey Coupon Recommendations ratio
         metric_list += [(tp_feature_column_name_filtered+fp_feature_column_name_filtered)/(base_survey_coupons_recommended)]
 
         return metric_list
@@ -1563,7 +1563,7 @@ def calculate_and_add_model_survey_difference(df_model_survey_metrics, multiple_
     
     column_name_list=df_model_survey_metrics.columns.to_list()
     
-    #calculate and add model-survey difference metrics
+    #calculate and add Treatment-Control Difference metrics
     df_model_survey_difference_metrics=df_model_survey_metrics.iloc[0:10].reset_index().loc[:, column_name_list]-df_model_survey_metrics.iloc[10:20].reset_index().loc[:, column_name_list]
 
     df_model_survey_difference_metrics.index=multiple_index[20:30]
@@ -1726,7 +1726,7 @@ def get_metric_confidence_interval_table_by_feature_column_name_filter_value_lis
 
 
             #add '%' to non-count column names
-            column_name_count_list=[('Model', 'Conversions'), ('Model', 'Coupons Recommended'), ('Survey', 'Conversions'), ('Survey', 'Coupons Recommended'), ('Model-Survey Difference', 'Conversions'), ('Model-Survey Difference', 'Coupons Recommended')]
+            column_name_count_list=[('Treatment', 'Coupon Acceptances'), ('Treatment', 'Coupon Recommendations'), ('Control', 'Coupon Acceptances'), ('Control', 'Coupon Recommendations'), ('Treatment-Control Difference', 'Coupon Acceptances'), ('Treatment-Control Difference', 'Coupon Recommendations')]
             column_name_list_metric_not_count=[column_name for column_name in model_survey_quantiles_of_subsample_replicates_metrics.columns.to_list() if not column_name in column_name_count_list]
 
             model_survey_quantiles_of_subsample_replicates_metrics.loc[:,column_name_list_metric_not_count]=model_survey_quantiles_of_subsample_replicates_metrics.loc[:,column_name_list_metric_not_count]+'%'
@@ -1837,7 +1837,7 @@ def get_campaign_roi_from_ad_revenue_ad_spend_additional_production_cost(ad_reve
         ad_spend (float64): The camapaign ad spend.
         additional_production_cost (ndarray): The additional production cost.
     
-    Returns
+    Returns:
         ndarray: The roi values.
     """
     return (ad_revenue-ad_spend-additional_production_cost)/(ad_spend+additional_production_cost)
