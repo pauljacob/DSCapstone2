@@ -739,7 +739,7 @@ def get_the_multiindex_object_with_basic_metrics(metric_list_refined=None):
         multiindex_basic_metrics (MultiIndex): The MultiIndex object of group and metric.
     """
     if metric_list_refined==None:
-        metric_list_refined=['Coupon Acceptance Rate', 'Recall', 'Coupon Acceptances', 'Coupon Acceptances Possible', 'Coupon Recommendations', 'Coupon Recommendations Possible', 'Ad Revenue', 'Ad Spend', 'ROAS']
+        metric_list_refined=['Coupon Acceptance Rate', 'Percentage of Coupon Acceptances Captured', 'Coupon Acceptances', 'Coupon Acceptances Possible', 'Coupon Recommendations', 'Coupon Recommendations Possible', 'Ad Revenue', 'Ad Spend', 'ROAS']
     metric_list_refined_multiplier_three=metric_list_refined*3
 
     number_multiplier=int(len(metric_list_refined))
@@ -846,7 +846,8 @@ def profit_spend_roi_number_table(df):
     #get multiindex object for group-metric index 
     multiindex_object_profit_spend_roi=get_MultiIndex_object_from_two_lists(treatment_control_uplift_list, profit_spend_ROI_number_list_multiplier_three)
 
-    number_of_header_levels=len(df.T.index.to_list()[0])
+    
+    number_of_header_levels=int(df.T.index.nlevels)    
     if 1==number_of_header_levels:
         #select values from DataFrame
         df_profit_spend_roi_per_additional_production_cost=df.loc[multiindex_object_profit_spend_roi, ('Overall')].to_frame()
@@ -862,6 +863,7 @@ def profit_spend_roi_number_table(df):
 
         df_profit_spend_roi_per_additional_production_cost=pd.concat([df_profit_spend_roi_per_additional_production_cost, df_metric_and_additional_production_cost],axis=1)
 
+        
         return df_profit_spend_roi_per_additional_production_cost.pivot(columns=['Additional Production Cost','Metric'], values='Overall', index='Group')
     
     elif 2==number_of_header_levels:
@@ -1028,7 +1030,7 @@ def get_metric_multiple_index(proportion_or_percentage):
     Returns:
         multiple_index (MultiIndex): the metric MultiIndex object.     
     """
-    metric_index_value_list=['Coupon Acceptance Rate', 'Recall', proportion_or_percentage.capitalize()+' of Coupon Acceptances', 'Coupon Acceptances', 'Coupon Acceptances Possible',proportion_or_percentage.capitalize()+' of Coupon Recommendations', 'Coupon Recommendations', 'Coupon Recommendations Possible', 
+    metric_index_value_list=['Coupon Acceptance Rate', 'Percentage of Coupon Acceptances Captured', proportion_or_percentage.capitalize()+' of Coupon Acceptances', 'Coupon Acceptances', 'Coupon Acceptances Possible',proportion_or_percentage.capitalize()+' of Coupon Recommendations', 'Coupon Recommendations', 'Coupon Recommendations Possible', 
                                'Coupon Acceptances to Base Survey Coupon Recommendations Ratio',
                                'Coupon Acceptances to Survey Coupon Acceptances Ratio',
                                'Coupon Recommendations to Survey Coupon Recommendations Ratio', 
@@ -1666,60 +1668,59 @@ def get_model_and_survey_metrics(df, model_y_predicted_column_name, survey_numbe
 
         
         #get precision
-        metric_list += [precision_score(y_true=y_true_feature_column_name_filtered, y_pred=y_predicted_feature_column_name_filtered)]
+        metric_list+=[precision_score(y_true=y_true_feature_column_name_filtered, y_pred=y_predicted_feature_column_name_filtered)*100]
 
         #get recall
-        metric_list += [recall_score(y_true=y_true_feature_column_name_filtered, y_pred=y_predicted_feature_column_name_filtered)]
+        metric_list+=[recall_score(y_true=y_true_feature_column_name_filtered, y_pred=y_predicted_feature_column_name_filtered)*100]
         
         
         #tn, fp, fn, tp filtered
-        confusion_matrix_ndarray_feature_column_name_filtered = confusion_matrix(y_true=y_true_feature_column_name_filtered, y_pred=y_predicted_feature_column_name_filtered)
+        confusion_matrix_ndarray_feature_column_name_filtered=confusion_matrix(y_true=y_true_feature_column_name_filtered, y_pred=y_predicted_feature_column_name_filtered)
         tn_feature_column_name_filtered, fp_feature_column_name_filtered, fn_feature_column_name_filtered, tp_feature_column_name_filtered = confusion_matrix_ndarray_feature_column_name_filtered.ravel()
         
         #tn, fp, fn, tp unfiltered
-        confusion_matrix_ndarray_feature_column_name_unfiltered = confusion_matrix(y_true=df_feature_column_name_unfiltered.loc[:, y_actual_column_name], y_pred=df_feature_column_name_unfiltered.loc[:, y_predicted_column_name])
+        confusion_matrix_ndarray_feature_column_name_unfiltered=confusion_matrix(y_true=df_feature_column_name_unfiltered.loc[:, y_actual_column_name], y_pred=df_feature_column_name_unfiltered.loc[:, y_predicted_column_name])
         tn_feature_column_name_unfiltered, fp_feature_column_name_unfiltered, fn_feature_column_name_unfiltered, tp_feature_column_name_unfiltered = confusion_matrix_ndarray_feature_column_name_unfiltered.ravel()
         
         #tn, fp, fn, tp baseline filtered
-        confusion_matrix_ndarray_feature_column_name_filtered_baseline = confusion_matrix(y_true=y_true_feature_column_name_filtered, y_pred=y_predicted_baseline_feature_column_name_filtered)
-        tn_feature_column_name_filtered_baseline, fp_feature_column_name_filtered_baseline, fn_feature_column_name_filtered_baseline, tp_feature_column_name_filtered_baseline = confusion_matrix_ndarray_feature_column_name_filtered_baseline.ravel()
+        confusion_matrix_ndarray_feature_column_name_filtered_baseline=confusion_matrix(y_true=y_true_feature_column_name_filtered, y_pred=y_predicted_baseline_feature_column_name_filtered)
+        tn_feature_column_name_filtered_baseline, fp_feature_column_name_filtered_baseline, fn_feature_column_name_filtered_baseline, tp_feature_column_name_filtered_baseline=confusion_matrix_ndarray_feature_column_name_filtered_baseline.ravel()
         
         #tn, fp, fn, tp base survey filtered
-        confusion_matrix_ndarray_feature_column_name_filtered_base_survey = confusion_matrix(y_true=y_true_feature_column_name_filtered, y_pred=y_predicted_base_survey_feature_column_name_filtered)
-        tn_feature_column_name_filtered_base_survey, fp_feature_column_name_filtered_base_survey, fn_feature_column_name_filtered_base_survey, tp_feature_column_name_filtered_base_survey = confusion_matrix_ndarray_feature_column_name_filtered_base_survey.ravel()
+        confusion_matrix_ndarray_feature_column_name_filtered_base_survey=confusion_matrix(y_true=y_true_feature_column_name_filtered, y_pred=y_predicted_base_survey_feature_column_name_filtered)
+        tn_feature_column_name_filtered_base_survey, fp_feature_column_name_filtered_base_survey, fn_feature_column_name_filtered_base_survey, tp_feature_column_name_filtered_base_survey=confusion_matrix_ndarray_feature_column_name_filtered_base_survey.ravel()
         
 
         #get Coupon Acceptances proportion
-        metric_list += [tp_feature_column_name_filtered/tp_feature_column_name_unfiltered]
+        metric_list+=[tp_feature_column_name_filtered/tp_feature_column_name_unfiltered]
         
         #get Coupon Acceptances
-        metric_list += [tp_feature_column_name_filtered]
+        metric_list+=[tp_feature_column_name_filtered]
         
         #get Coupon Acceptances Possible
-        metric_list += [tp_feature_column_name_filtered+fn_feature_column_name_filtered]
+        metric_list+=[tp_feature_column_name_filtered+fn_feature_column_name_filtered]
         
         #get Coupon Recommendations proportion
-        metric_list += [(tp_feature_column_name_filtered+fp_feature_column_name_filtered)/(tp_feature_column_name_unfiltered+fp_feature_column_name_unfiltered)]
+        metric_list+=[(tp_feature_column_name_filtered+fp_feature_column_name_filtered)/(tp_feature_column_name_unfiltered+fp_feature_column_name_unfiltered)]
         
         #get Coupon Recommendations
-        metric_list += [tp_feature_column_name_filtered+fp_feature_column_name_filtered]
+        metric_list+=[tp_feature_column_name_filtered+fp_feature_column_name_filtered]
 
         #get Coupon Recommendations Possible
-        metric_list += [tp_feature_column_name_filtered+fp_feature_column_name_filtered+\
-                        tn_feature_column_name_filtered+fn_feature_column_name_filtered]
+        metric_list+=[tp_feature_column_name_filtered+fp_feature_column_name_filtered+ tn_feature_column_name_filtered+fn_feature_column_name_filtered]
 
         #get Coupon Acceptances to base survey Coupon Recommendations ratio
         base_survey_coupons_recommended=tp_feature_column_name_filtered_base_survey+fp_feature_column_name_filtered_base_survey
-        metric_list += [tp_feature_column_name_filtered/(base_survey_coupons_recommended)]
+        metric_list+=[tp_feature_column_name_filtered/(base_survey_coupons_recommended)]
 
         #get Coupon Acceptances to survey Coupon Acceptances ratio
-        metric_list += [(tp_feature_column_name_filtered)/(tp_feature_column_name_filtered_baseline)] 
+        metric_list+=[(tp_feature_column_name_filtered)/(tp_feature_column_name_filtered_baseline)] 
         
         #get Coupon Recommendations to survey Coupon Recommendations ratio
-        metric_list += [(tp_feature_column_name_filtered+fp_feature_column_name_filtered)/(tp_feature_column_name_filtered_baseline+fp_feature_column_name_filtered_baseline)]
+        metric_list+=[(tp_feature_column_name_filtered+fp_feature_column_name_filtered)/(tp_feature_column_name_filtered_baseline+fp_feature_column_name_filtered_baseline)]
         
         #get Coupon Recommendations to base survey Coupon Recommendations ratio
-        metric_list += [(tp_feature_column_name_filtered+fp_feature_column_name_filtered)/(base_survey_coupons_recommended)]
+        metric_list+=[(tp_feature_column_name_filtered+fp_feature_column_name_filtered)/(base_survey_coupons_recommended)]
 
         return metric_list
     

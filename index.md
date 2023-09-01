@@ -1,27 +1,22 @@
 ![cover_photo](./readme_files/nba_logo.jpeg)
 # In-Vehicle Coupon Recommendation
 
-*In this project, we attempt to predict the spread of NBA games to provide the data point of a good model for retail NBA sportsbook bettors. We do this using a random forest regression model for spread. Using a simple betting policy for the 6-month 2017-18 regular season, we find our model correctly predicts at a rate of 68% and has an ROI of 11%.*
+*From 2537 survey scenario responses, our random forest estimated an overall food and dining merchant-advertiser 199% ROAS uplift at a 91% coupon acceptance rate and 28% of coupon acceptances captured.*
 
-*Basketball is the third most popular sport for betting on globally. Of basketball leagues, the NBA is the most bet on. There are a variety of strategies used by NBA sports bettors in attempting to turn a profit. One strategy is called subjective handicapping where a point compensation is made for the team favorite/underdog. Other strategies include finding microholds, 0% holds, or negative holds in synthetic markets.*
+*Context to coupon recommendations food and dining merchant-advertisers*
 
-*Using the team stat, team lost contribution, and GDP datasets, we predicted NBA game spread with a Mean Absolute Error (MAE) of 9.7. Using confidence intervals for spread and betting data, a simple betting policy is made. Metrics such as betting accuracy, ROI, and risk of bankruptcy are observed.*
 
 ## 1. Data
 
-Three data sources are used to aggregate a dataset for the NBA game spread prediction on the 2010-11 thru 2017-18 seasons: nba_api, Kaggle, and Wikipedia. Below, our data sources are further described by feature groups.
+
+Our data was the Amazon Mechanical Turk survey scenario responses dataset. It's made up of 654 survey participants and represents a sample of the population which we defined as drivers in the USA with a mobile smart device.
+
+> * In-Vehicle Coupon Recommendation Scenario Response Survey Dataset: [UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/603/in+vehicle+coupon+recommendation)
 
 
-> * Team Stats: [nba_api Team Advanced Stats Dataset](https://github.com/swar/nba_api), [Kaggle Game Dataset](https://www.kaggle.com/nathanlauga/nba-games?select=games.csv), [Kaggle Boxscore Dataset](https://www.kaggle.com/ehallmar/nba-historical-stats-and-betting-data?select=nba_games_all.csv), [Kaggle Team Name-Abbreviation Dataset1](https://www.kaggle.com/nathanlauga/nba-games?select=teams.csv), [Kaggle Team Name-Abbreviation Dataset2](https://www.kaggle.com/gabrielmanfredi/nba-retro-1995-to-2000-full-basketball-datasets)
+In-Vehicle (Food and Dining) Coupon Recommendation Scenario Response Survey Dataset
 
 
-> * Team Lost Contribution: [nba_api Player Advanced Stats Dataset](https://github.com/swar/nba_api), [Kaggle Injury Dataset](https://www.kaggle.com/ghopkins/nba-injuries-2010-2018), [Kaggle Inactive Player Dataset](https://www.kaggle.com/wyattowalsh/basketball) 
-
-
-> * GDP: [Wikipedia U.S. Metropolitan Area GDP Dataset](https://en.wikipedia.org/wiki/List_of_U.S._metropolitan_areas_by_GDP), [Wikipedia City GDP Dataset](https://en.wikipedia.org/wiki/List_of_cities_by_GDP)
-
-
-> * Betting: [Kaggle Betting Spread Dataset](https://www.kaggle.com/ehallmar/nba-historical-stats-and-betting-data?select=nba_betting_spread.csv)
 
 
 ## 2. Method
