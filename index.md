@@ -10,7 +10,6 @@
 
 Food and dining merchant-advertisers want to cost effectively reach consumers with coupons to drive sales to their venue.
 
-
 ![](./reports/image/entity_diagram.png)
 
 Publisher: supply an ad space service for merchant-advertisers that serves ads to consumers via our mobile app.
@@ -18,6 +17,11 @@ Merchant-advertiser: food & dining businesses, e.g. takeout, coffee houses, bars
 Consumers: USA vehicle drivers with a smartphone (estimated at 182 million individuals).
 
 
+## 2. The Solution
+We the publisher provide the platform for merchant-advertisers to achieve this. Using ML models and some assumptions, we estimated the expected campaign performance metrics.
+
+
+## 3. The Data
 
 Our data was the Amazon Mechanical Turk survey scenario responses dataset. It's made up of 654 survey participants and represents a sample of the population which we defined as drivers in the USA with a mobile smart device.
 
