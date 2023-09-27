@@ -6,7 +6,17 @@
 *Context to coupon recommendations food and dining merchant-advertisers*
 
 
-## 1. Data
+## 1. The Problem
+
+Food and dining merchant-advertisers want to cost effectively reach consumers with coupons to drive sales to their venue.
+
+
+![](./reports/image/entity_diagram.png)
+
+Publisher: supply an ad space service for merchant-advertisers that serves ads to consumers via our mobile app.
+Merchant-advertiser: food & dining businesses, e.g. takeout, coffee houses, bars, low-cost restaurants, and mid-range restaurants.
+Consumers: USA vehicle drivers with a smartphone (estimated at 182 million individuals).
+
 
 
 Our data was the Amazon Mechanical Turk survey scenario responses dataset. It's made up of 654 survey participants and represents a sample of the population which we defined as drivers in the USA with a mobile smart device.
