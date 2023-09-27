@@ -1,4 +1,8 @@
-![cover_photo](./readme_files/nba_logo.jpeg)
+[Front Page](https://pauljacob.github.io/DSCapstone1/) | [DSCapstone1](https://pauljacob.github.io/DSCapstone1/) | [DSCapstone2](https://pauljacob.github.io/DSCapstone2/)
+
+
+
+![cover_photo](./reports/image/vehicle_coupon_logo.png)
 # In-Vehicle Coupon Recommendation
 
 *From 2537 survey scenario responses, our random forest estimated an overall food and dining merchant-advertiser 199% ROAS uplift at a 91% coupon acceptance rate and 28% of coupon acceptances captured.*
@@ -12,13 +16,14 @@ Food and dining merchant-advertisers want to cost effectively reach consumers wi
 
 ![](./reports/image/entity_diagram.png)
 
-Publisher: supply an ad space service for merchant-advertisers that serves ads to consumers via our mobile app.
-Merchant-advertiser: food & dining businesses, e.g. takeout, coffee houses, bars, low-cost restaurants, and mid-range restaurants.
-Consumers: USA vehicle drivers with a smartphone (estimated at 182 million individuals).
+Publisher: supply an ad space service for merchant-advertisers that serves ads to consumers via our mobile app.__
+Merchant-advertiser: food & dining businesses, e.g. takeout, coffee houses, bars, low-cost restaurants, and mid-range restaurants.__
+Consumers: USA vehicle drivers with a smartphone (estimated at 182 million individuals).__
 
 
 ## 2. The Solution
-We the publisher provide the platform for merchant-advertisers to achieve this. Using ML models and some assumptions, we estimated the expected campaign performance metrics.
+We the publisher provide the platform for merchant-advertisers to increase their reach. Using ML models and some assumptions, we estimated the expected campaign performance metrics.
+
 
 
 ## 3. The Data
@@ -29,6 +34,8 @@ Our data was the Amazon Mechanical Turk survey scenario responses dataset. It's 
 
 
 In-Vehicle (Food and Dining) Coupon Recommendation Scenario Response Survey Dataset
+
+
 
 
 
