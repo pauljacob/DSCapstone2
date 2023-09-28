@@ -18,13 +18,12 @@ Food and dining merchant-advertisers want to cost effectively reach consumers wi
 
 ![](./reports/image/entity_diagram.png)
 
-Publisher: supply an ad space service for merchant-advertisers that serves ads to consumers via our mobile app.  
-Merchant-advertiser: food & dining businesses, e.g. takeout, coffee houses, bars, low-cost restaurants, and mid-range restaurants.  
-Consumers: USA vehicle drivers with a smartphone (estimated at 182 million individuals).  
-
+Publisher: supply an ad space service for merchant-advertisers that serves ads to consumers via our mobile app.
+Merchant-advertiser: food & dining businesses, e.g., takeout, coffee houses, bars, low-cost restaurants, and mid-range restaurants.
+Consumers: USA vehicle drivers with a smartphone (estimated at 182 million individuals).
 
 ## 2. The Solution
-We the publisher provide the platform for merchant-advertisers to increase their reach. Using ML models and some assumptions, we estimated the expected campaign performance metrics.
+We the publisher provide the platform for merchant-advertisers to efficiently reach in-vehicle drivers. Using ML models and some assumptions, we estimated the expected campaign performance metrics.
 
 
 
@@ -35,7 +34,12 @@ Our data was the Amazon Mechanical Turk survey scenario responses dataset. It's 
 > * In-Vehicle Coupon Recommendation Scenario Response Survey Dataset: [UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/603/in+vehicle+coupon+recommendation)
 
 
-In-Vehicle (Food and Dining) Coupon Recommendation Scenario Response Survey Dataset
+
+## 4. Model Comparison
+
+For the purpose of higher ROAS uplift and coupon acceptance rate, the better ML model is the random forest.
+
+For the purpose of higher percentage of coupon acceptances captured and ROI dropoff resistance to additional production cost, the better ML model is the gradient boosting.
 
 
 
@@ -44,7 +48,7 @@ In-Vehicle (Food and Dining) Coupon Recommendation Scenario Response Survey Data
 
 ## 2. Method
 
-Our objective was to determine whether to place a bet on an NBA game or not. The ramifications in attempting to answer this question led us to decide between the following models:
+Our objective was to determine whether to recommend. The ramifications in attempting to answer this question led us to decide between the following models:
 
 
 1. Build a regression model for predicting spread. Then build a simple policy for betting on NBA games (to return accuracy and ROI).
