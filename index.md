@@ -7,6 +7,8 @@ Left Image Credit: [website](). Right Image Credit [Wang et al](https://jmlr.org
 
 # In-Vehicle Coupon Recommendation
 
+## Executive Summary
+
 *From 2537 survey scenario responses, our random forest estimated an overall food and dining merchant-advertiser 199% ROAS uplift at a 91% coupon acceptance rate and 28% of coupon acceptances captured.*
 
 
@@ -18,9 +20,9 @@ Food and dining merchant-advertisers want to cost effectively reach consumers wi
 
 ![](./reports/image/entity_diagram.png)
 
-Publisher: supply an ad space service for merchant-advertisers that serves ads to consumers via our mobile app.
-Merchant-advertiser: food & dining businesses, e.g., takeout, coffee houses, bars, low-cost restaurants, and mid-range restaurants.
-Consumers: USA vehicle drivers with a smartphone (estimated at 182 million individuals).
+Publisher: supply an ad space service for merchant-advertisers that serves ads to consumers via our mobile app.  
+Merchant-advertiser: food & dining businesses, e.g., takeout, coffee houses, bars, low-cost restaurants, and mid-range restaurants.  
+Consumers: USA vehicle drivers with a smartphone (estimated at 182 million individuals).  
 
 ## 2. The Solution
 We the publisher provide the platform for merchant-advertisers to efficiently reach in-vehicle drivers. Using ML models and some assumptions, we estimated the expected campaign performance metrics.
