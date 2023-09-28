@@ -11,7 +11,7 @@ Left image credit: [website](). Right image credit: [Wang et al](https://jmlr.or
 
 ## 1. The Problem
 
-Food and dining merchant-advertisers want to cost effectively reach consumers with coupons to drive sales to their venue.
+Food and dining merchant-advertisers need to cost effectively increase reach to consumers with coupons and drive sales to their venue.
 
 ![](./reports/image/entity_diagram.png)
 
