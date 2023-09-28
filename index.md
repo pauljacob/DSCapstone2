@@ -3,13 +3,13 @@
 
 
 ![cover_photo](./reports/image/vehicle_coupon_logo.png)
-Vehicle Logo Image by ...[1] and Survey Coupon Recommendation Image by ... [2]
+Left Image Credited to [website]() and Right Image Credited to [Wang et al](https://jmlr.org/papers/volume18/16-003/16-003.pdf)
 
 # In-Vehicle Coupon Recommendation
 
 *From 2537 survey scenario responses, our random forest estimated an overall food and dining merchant-advertiser 199% ROAS uplift at a 91% coupon acceptance rate and 28% of coupon acceptances captured.*
 
-*Context to coupon recommendations food and dining merchant-advertisers*
+
 
 
 ## 1. The Problem
@@ -35,7 +35,7 @@ Our data was the Amazon Mechanical Turk survey scenario responses dataset. It's 
 
 
 
-## 4. Model Comparison
+## 4. ML Model Comparison
 
 In the figure below, we see the coupon acceptance rate vs percentage of coupon acceptances captured plot for the random forest and gradient boosting ML models.
 
@@ -51,7 +51,7 @@ Using some assumptions, we concluded the following:
 
 
 
-## 5. ML Model Metrics
+## 5. Campaign Model Metrics
 
 In running our pilot campaign model, we found the takeout, coffee house, and low-cost restaurant merchant-advertisers showed preferred performance with good coupon acceptance rate, percentage of coupon acceptances captured, and coupon acceptances. The bar and mid-range restaurant merchant-advertisers were with good coupon acceptance rate, but with lesser percentage of coupon acceptances captured and coupon acceptances.
 
