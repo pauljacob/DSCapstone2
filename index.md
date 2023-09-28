@@ -180,7 +180,7 @@ References
 ## Appendix
 
 
-<img src="pilot_campaign_model_assumptions.png" alt="My Image" id="my-image">
+<img src="./reports/image/pilot_campaign_model_assumptions.png" alt="My Image" id="my-image">
 
 
 ![](./reports/image/pilot_campaign_model_assumptions.png)
