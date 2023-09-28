@@ -45,9 +45,6 @@ Using some assumptions, we concluded the following:
 • For the purpose of higher percentage of coupon acceptances captured and ROI dropoff resistance to additional production cost, the better ML model is the gradient boosting.
 
 
-
-
-
 ## 5. Campaign Model Metrics
 
 In running our pilot campaign model, we found the takeout, coffee house, and low-cost restaurant merchant-advertisers showed preferred performance with good coupon acceptance rate, percentage of coupon acceptances captured, and coupon acceptances. The bar and mid-range restaurant merchant-advertisers were with good coupon acceptance rate, but with lesser percentage of coupon acceptances captured and coupon acceptances.
@@ -63,8 +60,9 @@ Making further [assumptions](#pilot_campaign_model_assumptions) on the average s
 ![](./reports/image/figure_random_forest_gradient_boosting_campaign_roi_per_additional_production_cost_v4dot3.png)
  |  ![](./reports/image/figure_random_forest_gradient_boosting_campaign_roi_uplift_estimate_per_additional_production_cost_v4dot3.png)
 
-:-------------------------:|:-------------------------:
-For additional production cost >$0, the drive-sales campaign model estimated model ROI is higher than the pilot campaign model. | 
+
+
+For additional production cost >$0, the drive-sales campaign model estimated model ROI is higher than the pilot campaign model.
 The pilot campaign model ROI uplift was higher than the drive-sales campaign model for an additional production cost <$600. Otherwise, the drive-sales model ROI uplift was higher.
 
 
