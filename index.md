@@ -112,6 +112,21 @@ Description for rule 1.
 
 
 
+# Rule 1
+Description for rule 1.
+
+<div style="-webkit-column-count: 2; -moz-column-count: 2; column-count: 2; -webkit-column-rule: 1px dotted #e0e0e0; -moz-column-rule: 1px dotted #e0e0e0; column-rule: 1px dotted #e0e0e0;">
+    <div style="display: inline-block;">
+        <h2>Good</h2>
+        <pre>For additional production cost >$0, the drive-sales campaign model estimated model ROI is higher than the pilot campaign model. The pilot campaign model ROI uplift was higher than the drive-sales campaign model for an additional production cost <$600. Otherwise, the drive-sales model ROI uplift was higher.
+        </pre>
+    </div>
+    <div style="display: inline-block;">
+        <h2>Bad</h2>
+        <pre>With increased additional production cost, the drive-sales campaign model ROI was more resistant to dropoff and had higher ROI per additional production cost.
+        </pre>
+    </div>
+</div>
 
 
 
