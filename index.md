@@ -1,4 +1,4 @@
-[Front Page](https://pauljacob.github.io/DSCapstone1/) | [DSCapstone1](https://pauljacob.github.io/DSCapstone1/) | [DSCapstone2](https://pauljacob.github.io/DSCapstone2/)
+[Front Page]() | [DSCapstone1](https://pauljacob.github.io/DSCapstone1/) | [DSCapstone2](https://pauljacob.github.io/DSCapstone2/)
 
 
 
@@ -62,8 +62,6 @@ In running our pilot campaign model, we found the takeout, coffee house, and low
 
 
 Making further assumptions on the average sale, targeted coupon recommendation cost, and non-targeted coupon recommendation cost per coupon venue type, we measured ROAS and ROI.
-
-<font size="2">[Appendix_](#[Appendix_])</font>
 
 
 :-------------------------:|:-------------------------:
@@ -173,7 +171,9 @@ References
 
 
 ## Appendix
-<font size="6"><a id='[Appendix_]'>**Appendix_**</a> </font>
+![My Image](image.jpg)
+
+<img src="image.jpg" alt="My Image" id="my-image">
 
 
 ![](./reports/image/pilot_campaign_model_assumptions.png)
