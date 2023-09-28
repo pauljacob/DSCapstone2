@@ -2064,7 +2064,25 @@ def combine_model_metric_replicates_and_ad_revenue_ad_spend_roas_profit_spend_ro
 
 
 
+#################################################################################################################################
+#Model Test Results Visualizations
+#################################################################################################################################
 
+
+def extract_and_add_metric_coupon_acceptances_group(df):
+    """Extract and add the MultiIndex Treament, Coupon Acceptances Group row values from the MultiIndex Treatment, Coupon Acceptances row values.
+    Args:
+        df (DataFrame): The DataFrame to extract the MultiIndex ('Treatment', 'Coupon Acceptances Group') from.
+    Returns:
+        df (DataFrame): The DataFrame to be returned.
+    """
+   
+    df.loc[('Treatment', 'Coupon Acceptances Group'), :]=-1
+    df.loc[('Treatment', 'Coupon Acceptances Group'), (df.loc[('Treatment', 'Coupon Acceptances'), :]>0)&(df.loc[('Treatment', 'Coupon Acceptances'), :]<=20)]=40
+    df.loc[('Treatment', 'Coupon Acceptances Group'), (df.loc[('Treatment', 'Coupon Acceptances'), :]>20)&(df.loc[('Treatment', 'Coupon Acceptances'), :]<=200)]=140
+    df.loc[('Treatment', 'Coupon Acceptances Group'), (df.loc[('Treatment', 'Coupon Acceptances'), :]>200)&(df.loc[('Treatment', 'Coupon Acceptances'), :]<=500)]=400
+    df.loc[('Treatment', 'Coupon Acceptances Group'), (df.loc[('Treatment', 'Coupon Acceptances'), :]>501)&(df.loc[('Treatment', 'Coupon Acceptances'), :]<=2000)]=750
+    return df
 
 
 

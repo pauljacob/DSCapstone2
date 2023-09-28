@@ -1,7 +1,6 @@
 [Front Page]() | [DSCapstone1](https://pauljacob.github.io/DSCapstone1/) | [DSCapstone2](https://pauljacob.github.io/DSCapstone2/)
 
 
-
 ![cover_photo](./reports/image/vehicle_coupon_logo.png)
 Left image credit: [website](). Right image credit: [Wang et al](https://jmlr.org/papers/volume18/16-003/16-003.pdf)
 
@@ -169,7 +168,6 @@ References
 
 
 ## Appendix
-
 
 <img src="./reports/image/pilot_campaign_model_assumptions.png" alt="My Image" id="pilot_campaign_model_assumptions">
 Pilot Campaign Model Assumptions
