@@ -37,16 +37,21 @@ Our data was the Amazon Mechanical Turk survey scenario responses dataset. It's 
 
 ## 4. Model Comparison
 
-For the purpose of higher ROAS uplift and coupon acceptance rate, the better ML model is the random forest.
-
-For the purpose of higher percentage of coupon acceptances captured and ROI dropoff resistance to additional production cost, the better ML model is the gradient boosting.
+In the figure below, we see the coupon acceptance rate vs percentage of coupon acceptances captured plot for the random forest and gradient boosting ML models.
 
 ![](./reports/image/figure_precision_recall_curve_random_forest_gradient_boosting_metric_auc_v4dot3.png)
 
+Using some assumptions, we concluded the following:
+
+• For the purpose of higher ROAS uplift and coupon acceptance rate, the better ML model is the random forest.
+
+• For the purpose of higher percentage of coupon acceptances captured and ROI dropoff resistance to additional production cost, the better ML model is the gradient boosting.
 
 
 
-## 5. Campaign Model Metrics
+
+
+## 5. ML Model Metrics
 
 In running our pilot campaign model, we found the takeout, coffee house, and low-cost restaurant merchant-advertisers showed preferred performance with good coupon acceptance rate, percentage of coupon acceptances captured, and coupon acceptances. The bar and mid-range restaurant merchant-advertisers were with good coupon acceptance rate, but with lesser percentage of coupon acceptances captured and coupon acceptances.
 
