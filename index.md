@@ -61,9 +61,9 @@ In running our pilot campaign model, we found the takeout, coffee house, and low
 ![](./reports/image/figure_random_forest_gradient_boosting_campaign_model_metrics_v4dot3.png)
 
 
-Making further assumptions on the average sale, targeted cupon recommendation cost, and non-targeted coupon recommendation cost per coupon venue type, we measured ROAS and ROI.
+Making further assumptions on the average sale, targeted coupon recommendation cost, and non-targeted coupon recommendation cost per coupon venue type, we measured ROAS and ROI.
 
-
+<font size="2">[Appendix_](#[Appendix_])</font>
 
 
 :-------------------------:|:-------------------------:
@@ -173,6 +173,7 @@ References
 
 
 ## Appendix
+<font size="6"><a id='[Appendix_]'>**Appendix_**</a> </font>
 
 
 ![](./reports/image/pilot_campaign_model_assumptions.png)
