@@ -64,108 +64,27 @@ Making further [assumptions](#pilot_campaign_model_assumptions) on the average s
  |  ![](./reports/image/figure_random_forest_gradient_boosting_campaign_roi_uplift_estimate_per_additional_production_cost_v4dot3.png)  The pilot campaign model ROI uplift was higher than the drive-sales campaign model for an additional production cost <$600. Otherwise, the drive-sales model ROI uplift was higher.
 
 
+With increased additional production cost, the drive-sales campaign model ROI was more resistant to dropoff and had higher ROI per additional production cost. 
+
+Conversely, there was a clear benefit in the pilot campaign model over the drive-sales campaign model, namely, a higher ROAS uplift estimate at 199% instead of 135%, primarily due to higher coupon acceptance rate uplift. However, with increased additional production cost the pilot campaign model was less resistant to ROI uplift dropoff compared to the drive-sales campaign.
+
+
+## 6. Conclusion
+
+A pilot campaign model with a single random forest and decision threshold for coupon recommendation across five venue types was applied to the 2537 scenario response test set. The merchant-advertisers showing preferred coupon recommendation metrics were the takeout, coffee house, and low-cost restaurant because of good coupon acceptance rate, percentage of coupon acceptances captured, and coupon acceptances 95% confidence intervals. The bar and mid-range restaurant merchant-advertisers were with good coupon acceptance rate, but with lesser percentage of coupon acceptances captured and coupon acceptances. A similar, but less pronounced trend was seen in the drive-sales campaign model. Overall, in the pilot campaign model, we estimated a 199% ROAS uplift at 91% coupon acceptance rate and 28% of coupon acceptances captured. For comparison, in our drive-sales campaign model, we estimated a 135% ROAS uplift at 79% coupon acceptance rate and 80% of coupon acceptances captured.
 
 
 
-
-## 2. Method
-
-Our objective was to determine whether to recommend. The ramifications in attempting to answer this question led us to decide between the following models:
-
-
-1. Build a regression model for predicting spread. Then build a simple policy for betting on NBA games (to return accuracy and ROI).
-
-2. Build a classification model for predicting winning and losing bets.
-
-Because the regression model gave us more granularity, interpretability, and the option to create a confidence interval of predictions, the regression model was favored over the classification model.
-
-
-
-## 3. Data Cleaning 
-
-In this project, we selected the 2010-11 thru 2017-18 seasons for prediction. This is because of our datasets and features, these seasons were in common. Below, we describe some of the data cleaning process.
-
-* **Problem 1:** NBA player names were sometimes not consistent with a team, date, or league. Also, names were sometimes different between the injury, inactive player,  and advanced stats datasets. We wanted the player-level stats to create ‘lost contribution’ features. While cleaning this player name data manually was done, many of these players did not show up in our top features for predictive importance. Maybe In the future, the less impactful players can be ignored.
-
-* **Problem 2:** Game Stats contained game id’s with estimated game dates and conflicted with other the boxscore dataset game dates. Preference was given to the boxscore dataset with fewer missing dates and were not stated as estimates.
-
-* **Problem 3:** Team names were not consistent across datasets and team city, name, or abbreviates sometimes changed between seasons. We wanted to create team matchup stats that were easy to interpret without having to memorize team_id. Team abbreviation was determined as the easiest human readable team identifier. 
-
-
-## 4. EDA
-
-
-![](./readme_files/spread_distribution.png)
-
-
-## 5. Algorithms & Machine Learning
-
-
-Random Forest Regression was used from the scikit-learn library and performed the best among Gradient Boosting and Select K-best Linear Regression. In addition, the Random Forest Regression scikit-learn library provided Gini importance per feature which allowed us to narrow our 800+ features to under 100.  
-
-
-![](./readme_files/metrics.png)
-
->***NOTE:** Here, the first 90% of games were used to predict the last 10% of games. Also, Mean Absolute Error (MAE) is the criterion used in our Random Forest Regression model. Preference is given to the MAE metric because we want the number of points away our predicted spread is from the actual spread and to minimize it.*
-
-
-
-**WINNER: Random Forest Regressor**
-
-grid_params = {<br />
-        'randomforestregressor__n_estimators': [200],<br />
-        'randomforestregressor__max_depth': [10],<br />
-        'randomforestregressor__min_samples_split': [100]<br />
-}
-
-
-## 6. How “Good” Is Our Model?
-
-
-In comparing our MAE to that of the sportsbooks, we achieved an MAE of 9.7 while that of the book was 9.3. Knowing that we did not beat the sportsbook model metric MAE, we were forced to ask how useful is a seemingly inferior model?
-
-To answer this, we decided to make a simple betting policy that attempted to give a good ROI while minimizing risk. One of the features we created for this task is the confidence interval for predicted spread. This was done by taking the bootstrap n=8 mean of Random Forest decision tree predictions. Below is an example spread distribution for an NBA game.
-
-
-![](./readme_files/bootstrap_n8_decision_tree_spread_prediction_density_plot_v2.png)
-
-In addition to the spread confidence interval, we created sportsbook betting features  price break even and the absolute value of spread.
-
-
-
-## 7. Betting Policy
-
-Taking our three new features, we ran combinations of them as betting policy criteria from and on folds 1 thru 7. We collected the top performing policy criteria which turned out to be 5%. The most frequently occurring criterion values were selected and checked for performance on fold 8.
- 
-![](./readme_files/tscv9_train_test2.png)
-
-
-
-## 8. Betting Policy Outcomes
-
-
-Using the same process for betting policy selection on folds 1 thru 8, the same was done on folds 1 thru 8 and checked on fold 9. The results below show that by adjusting the betting size, we adjusted our risk tolerance. From left to right we have a risk tolerance of 5, 2, and 1, where 5 is the maximum losing streak on the train folds 1 thru 8 as a percentage of the total initial number of bets available.
-
-![](./readme_files/betting_policy_results.png)
-
-## 9. Future Improvements
-
-* While in hyperparameter tuning, 5-fold cross-validation produced a “good” model, time series cross-validation would be more suited for a production model. This is because it avoids the potential overfitting of using future data to predict past data. 
-
-* Also, adding more features like names of game officials and quarter by quarter stats could give more insight into the random forest model and potentially yield a better MAE.
-
-* While selecting a simple betting policy was done as a heuristic, exploring potential machine learning solutions may help if going beyond a simple policy is desired.
-
-## 10. Credits
+## 7. Credits
 
 Thanks to the pandas and sklearn developers for an excellent data science toolkit and Blake from Springboard for his insightful guidance on this project.
 
-References
+# 8. References
 [1] 
 [2] A Bayesian Framework for Learning Rule Sets for Interpretable Classification, https://jmlr.org/papers/volume18/16-003/16-003.pdf
 
 
-## Appendix
+## 9. Appendix
 
 <img src="./reports/image/pilot_campaign_model_assumptions.png" alt="My Image" id="pilot_campaign_model_assumptions">
 Pilot Campaign Model Assumptions
