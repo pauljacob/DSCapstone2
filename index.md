@@ -164,16 +164,23 @@ Using the same process for betting policy selection on folds 1 thru 8, the same 
 Thanks to the pandas and sklearn developers for an excellent data science toolkit and Blake from Springboard for his insightful guidance on this project.
 
 
+<img src="./reports/image/pilot_campaign_model_assumptions.png" alt="My Image2" id="my-image2">
+
+
 References
 [1] 
 [2] A Bayesian Framework for Learning Rule Sets for Interpretable Classification, https://jmlr.org/papers/volume18/16-003/16-003.pdf
 
 
+![My Image](./reports/image/pilot_campaign_model_assumptions.png)
+
+
+
 
 ## Appendix
-![My Image](image.jpg)
 
-<img src="image.jpg" alt="My Image" id="my-image">
+
+<img src="pilot_campaign_model_assumptions.png" alt="My Image" id="my-image">
 
 
 ![](./reports/image/pilot_campaign_model_assumptions.png)
@@ -181,7 +188,6 @@ Pilot Campaign Model Assumptions
 
 
 
-<img src="pilot_campaign_model_assumptions.png" alt="My Image" id="my-image">
 [Go to My Image](#my-image)
 
 
