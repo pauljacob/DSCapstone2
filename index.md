@@ -66,6 +66,11 @@ Making further assumptions on the average sale, targeted cupon recommendation co
 
 
 
+:-------------------------:|:-------------------------:
+![](./reports/image/figure_random_forest_gradient_boosting_campaign_roi_per_additional_production_cost_v4dot3.png)  |  ![](./reports/image/figure_random_forest_gradient_boosting_campaign_roi_uplift_estimate_per_additional_production_cost_v4dot3.png)
+
+
+
 
 
 ## 2. Method
@@ -178,9 +183,6 @@ Pilot Campaign Model Assumptions
 
 
 
-Solarized dark             |  Solarized Ocean
-:-------------------------:|:-------------------------:
-![](./reports/image/figure_random_forest_gradient_boosting_campaign_roi_per_additional_production_cost_v4dot3.png)  |  ![](./reports/image/figure_random_forest_gradient_boosting_campaign_roi_uplift_estimate_per_additional_production_cost_v4dot3.png)
 
 
 
