@@ -53,7 +53,7 @@ In running our pilot campaign model, we found the takeout, coffee house, and low
 ![](./reports/image/figure_random_forest_gradient_boosting_campaign_model_metrics_v4dot3.png)
 
 
-Making further [assumptions](#pilot_campaign_model_assumptions) on the average sale, targeted coupon recommendation cost, and non-targeted coupon recommendation cost per coupon venue type, we measured ROAS and ROI.
+Making further assumptions on the average sale, targeted coupon recommendation cost, and non-targeted coupon recommendation cost per coupon venue type, we measured ROAS and ROI.
 
 
 :-------------------------:|:-------------------------:
@@ -84,11 +84,6 @@ Thanks to the pandas and sklearn developers for an excellent data science toolki
 [1] 
 [2] A Bayesian Framework for Learning Rule Sets for Interpretable Classification, https://jmlr.org/papers/volume18/16-003/16-003.pdf
 
-
-## 9. Appendix
-
-<img src="./reports/image/pilot_campaign_model_assumptions.png" alt="My Image" id="pilot_campaign_model_assumptions">
-Pilot Campaign Model Assumptions
 
 
 
