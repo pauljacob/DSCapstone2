@@ -1,6 +1,5 @@
 [Front Page]() | [DSCapstone1](https://pauljacob.github.io/DSCapstone1/) | [DSCapstone2](https://pauljacob.github.io/DSCapstone2/)
 
-
 ![cover_photo](./reports/image/vehicle_coupon_logo.png)
 Left image credit: [website](). Right image credit: [Wang et al](https://jmlr.org/papers/volume18/16-003/16-003.pdf)
 
@@ -9,9 +8,6 @@ Left image credit: [website](). Right image credit: [Wang et al](https://jmlr.or
 ## Executive Summary
 
 *From 2537 survey scenario responses, our random forest estimated an overall food and dining merchant-advertiser 199% ROAS uplift at a 91% coupon acceptance rate and 28% of coupon acceptances captured.*
-
-
-
 
 ## 1. The Problem
 
@@ -38,7 +34,7 @@ Our data was the Amazon Mechanical Turk survey scenario responses dataset. It's 
 
 ## 4. ML Model Comparison
 
-In the figure below, we see the coupon acceptance rate vs percentage of coupon acceptances captured plot for the random forest and gradient boosting ML models.
+In the figure below, we see the coupon acceptance rate vs. percentage of coupon acceptances captured plot for the random forest and gradient boosting.
 
 ![](./reports/image/figure_precision_recall_curve_random_forest_gradient_boosting_metric_auc_v4dot3.png)
 
@@ -64,7 +60,9 @@ Making further [assumptions](#pilot_campaign_model_assumptions) on the average s
 
 
 :-------------------------:|:-------------------------:
-![](./reports/image/figure_random_forest_gradient_boosting_campaign_roi_per_additional_production_cost_v4dot3.png)  |  ![](./reports/image/figure_random_forest_gradient_boosting_campaign_roi_uplift_estimate_per_additional_production_cost_v4dot3.png)
+![](./reports/image/figure_random_forest_gradient_boosting_campaign_roi_per_additional_production_cost_v4dot3.png)  For additional production cost >$0, the drive-sales campaign model estimated model ROI is higher than the pilot campaign model.
+ |  ![](./reports/image/figure_random_forest_gradient_boosting_campaign_roi_uplift_estimate_per_additional_production_cost_v4dot3.png)  The pilot campaign model ROI uplift was higher than the drive-sales campaign model for an additional production cost <$600. Otherwise, the drive-sales model ROI uplift was higher.
+
 
 
 
