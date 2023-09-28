@@ -3,7 +3,7 @@
 
 
 ![cover_photo](./reports/image/vehicle_coupon_logo.png)
-Left Image Credit: [website](). Right Image Credit [Wang et al](https://jmlr.org/papers/volume18/16-003/16-003.pdf)
+Left image credit: [website](). Right image credit: [Wang et al](https://jmlr.org/papers/volume18/16-003/16-003.pdf)
 
 # In-Vehicle Coupon Recommendation
 
