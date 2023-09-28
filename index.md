@@ -20,7 +20,7 @@ The <b>merchant-advertiser</b> is food & dining businesses, e.g., takeouts, coff
 The <b>consumer</b> is USA vehicle drivers with a smartphone (estimated at 182 million individuals).  
 
 ## 2. The Solution
-We the publisher provide the platform for merchant-advertisers to efficiently reach in-vehicle drivers. Using ML models and some assumptions, we estimated the expected campaign performance metrics.
+We the publisher provide the platform for merchant-advertisers to efficiently reach in-vehicle drivers. Using ML models and some assumptions, we estimated the expected campaign performance metrics including coupon acceptance rate, percentage of coupon acceptances captured, and ROAS uplift.
 
 
 
