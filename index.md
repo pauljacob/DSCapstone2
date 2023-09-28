@@ -41,9 +41,17 @@ For the purpose of higher ROAS uplift and coupon acceptance rate, the better ML 
 
 For the purpose of higher percentage of coupon acceptances captured and ROI dropoff resistance to additional production cost, the better ML model is the gradient boosting.
 
+![](./reports/image/figure_precision_recall_curve_random_forest_gradient_boosting_metric_auc_v4dot3.png)
 
 
 
+
+## 5. Campaign Model Metrics
+
+In running our pilot campaign model, we found the takeout, coffee house, and low-cost restaurant merchant-advertisers showed preferred performance with good coupon acceptance rate, percentage of coupon acceptances captured, and coupon acceptances. The bar and mid-range restaurant merchant-advertisers were with good coupon acceptance rate, but with lesser percentage of coupon acceptances captured and coupon acceptances.
+
+
+![](./reports/image/figure_random_forest_gradient_boosting_campaign_model_metrics_v4dot3.png)
 
 
 ## 2. Method
