@@ -60,7 +60,7 @@ Making further assumptions on the average sale, targeted coupon recommendation c
 ![](./reports/image/figure_random_forest_gradient_boosting_campaign_roi_per_additional_production_cost_v4dot3.png) | ![](./reports/image/figure_random_forest_gradient_boosting_campaign_roi_uplift_estimate_per_additional_production_cost_v4dot3.png)
 
 
-For additional production cost >$0, the drive-sales campaign model estimated model ROI is higher than the pilot campaign model.
+For additional production cost >$0, the drive-sales campaign model estimated ROI is higher than the pilot campaign model.
 The pilot campaign model ROI uplift was higher than the drive-sales campaign model for an additional production cost <$600. Otherwise, the drive-sales model ROI uplift was higher.
 
 
