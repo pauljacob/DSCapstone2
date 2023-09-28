@@ -181,7 +181,8 @@ Pilot Campaign Model Assumptions
 
 
 
-
+<img src="pilot_campaign_model_assumptions.png" alt="My Image" id="my-image">
+[Go to My Image](#my-image)
 
 
 
