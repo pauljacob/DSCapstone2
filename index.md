@@ -3,6 +3,8 @@
 
 
 ![cover_photo](./reports/image/vehicle_coupon_logo.png)
+Vehicle Logo Image by ...[1] and Survey Coupon Recommendation Image by ... [2]
+
 # In-Vehicle Coupon Recommendation
 
 *From 2537 survey scenario responses, our random forest estimated an overall food and dining merchant-advertiser 199% ROAS uplift at a 91% coupon acceptance rate and 28% of coupon acceptances captured.*
@@ -16,9 +18,9 @@ Food and dining merchant-advertisers want to cost effectively reach consumers wi
 
 ![](./reports/image/entity_diagram.png)
 
-Publisher: supply an ad space service for merchant-advertisers that serves ads to consumers via our mobile app.__
-Merchant-advertiser: food & dining businesses, e.g. takeout, coffee houses, bars, low-cost restaurants, and mid-range restaurants.__
-Consumers: USA vehicle drivers with a smartphone (estimated at 182 million individuals).__
+Publisher: supply an ad space service for merchant-advertisers that serves ads to consumers via our mobile app.  
+Merchant-advertiser: food & dining businesses, e.g. takeout, coffee houses, bars, low-cost restaurants, and mid-range restaurants.  
+Consumers: USA vehicle drivers with a smartphone (estimated at 182 million individuals).  
 
 
 ## 2. The Solution
@@ -131,3 +133,9 @@ Using the same process for betting policy selection on folds 1 thru 8, the same 
 ## 10. Credits
 
 Thanks to the pandas and sklearn developers for an excellent data science toolkit and Blake from Springboard for his insightful guidance on this project.
+
+
+References
+[1] 
+[2] A Bayesian Framework for Learning Rule Sets for Interpretable Classification, https://jmlr.org/papers/volume18/16-003/16-003.pdf
+
