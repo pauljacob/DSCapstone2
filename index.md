@@ -15,9 +15,9 @@ Food and dining merchant-advertisers want to cost effectively reach consumers wi
 
 ![](./reports/image/entity_diagram.png)
 
-Publisher: supply an ad space service for merchant-advertisers that serves ads to consumers via our mobile app.  
-Merchant-advertiser: food & dining businesses, e.g., takeouts, coffee houses, bars, low-cost restaurants, and mid-range restaurants.  
-Consumers: USA vehicle drivers with a smartphone (estimated at 182 million individuals).  
+We the <b>publisher</b> supply an ad space service for merchant-advertisers that serves ads to consumers via our mobile app.  
+The <b>merchant-advertiser</b> is food & dining businesses, e.g., takeouts, coffee houses, bars, low-cost restaurants, and mid-range restaurants.  
+The <b>consumer</b> is USA vehicle drivers with a smartphone (estimated at 182 million individuals).  
 
 ## 2. The Solution
 We the publisher provide the platform for merchant-advertisers to efficiently reach in-vehicle drivers. Using ML models and some assumptions, we estimated the expected campaign performance metrics.
