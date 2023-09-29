@@ -79,7 +79,7 @@ A pilot campaign model with a single random forest and decision threshold for co
 
 ## 7. Credits
 
-Thanks to the pandas and sklearn developers for an excellent data science toolkit and Blake from Springboard for his insightful guidance on this project.
+Thanks to the pandas and sklearn developers for an excellent data science toolkit and a special thanks to Blake at Springboard for his insight and guidance on my capstone.
 
 # 8. References
 [1] 
