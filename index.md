@@ -11,7 +11,7 @@ Left image credit: [website](). Right image credit: [Wang et al](https://jmlr.or
 
 ## 1. The Problem
 
-Food and dining merchant-advertisers need to cost effectively increase reach to consumers with coupons and drive sales to their venue.
+Food and dining merchant-advertisers need to cost effectively increase reach to consumers with coupon recommendations and drive sales to their venue.
 
 ![](./reports/image/entity_diagram.png)
 
@@ -20,7 +20,7 @@ The <b>merchant-advertiser</b> is food & dining businesses, e.g., takeouts, coff
 The <b>consumer</b> is USA vehicle drivers with a smartphone (estimated at 182 million individuals).  
 
 ## 2. The Solution
-We the publisher provide the platform for merchant-advertisers to efficiently reach in-vehicle drivers. Using ML models and some assumptions, we estimated the expected campaign performance metrics including coupon acceptance rate, percentage of coupon acceptances captured, and ROAS uplift.
+We the publisher provide the platform for merchant-advertisers to efficiently reach in-vehicle drivers. Using ML models and some assumptions, we estimated the expected campaign coupon acceptance rate, percentage of coupon acceptances captured, and ROAS uplift.
 
 
 
