@@ -26,7 +26,7 @@ We the publisher provide the platform for merchant-advertisers to efficiently re
 
 ## 3. The Data
 
-Our data was the Amazon Mechanical Turk survey scenario responses dataset. It's made up of 654 survey participants and represents a sample of the population which we defined as drivers in the USA with a mobile smart device.
+Our data was the Amazon Mechanical Turk survey scenario responses dataset. It's made up of 654 survey participants and represents a sample of the population which we defined as drivers in the USA with a smartphone.
 
 > * In-Vehicle Coupon Recommendation Scenario Response Survey Dataset: [UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/603/in+vehicle+coupon+recommendation)
 
@@ -37,6 +37,8 @@ Our data was the Amazon Mechanical Turk survey scenario responses dataset. It's 
 In the figure below, we see the coupon acceptance rate vs. percentage of coupon acceptances captured plot for the random forest and gradient boosting.
 
 ![](./reports/image/figure_precision_recall_curve_random_forest_gradient_boosting_metric_auc_v4dot3.png)
+
+From the plot, we see random forest performed better for higher coupon acceptance rate and the gradient boosting performed better for higher percentage of coupon acceptances captured.
 
 Using some assumptions, we concluded the following:
 
