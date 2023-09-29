@@ -40,12 +40,6 @@ In the figure below, we see the coupon acceptance rate vs. percentage of coupon 
 
 From the plot, we see random forest performed better for higher coupon acceptance rate and the gradient boosting performed better for higher percentage of coupon acceptances captured.
 
-Using some assumptions, we concluded the following:
-
-• For the purpose of higher ROAS uplift and coupon acceptance rate, the better ML model is the random forest.
-
-• For the purpose of higher percentage of coupon acceptances captured and ROI dropoff resistance to additional production cost, the better ML model is the gradient boosting.
-
 
 ## 5. Campaign Model Metrics
 
