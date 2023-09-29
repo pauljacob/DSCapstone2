@@ -49,7 +49,7 @@ In running our pilot campaign model, we found the takeout, coffee house, and low
 ![](./reports/image/figure_random_forest_gradient_boosting_campaign_model_metrics_v4dot3.png)
 
 
-Making further assumptions on the average sale, targeted coupon recommendation cost, and non-targeted coupon recommendation cost per coupon venue type, we measured ROAS and ROI.
+Making further assumptions on the merchant-advertiser by coupon average sale, targeted coupon recommendation cost, and non-targeted coupon recommendation cost, we measured ROAS and ROI.
 
 
 :-------------------------:|:-------------------------:
@@ -73,7 +73,7 @@ A pilot campaign model with a single random forest and decision threshold for co
 
 ## 7. Credits
 
-Thanks to the pandas and sklearn developers for an excellent data science toolkit and a special thanks to Blake at Springboard for his insight and guidance on my capstone.
+Thanks to the pandas and sklearn developers for an excellent data science toolkit and a special thanks to Blake at Springboard for his insight and guidance on this capstone.
 
 # 8. References
 [1] 
