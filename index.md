@@ -1,7 +1,7 @@
 [DSCapstone1](https://pauljacob.github.io/DSCapstone1/) | [DSCapstone2](https://pauljacob.github.io/DSCapstone2/)
 
-![cover_photo](./reports/image/vehicle_coupon_logo.png)
-Left image credit: [website](). Right image credit: [Wang et al](https://jmlr.org/papers/volume18/16-003/16-003.pdf)
+![cover_photo](./reports/image/vehicle_coupon_logo.png){: .wide-image}
+Left image credit: [website](). Right image credit: [Wang et al](https://jmlr.org/papers/volume18/16-003/16-003.pdf){: .wide-image}
 
 # In-Vehicle Coupon Recommendation
 
@@ -13,7 +13,7 @@ Left image credit: [website](). Right image credit: [Wang et al](https://jmlr.or
 
 Food and dining merchant-advertisers need to cost effectively increase reach to consumers with coupon recommendations and drive sales to their venue.
 
-![](./reports/image/entity_diagram.png)
+![](./reports/image/entity_diagram.png){: .wide-image}
 
 We the <b>publisher</b> supply an ad space service for merchant-advertisers that serves ads to consumers via our mobile app.  
 The <b>merchant-advertiser</b> is food & dining businesses, e.g., takeouts, coffee houses, bars, low-cost restaurants, and mid-range restaurants.  
@@ -36,7 +36,7 @@ Our data was the Amazon Mechanical Turk survey scenario responses dataset. It's 
 
 In the figure below, we see the coupon acceptance rate vs. percentage of coupon acceptances captured plot for the random forest and gradient boosting.
 
-![](./reports/image/figure_precision_recall_curve_random_forest_gradient_boosting_metric_auc_v4dot3.png)
+![](./reports/image/figure_precision_recall_curve_random_forest_gradient_boosting_metric_auc_v4dot3.png){: .wide-image}
 
 From the plot, we see random forest performed better for higher coupon acceptance rate and the gradient boosting performed better for higher percentage of coupon acceptances captured.
 
@@ -46,7 +46,7 @@ From the plot, we see random forest performed better for higher coupon acceptanc
 In running our pilot campaign model, we found the takeout, coffee house, and low-cost restaurant merchant-advertisers showed preferred performance with good coupon acceptance rate, percentage of coupon acceptances captured, and coupon acceptances. The bar and mid-range restaurant merchant-advertisers were with good coupon acceptance rate, but with lesser percentage of coupon acceptances captured and coupon acceptances.
 
 
-![](./reports/image/figure_random_forest_gradient_boosting_campaign_model_metrics_v4dot3.png)
+![](./reports/image/figure_random_forest_gradient_boosting_campaign_model_metrics_v4dot3.png){: .wide-image}
 
 
 Making further assumptions on the merchant-advertiser by coupon average sale, targeted coupon recommendation cost, and non-targeted coupon recommendation cost, we measured ROAS and ROI.
@@ -76,13 +76,53 @@ A pilot campaign model with a single random forest and decision threshold for co
 Thanks to the pandas and sklearn developers for an excellent data science toolkit and a special thanks to Blake at Springboard for his insight and guidance on this capstone.
 
 # 8. References
-[1]  
+[1] 
 [2] A Bayesian Framework for Learning Rule Sets for Interpretable Classification, https://jmlr.org/papers/volume18/16-003/16-003.pdf
 
 
 
 
 
+
+# Rule 1
+Description for rule 1.
+
+<div style="-webkit-column-count: 2; -moz-column-count: 2; column-count: 2; -webkit-column-rule: 1px dotted #e0e0e0; -moz-column-rule: 1px dotted #e0e0e0; column-rule: 1px dotted #e0e0e0;">
+    <div style="display: inline-block;">
+        <h2>Good</h2>
+        <pre><code class="language-c">int foo (void) 
+{
+    int i;
+}
+</code></pre>
+    </div>
+    <div style="display: inline-block;">
+        <h2>Bad</h2>
+        <pre><code class="language-c">int foo (void) {
+    int i;
+}
+</code></pre>
+    </div>
+</div>
+
+
+
+
+# Rule 1
+Description for rule 1.
+
+<div style="-webkit-column-count: 2; -moz-column-count: 2; column-count: 2; -webkit-column-rule: 1px dotted #e0e0e0; -moz-column-rule: 1px dotted #e0e0e0; column-rule: 1px dotted #e0e0e0;">
+    <div style="display: inline-block;">
+        <h2>Good</h2>
+        <pre>For additional production cost >$0, the drive-sales campaign model estimated model ROI is higher than the pilot campaign model. The pilot campaign model ROI uplift was higher than the drive-sales campaign model for an additional production cost <$600. Otherwise, the drive-sales model ROI uplift was higher.
+        </pre>
+    </div>
+    <div style="display: inline-block;">
+        <h2>Bad</h2>
+        <pre>With increased additional production cost, the drive-sales campaign model ROI was more resistant to dropoff and had higher ROI per additional production cost.
+        </pre>
+    </div>
+</div>
 
 
 
