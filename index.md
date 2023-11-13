@@ -1,6 +1,6 @@
 [DSCapstone1](https://pauljacob.github.io/DSCapstone1/) | [DSCapstone2](https://pauljacob.github.io/DSCapstone2/)
 
-![cover_photo](./reports/image/vehicle_coupon_logo.png){: .wide-image}
+![cover_photo](./images/dscapstone2/vehicle_coupon_logo.png){: .wide-image}
 Left image credit: [website](). Right image credit: [Wang et al](https://jmlr.org/papers/volume18/16-003/16-003.pdf){: .wide-image}
 
 # In-Vehicle Coupon Recommendation
@@ -11,9 +11,9 @@ Left image credit: [website](). Right image credit: [Wang et al](https://jmlr.or
 
 ## 1. The Problem
 
-Food and dining merchant-advertisers need to cost effectively increase reach to consumers with coupon recommendations and drive sales to their venue.
+Food and dining merchant-advertisers need to cost effectively increase reach to consumers and drive sales to their venue via coupon recommendations. 
 
-![](./reports/image/entity_diagram.png){: .wide-image}
+![](./images/dscapstone2//entity_diagram.png){: .wide-image}
 
 We the <b>publisher</b> supply an ad space service for merchant-advertisers that serves ads to consumers via our mobile app.  
 The <b>merchant-advertiser</b> is food & dining businesses, e.g., takeouts, coffee houses, bars, low-cost restaurants, and mid-range restaurants.  
@@ -34,29 +34,29 @@ Our data was the Amazon Mechanical Turk survey scenario responses dataset. It's 
 
 ## 4. ML Model Comparison
 
-In the figure below, we see the coupon acceptance rate vs. percentage of coupon acceptances captured plot for the random forest and gradient boosting.
+In the figure below is the coupon acceptance rate vs. percentage of coupon acceptances captured plot for the random forest and gradient boosting in the 5-fold CV train set.
 
-![](./reports/image/figure_precision_recall_curve_random_forest_gradient_boosting_metric_auc_v4dot3.png){: .wide-image}
+![](./images/dscapstone2/figure_precision_recall_curve_random_forest_gradient_boosting_metric_auc_v4dot3.png){: .wide-image}
 
-From the plot, we see random forest performed better for higher coupon acceptance rate and the gradient boosting performed better for higher percentage of coupon acceptances captured.
+Here, the random forest performed better for higher coupon acceptance rate and the gradient boosting performed better for higher percentage of coupon acceptances captured.
 
 
 ## 5. Campaign Model Metrics
 
-In running our pilot campaign model, we found the takeout, coffee house, and low-cost restaurant merchant-advertisers showed preferred performance with good coupon acceptance rate, percentage of coupon acceptances captured, and coupon acceptances. The bar and mid-range restaurant merchant-advertisers were with good coupon acceptance rate, but with lesser percentage of coupon acceptances captured and coupon acceptances.
+In running our pilot campaign model, we found the takeout, coffee house, and low-cost restaurant merchant-advertisers showed good coupon acceptance rate, percentage of coupon acceptances captured, and coupon acceptances. The bar and mid-range restaurant merchant-advertisers were with good coupon acceptance rate, but with lesser percentage of coupon acceptances captured and coupon acceptances.
 
 
-![](./reports/image/figure_random_forest_gradient_boosting_campaign_model_metrics_v4dot3.png){: .wide-image}
+![](./images/dscapstone2/figure_random_forest_gradient_boosting_campaign_model_metrics_v4dot3.png){: .wide-image}
 
 
-Making further assumptions on the merchant-advertiser by coupon average sale, targeted coupon recommendation cost, and non-targeted coupon recommendation cost, we measured ROAS and ROI.
+Making further assumptions of the merchant-advertiser by coupon average sale, targeted coupon recommendation cost, and non-targeted coupon recommendation cost, we measured ROAS and ROI.
 
 
-:-------------------------:|:-------------------------:
-![](./reports/image/figure_random_forest_gradient_boosting_campaign_roi_per_additional_production_cost_v4dot3.png){: .wide-image} | ![](./reports/image/figure_random_forest_gradient_boosting_campaign_roi_uplift_estimate_per_additional_production_cost_v4dot3.png){: .wide-image}
 
-
+![](./images/dscapstone2/figure_random_forest_gradient_boosting_campaign_roi_per_additional_production_cost_v4dot3.png){: .wide-image}
 For additional production cost >$0, the drive-sales campaign model estimated ROI is higher than the pilot campaign model.
+
+![](./images/dscapstone2/figure_random_forest_gradient_boosting_campaign_roi_uplift_estimate_per_additional_production_cost_v4dot3.png){: .wide-image}
 The pilot campaign model ROI uplift was higher than the drive-sales campaign model for an additional production cost <$600. Otherwise, the drive-sales model ROI uplift was higher.
 
 
@@ -67,7 +67,7 @@ Conversely, there was a clear benefit in the pilot campaign model over the drive
 
 ## 6. Conclusion
 
-A pilot campaign model with a single random forest and decision threshold for coupon recommendation across five venue types was applied to the 2537 scenario response test set. The merchant-advertisers showing preferred coupon recommendation metrics were the takeout, coffee house, and low-cost restaurant because of good coupon acceptance rate, percentage of coupon acceptances captured, and coupon acceptances 95% confidence intervals. The bar and mid-range restaurant merchant-advertisers were with good coupon acceptance rate, but with lesser percentage of coupon acceptances captured and coupon acceptances. A similar, but less pronounced trend was seen in the drive-sales campaign model. Overall, in the pilot campaign model, we estimated a 199% ROAS uplift at 91% coupon acceptance rate and 28% of coupon acceptances captured. For comparison, in our drive-sales campaign model, we estimated a 135% ROAS uplift at 79% coupon acceptance rate and 80% of coupon acceptances captured.
+A pilot campaign model via random forest was applied to the 2537 scenario response test set. The merchant-advertisers showing preferred coupon recommendation metrics were the takeout, coffee house, and low-cost restaurant because of good coupon acceptance rate, percentage of coupon acceptances captured, and coupon acceptances. The bar and mid-range restaurant merchant-advertisers were with good coupon acceptance rate, but with lesser percentage of coupon acceptances captured and coupon acceptances. A similar, but less pronounced trend was seen in the drive-sales campaign model. Overall, in the pilot campaign model, we estimated a 199% ROAS uplift at 91% coupon acceptance rate and 28% of coupon acceptances captured. For comparison, in our drive-sales campaign model, we estimated a 135% ROAS uplift at 79% coupon acceptance rate and 80% of coupon acceptances captured.
 
 
 
@@ -78,6 +78,7 @@ Thanks to the pandas and sklearn developers for an excellent data science toolki
 # 8. References
 [1]  
 [2] A Bayesian Framework for Learning Rule Sets for Interpretable Classification, https://jmlr.org/papers/volume18/16-003/16-003.pdf
+
 
 
 
